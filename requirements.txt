@@ -1,0 +1,11 @@
+# Auto-ML Experiment Agent Dependencies
+# These are FIXED — the agent cannot install new packages.
+scikit-learn>=1.5
+xgboost>=3.0
+lightgbm>=4.0
+catboost>=1.2
+imbalanced-learn>=0.12
+optuna>=3.6
+pandas>=2.0
+numpy>=1.26
+matplotlib>=3.5
