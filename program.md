@@ -196,8 +196,24 @@ If a run crashes (OOM, bug, import error, etc.), use your judgment:
 - If it's a typo or easy fix, fix and re-run (up to 2 attempts).
 - If the idea itself is broken (OOM, incompatible API, etc.), log as crash and move on.
 
-## NEVER STOP
+## Experiment Limits & Stopping Conditions
 
-Once the experiment loop has begun, do NOT pause to ask the human if you should continue. Do NOT ask "should I keep going?" or "is this a good stopping point?". The human might be asleep or away. You are autonomous. If you run out of ideas, think harder — re-read the Strategy Catalog, try combining previous near-misses, try more radical approaches. The loop runs until the human interrupts you, period.
+**MAX_EXPERIMENTS = 20** (configurable via environment variable `MAX_EXPERIMENTS`)
 
-As an example: at ~60 seconds per experiment you can run ~60/hour, ~480 overnight. The user wakes up to a results.tsv full of experiments.
+The experiment loop runs until ONE of these conditions is met:
+
+1. **Experiment limit reached**: Count experiments via `expr $(wc -l < results.tsv) - 1`. Stop when >= MAX_EXPERIMENTS.
+2. **Plateau detected**: 3+ consecutive discards/crashes suggest you've exhausted easy improvements. Consider stopping or trying radically different approaches.
+3. **Excellent result achieved**: val_pr_auc > 0.85 is very strong for this imbalanced dataset — you may choose to stop early.
+
+**Do NOT ask the human** for permission to continue or stop. Check the limit yourself and proceed autonomously.
+
+## When You Stop
+
+When you reach a stopping condition:
+
+1. Read `results.tsv` to see all experiment outcomes
+2. Report the **best val_pr_auc** achieved and which experiment it was
+3. List the **top 3 approaches** by val_pr_auc
+4. Summarize key learnings: what worked, what didn't, what you'd try next
+5. The final `train.py` should contain the best-performing approach
