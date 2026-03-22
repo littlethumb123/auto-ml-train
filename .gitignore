@@ -1,0 +1,11 @@
+# Auto-train experiment artifacts
+run.log
+results.tsv
+__pycache__/
+*.pyc
+.github/hooks/logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp

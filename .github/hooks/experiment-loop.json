@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": ".github/hooks/scripts/auto-allow.sh",
+        "timeoutSec": 5
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": ".github/hooks/scripts/force-continue.sh",
+        "timeoutSec": 5
+      }
+    ],
+    "sessionStart": [
+      {
+        "type": "prompt",
+        "prompt": "Read program.md for the full experiment protocol. Read results.tsv if it exists to see past experiments. Then start or continue the experiment loop. NEVER STOP."
+      }
+    ]
+  }
+}
