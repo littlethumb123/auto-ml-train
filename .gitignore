@@ -1,9 +1,16 @@
 # Auto-train experiment artifacts
 run.log
 results.tsv
+progress.png
 __pycache__/
 *.pyc
 .github/hooks/logs/
+
+# Data (too large for git — 150MB CSV)
+data/
+
+# Reference implementation (read-only copy)
+autoresearch-master/
 
 # IDE
 .vscode/
