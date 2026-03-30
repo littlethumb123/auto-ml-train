@@ -46,30 +46,28 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "XGBoost with scale_pos_weight (no scaler needed for trees)"
+DESCRIPTION = "XGBoost tuned: more trees, lower LR, regularization, subsample"
 
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
 
-def build_pipeline():
-    """Build and return the ML pipeline."""
-    # Calculate scale_pos_weight for class imbalance
-    # Will be set after data loading; use placeholder
-    return None
-
-
 def build_model(y_train):
-    """Build XGBoost with proper class imbalance handling."""
+    """Build tuned XGBoost."""
     n_neg = (y_train == 0).sum()
     n_pos = (y_train == 1).sum()
     ratio = n_neg / n_pos
 
     model = XGBClassifier(
-        n_estimators=300,
-        max_depth=6,
-        learning_rate=0.1,
+        n_estimators=500,
+        max_depth=5,
+        learning_rate=0.05,
         scale_pos_weight=ratio,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_alpha=1.0,
+        reg_lambda=1.0,
+        min_child_weight=5,
         random_state=RANDOM_SEED,
         eval_metric="aucpr",
         tree_method="hist",
