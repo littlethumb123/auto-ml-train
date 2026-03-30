@@ -46,20 +46,22 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "XGBoost tuned + feature eng: log1p(Amount), time features, V interactions"
+DESCRIPTION = "XGBoost with early stopping on val set + feature eng"
 
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
 
+USE_EARLY_STOPPING = True
+
 def build_model(y_train):
-    """Build tuned XGBoost."""
+    """Build XGBoost — will use early stopping during fit."""
     n_neg = (y_train == 0).sum()
     n_pos = (y_train == 1).sum()
     ratio = n_neg / n_pos
 
     model = XGBClassifier(
-        n_estimators=500,
+        n_estimators=2000,
         max_depth=5,
         learning_rate=0.05,
         scale_pos_weight=ratio,
@@ -71,6 +73,7 @@ def build_model(y_train):
         random_state=RANDOM_SEED,
         eval_metric="aucpr",
         tree_method="hist",
+        early_stopping_rounds=50,
         n_jobs=-1,
     )
     return model
@@ -110,9 +113,13 @@ print(f"Time budget: {TIME_BUDGET}s (hard limit: {HARD_TIMEOUT}s)")
 # Build model
 model = build_model(y_train)
 
-# Train
+# Train (with early stopping if enabled)
 t_train_start = time.time()
-model.fit(X_train, y_train)
+if USE_EARLY_STOPPING:
+    model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
+    print(f"Best iteration: {model.best_iteration}")
+else:
+    model.fit(X_train, y_train)
 training_time = time.time() - t_train_start
 
 # Soft check: warn if training alone exceeded budget
