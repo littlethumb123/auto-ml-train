@@ -46,7 +46,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "XGBoost tuned: more trees, lower LR, regularization, subsample"
+DESCRIPTION = "XGBoost tuned + feature eng: log1p(Amount), time features, V interactions"
 
 # ---------------------------------------------------------------------------
 # Pipeline
@@ -81,8 +81,26 @@ def build_model(y_train):
 
 t_start = time.time()
 
+def engineer_features(X):
+    """Add engineered features to a DataFrame."""
+    X = X.copy()
+    X["log_Amount"] = np.log1p(X["Amount"])
+    X["Time_hour"] = (X["Time"] % 86400) / 3600
+    X["Time_sin"] = np.sin(2 * np.pi * X["Time_hour"] / 24)
+    X["Time_cos"] = np.cos(2 * np.pi * X["Time_hour"] / 24)
+    X["V1_V2"] = X["V1"] * X["V2"]
+    X["V1_V3"] = X["V1"] * X["V3"]
+    X["V3_V4"] = X["V3"] * X["V4"]
+    X["Amount_V1"] = X["Amount"] * X["V1"]
+    X["Amount_V2"] = X["Amount"] * X["V2"]
+    return X
+
 # Load data (from frozen prepare.py)
 X_train, X_val, X_test, y_train, y_val, y_test = get_splits()
+
+# Feature engineering
+X_train = engineer_features(X_train)
+X_val = engineer_features(X_val)
 
 print(f"Dataset: {X_train.shape[0]:,} train, {X_val.shape[0]:,} val, {X_test.shape[0]:,} test")
 print(f"Features: {X_train.shape[1]}")
