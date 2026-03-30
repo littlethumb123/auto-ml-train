@@ -26,9 +26,7 @@ from prepare import (
     print_summary,
 )
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
+from xgboost import XGBClassifier
 
 # ---------------------------------------------------------------------------
 # Time budget enforcement (hard kill if exceeded)
@@ -48,29 +46,36 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "baseline: LogisticRegression + StandardScaler + balanced weights"
+DESCRIPTION = "XGBoost with scale_pos_weight (no scaler needed for trees)"
 
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
 
 def build_pipeline():
-    """Build and return the ML pipeline.
+    """Build and return the ML pipeline."""
+    # Calculate scale_pos_weight for class imbalance
+    # Will be set after data loading; use placeholder
+    return None
 
-    The agent can replace this entire function with any sklearn-compatible
-    pipeline, ensemble, or custom model. The only requirement is that the
-    returned object supports .fit(X, y) and .predict_proba(X) or
-    .decision_function(X).
-    """
-    pipeline = Pipeline([
-        ("scaler", StandardScaler()),
-        ("model", LogisticRegression(
-            random_state=RANDOM_SEED,
-            max_iter=1000,
-            class_weight="balanced",
-        )),
-    ])
-    return pipeline
+
+def build_model(y_train):
+    """Build XGBoost with proper class imbalance handling."""
+    n_neg = (y_train == 0).sum()
+    n_pos = (y_train == 1).sum()
+    ratio = n_neg / n_pos
+
+    model = XGBClassifier(
+        n_estimators=300,
+        max_depth=6,
+        learning_rate=0.1,
+        scale_pos_weight=ratio,
+        random_state=RANDOM_SEED,
+        eval_metric="aucpr",
+        tree_method="hist",
+        n_jobs=-1,
+    )
+    return model
 
 # ---------------------------------------------------------------------------
 # Main execution
@@ -86,12 +91,12 @@ print(f"Features: {X_train.shape[1]}")
 print(f"Fraud rate (train): {y_train.mean():.4%}")
 print(f"Time budget: {TIME_BUDGET}s (hard limit: {HARD_TIMEOUT}s)")
 
-# Build pipeline
-pipeline = build_pipeline()
+# Build model
+model = build_model(y_train)
 
 # Train
 t_train_start = time.time()
-pipeline.fit(X_train, y_train)
+model.fit(X_train, y_train)
 training_time = time.time() - t_train_start
 
 # Soft check: warn if training alone exceeded budget
@@ -99,7 +104,7 @@ if training_time > TIME_BUDGET:
     print(f"WARNING: training took {training_time:.1f}s (budget: {TIME_BUDGET}s)")
 
 # Evaluate on validation set (this is what determines keep/discard)
-metrics = evaluate(pipeline, X_val, y_val)
+metrics = evaluate(model, X_val, y_val)
 
 total_time = time.time() - t_start
 
