@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_feature ablation: remove v_interactions — test if PCA cross-terms add signal"
+DESCRIPTION = "A_hp: n_estimators=1500, learning_rate=0.02 — more trees, lower LR for better convergence"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -80,9 +80,9 @@ def build_pipeline(y_train):
     n_pos = (y_train == 1).sum()
     ratio = n_neg / n_pos
     return XGBClassifier(
-        n_estimators=500,
+        n_estimators=1500,
         max_depth=5,
-        learning_rate=0.05,
+        learning_rate=0.02,
         scale_pos_weight=ratio,
         subsample=0.8,
         colsample_bytree=0.8,
