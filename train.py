@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_feature ablation: remove time_features (Time_hour, Time_sin, Time_cos)"
+DESCRIPTION = "A_hp: max_depth=6 — deeper trees may capture more complex patterns"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -76,7 +76,7 @@ def build_pipeline(y_train):
     ratio = n_neg / n_pos
     return XGBClassifier(
         n_estimators=1500,
-        max_depth=5,
+        max_depth=6,
         learning_rate=0.02,
         scale_pos_weight=ratio,
         subsample=0.8,
