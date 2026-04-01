@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_validate: exact Optuna params — depth=4, n_est=2030, lr=0.019595, mcw=4"
+DESCRIPTION = "A_hp: n_estimators=3000 — more trees may continue improving convergence"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -75,7 +75,7 @@ def build_pipeline(y_train):
     n_pos = (y_train == 1).sum()
     ratio = n_neg / n_pos
     return XGBClassifier(
-        n_estimators=2030,
+        n_estimators=3000,
         max_depth=4,
         learning_rate=0.019595,
         min_child_weight=4,
