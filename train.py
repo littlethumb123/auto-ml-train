@@ -26,10 +26,7 @@ from prepare import (
     print_summary,
 )
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, average_precision_score
 
 # ---------------------------------------------------------------------------
 # Time budget enforcement (hard kill if exceeded)
@@ -49,7 +46,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_hp: n_estimators=3000 — more trees may continue improving convergence"
+DESCRIPTION = "A_hp: Optuna 50-trial broad search (depth,lr,subsample,colsample,mcw) with 200-tree proxy"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -57,46 +54,22 @@ DESCRIPTION = "A_hp: n_estimators=3000 — more trees may continue improving con
 
 def engineer_features(X):
     X = X.copy()
-    # log_amount
     X["log_amount"] = np.log1p(X["Amount"])
-    # amount_interactions
     X["Amt_V1"] = X["Amount"] * X["V1"]
     X["Amt_V2"] = X["Amount"] * X["V2"]
     return X
 
 # ---------------------------------------------------------------------------
-# Pipeline
-# ---------------------------------------------------------------------------
-
-from xgboost import XGBClassifier
-
-def build_pipeline(y_train):
-    n_neg = (y_train == 0).sum()
-    n_pos = (y_train == 1).sum()
-    ratio = n_neg / n_pos
-    return XGBClassifier(
-        n_estimators=3000,
-        max_depth=4,
-        learning_rate=0.019595,
-        min_child_weight=4,
-        scale_pos_weight=ratio,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        reg_alpha=1.0,
-        reg_lambda=1.0,
-        eval_metric="aucpr",
-        tree_method="hist",
-        n_jobs=-1,
-        random_state=RANDOM_SEED,
-    )
-
-# ---------------------------------------------------------------------------
 # Main execution
 # ---------------------------------------------------------------------------
 
+from xgboost import XGBClassifier
+import optuna
+
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+
 t_start = time.time()
 
-# Load data (from frozen prepare.py)
 X_train, X_val, X_test, y_train, y_val, y_test = get_splits()
 
 X_train = engineer_features(X_train)
@@ -108,24 +81,62 @@ print(f"Features: {X_train.shape[1]}")
 print(f"Fraud rate (train): {y_train.mean():.4%}")
 print(f"Time budget: {TIME_BUDGET}s (hard limit: {HARD_TIMEOUT}s)")
 
-# Build pipeline
-pipeline = build_pipeline(y_train)
+n_neg = (y_train == 0).sum()
+n_pos = (y_train == 1).sum()
+ratio = n_neg / n_pos
 
-# Train
+def objective(trial):
+    model = XGBClassifier(
+        n_estimators=200,  # fast proxy for search
+        max_depth=trial.suggest_int("max_depth", 3, 6),
+        learning_rate=trial.suggest_float("learning_rate", 0.005, 0.08, log=True),
+        min_child_weight=trial.suggest_int("min_child_weight", 1, 10),
+        scale_pos_weight=ratio,
+        subsample=trial.suggest_float("subsample", 0.5, 1.0),
+        colsample_bytree=trial.suggest_float("colsample_bytree", 0.5, 1.0),
+        reg_alpha=1.0,
+        reg_lambda=1.0,
+        eval_metric="aucpr",
+        tree_method="hist",
+        n_jobs=-1,
+        random_state=RANDOM_SEED,
+    )
+    model.fit(X_train, y_train)
+    y_prob = model.predict_proba(X_val)[:, 1]
+    return average_precision_score(y_val, y_prob)
+
+study = optuna.create_study(
+    direction="maximize",
+    sampler=optuna.samplers.TPESampler(seed=RANDOM_SEED),
+)
+study.optimize(objective, n_trials=50, timeout=40.0)
+best = study.best_params
+print(f"Optuna best params: {best}")
+print(f"Optuna best val_pr_auc (200 trees): {study.best_value:.6f}")
+
+# Refit with n_estimators=3000 at found params
 t_train_start = time.time()
+pipeline = XGBClassifier(
+    n_estimators=3000,
+    max_depth=best["max_depth"],
+    learning_rate=best["learning_rate"],
+    min_child_weight=best["min_child_weight"],
+    scale_pos_weight=ratio,
+    subsample=best["subsample"],
+    colsample_bytree=best["colsample_bytree"],
+    reg_alpha=1.0,
+    reg_lambda=1.0,
+    eval_metric="aucpr",
+    tree_method="hist",
+    n_jobs=-1,
+    random_state=RANDOM_SEED,
+)
 pipeline.fit(X_train, y_train)
 training_time = time.time() - t_train_start
 
-# Evaluate on validation set (this is what determines keep/discard)
 metrics = evaluate(pipeline, X_val, y_val)
 
-# Additional metrics for ABES multi-objective tracking (prepare.py is frozen, computed here)
-if hasattr(pipeline, "predict_proba"):
-    y_prob_val = pipeline.predict_proba(X_val)[:, 1]
-elif hasattr(pipeline, "decision_function"):
-    y_prob_val = pipeline.decision_function(X_val)
-else:
-    y_prob_val = np.zeros(len(y_val))
+y_prob_val = pipeline.predict_proba(X_val)[:, 1]
 y_pred_val = pipeline.predict(X_val)
 top_k = int(len(y_val) * 0.10)
 sorted_idx = np.argsort(y_prob_val)[::-1][:top_k]
@@ -135,6 +146,4 @@ print(f"lift_at_10:       {lift_at_10:.2f}")
 print(f"macro_f1:         {macro_f1:.6f}")
 
 total_time = time.time() - t_start
-
-# Print structured summary (agent parses this via grep)
 print_summary(metrics, training_time, total_time, X_train.shape[1], DESCRIPTION)
