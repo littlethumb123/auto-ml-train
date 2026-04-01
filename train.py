@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_hp: n_estimators=1500, learning_rate=0.02 — more trees, lower LR for better convergence"
+DESCRIPTION = "A_feature ablation: remove time_features (Time_hour, Time_sin, Time_cos)"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -59,11 +59,6 @@ def engineer_features(X):
     X = X.copy()
     # log_amount
     X["log_amount"] = np.log1p(X["Amount"])
-    # time_features
-    seconds_in_day = 86400
-    X["Time_hour"] = (X["Time"] % seconds_in_day) / 3600
-    X["Time_sin"] = np.sin(2 * np.pi * X["Time"] / seconds_in_day)
-    X["Time_cos"] = np.cos(2 * np.pi * X["Time"] / seconds_in_day)
     # amount_interactions
     X["Amt_V1"] = X["Amount"] * X["V1"]
     X["Amt_V2"] = X["Amount"] * X["V2"]
