@@ -49,23 +49,32 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_diagnose: LightGBM with class_weight=balanced (fix scale_pos_weight inversion)"
+DESCRIPTION = "XGBoost with scale_pos_weight — canonical A_model tournament config"
 
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
 
-from lightgbm import LGBMClassifier
+from xgboost import XGBClassifier
 
-def build_pipeline():
-    return LGBMClassifier(
-        class_weight="balanced",
+def build_pipeline(y_train):
+    n_neg = (y_train == 0).sum()
+    n_pos = (y_train == 1).sum()
+    ratio = n_neg / n_pos
+    return XGBClassifier(
         n_estimators=500,
-        num_leaves=63,
+        max_depth=5,
         learning_rate=0.05,
+        scale_pos_weight=ratio,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_alpha=1.0,
+        reg_lambda=1.0,
+        min_child_weight=5,
+        eval_metric="aucpr",
+        tree_method="hist",
         n_jobs=-1,
         random_state=RANDOM_SEED,
-        verbose=-1,
     )
 
 # ---------------------------------------------------------------------------
@@ -83,7 +92,7 @@ print(f"Fraud rate (train): {y_train.mean():.4%}")
 print(f"Time budget: {TIME_BUDGET}s (hard limit: {HARD_TIMEOUT}s)")
 
 # Build pipeline
-pipeline = build_pipeline()
+pipeline = build_pipeline(y_train)
 
 # Train
 t_train_start = time.time()
