@@ -49,29 +49,24 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "baseline: LogisticRegression + StandardScaler + balanced weights"
+DESCRIPTION = "A_diagnose: LightGBM with class_weight=balanced (fix scale_pos_weight inversion)"
 
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
 
-def build_pipeline():
-    """Build and return the ML pipeline.
+from lightgbm import LGBMClassifier
 
-    The agent can replace this entire function with any sklearn-compatible
-    pipeline, ensemble, or custom model. The only requirement is that the
-    returned object supports .fit(X, y) and .predict_proba(X) or
-    .decision_function(X).
-    """
-    pipeline = Pipeline([
-        ("scaler", StandardScaler()),
-        ("model", LogisticRegression(
-            random_state=RANDOM_SEED,
-            max_iter=1000,
-            class_weight="balanced",
-        )),
-    ])
-    return pipeline
+def build_pipeline():
+    return LGBMClassifier(
+        class_weight="balanced",
+        n_estimators=500,
+        num_leaves=63,
+        learning_rate=0.05,
+        n_jobs=-1,
+        random_state=RANDOM_SEED,
+        verbose=-1,
+    )
 
 # ---------------------------------------------------------------------------
 # Main execution
