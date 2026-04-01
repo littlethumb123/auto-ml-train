@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_hp: max_depth=6 — deeper trees may capture more complex patterns"
+DESCRIPTION = "A_hp: Optuna 15-trial search on max_depth, learning_rate, min_child_weight"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -65,25 +65,30 @@ def engineer_features(X):
     return X
 
 # ---------------------------------------------------------------------------
-# Pipeline
+# Pipeline (built by Optuna)
 # ---------------------------------------------------------------------------
 
 from xgboost import XGBClassifier
+import optuna
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import average_precision_score
 
-def build_pipeline(y_train):
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+
+def build_pipeline(y_train, trial):
     n_neg = (y_train == 0).sum()
     n_pos = (y_train == 1).sum()
     ratio = n_neg / n_pos
     return XGBClassifier(
-        n_estimators=1500,
-        max_depth=6,
-        learning_rate=0.02,
+        n_estimators=trial.suggest_int("n_estimators", 500, 3000),
+        max_depth=trial.suggest_int("max_depth", 4, 7),
+        learning_rate=trial.suggest_float("learning_rate", 0.01, 0.1, log=True),
+        min_child_weight=trial.suggest_int("min_child_weight", 1, 10),
         scale_pos_weight=ratio,
         subsample=0.8,
         colsample_bytree=0.8,
         reg_alpha=1.0,
         reg_lambda=1.0,
-        min_child_weight=5,
         eval_metric="aucpr",
         tree_method="hist",
         n_jobs=-1,
@@ -108,17 +113,31 @@ print(f"Features: {X_train.shape[1]}")
 print(f"Fraud rate (train): {y_train.mean():.4%}")
 print(f"Time budget: {TIME_BUDGET}s (hard limit: {HARD_TIMEOUT}s)")
 
-# Build pipeline
-pipeline = build_pipeline(y_train)
+# Optuna search on val_pr_auc (15 trials, max 50s)
+t_optuna_end = t_start + 50.0
 
-# Train
+def objective(trial):
+    if time.time() > t_optuna_end:
+        raise optuna.exceptions.TrialPruned()
+    model = build_pipeline(y_train, trial)
+    model.fit(X_train, y_train)
+    y_prob = model.predict_proba(X_val)[:, 1]
+    return average_precision_score(y_val, y_prob)
+
+study = optuna.create_study(
+    direction="maximize",
+    sampler=optuna.samplers.TPESampler(seed=RANDOM_SEED),
+)
+study.optimize(objective, n_trials=15, timeout=50.0)
+
+print(f"Optuna best params: {study.best_params}")
+print(f"Optuna best val_pr_auc: {study.best_value:.6f}")
+
+# Refit best model
 t_train_start = time.time()
+pipeline = build_pipeline(y_train, study.best_trial)
 pipeline.fit(X_train, y_train)
 training_time = time.time() - t_train_start
-
-# Soft check: warn if training alone exceeded budget
-if training_time > TIME_BUDGET:
-    print(f"WARNING: training took {training_time:.1f}s (budget: {TIME_BUDGET}s)")
 
 # Evaluate on validation set (this is what determines keep/discard)
 metrics = evaluate(pipeline, X_val, y_val)
