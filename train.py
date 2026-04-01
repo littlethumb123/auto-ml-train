@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_validate: static config from Optuna best — depth=4, n_est=2030, lr=0.020, mcw=4"
+DESCRIPTION = "A_validate: exact Optuna params — depth=4, n_est=2030, lr=0.019595, mcw=4"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -77,7 +77,7 @@ def build_pipeline(y_train):
     return XGBClassifier(
         n_estimators=2030,
         max_depth=4,
-        learning_rate=0.02,
+        learning_rate=0.019595,
         min_child_weight=4,
         scale_pos_weight=ratio,
         subsample=0.8,
