@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "XGBoost + all 4 feature groups: log_amount, time_features, v_interactions, amount_interactions"
+DESCRIPTION = "A_feature ablation: remove v_interactions — test if PCA cross-terms add signal"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -64,10 +64,6 @@ def engineer_features(X):
     X["Time_hour"] = (X["Time"] % seconds_in_day) / 3600
     X["Time_sin"] = np.sin(2 * np.pi * X["Time"] / seconds_in_day)
     X["Time_cos"] = np.cos(2 * np.pi * X["Time"] / seconds_in_day)
-    # v_interactions
-    X["V1_V2"] = X["V1"] * X["V2"]
-    X["V1_V3"] = X["V1"] * X["V3"]
-    X["V3_V4"] = X["V3"] * X["V4"]
     # amount_interactions
     X["Amt_V1"] = X["Amount"] * X["V1"]
     X["Amt_V2"] = X["Amount"] * X["V2"]
