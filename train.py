@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_validate: static config from Optuna broad — depth=6,lr=0.07770,mcw=7,sub=0.806,col=0.943"
+DESCRIPTION = "A_hp: n_estimators=1000 — fewer trees needed at lr=0.077 (4x faster than prior config)"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -73,7 +73,7 @@ def build_pipeline(y_train):
     n_pos = (y_train == 1).sum()
     ratio = n_neg / n_pos
     return XGBClassifier(
-        n_estimators=3000,
+        n_estimators=1000,
         max_depth=6,
         learning_rate=0.07769625287126433,
         min_child_weight=7,
