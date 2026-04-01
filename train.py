@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_hp: n_estimators=1500 — binary search between 1000 (best) and 3000"
+DESCRIPTION = "A_hp: reg_alpha=0.0 — remove L1 regularization (not tuned for depth=6 config)"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -80,7 +80,7 @@ def build_pipeline(y_train):
         scale_pos_weight=ratio,
         subsample=0.8063874268723661,
         colsample_bytree=0.9426920344934752,
-        reg_alpha=1.0,
+        reg_alpha=0.0,
         reg_lambda=1.0,
         eval_metric="aucpr",
         tree_method="hist",
