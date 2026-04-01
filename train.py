@@ -49,7 +49,7 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_hp: reg_alpha=0.0 — remove L1 regularization (not tuned for depth=6 config)"
+DESCRIPTION = "A_hp: reg_lambda=0.5 — less L2 regularization (reg_alpha=0 helped, try less L2 too)"
 
 # ---------------------------------------------------------------------------
 # Feature engineering
@@ -81,7 +81,7 @@ def build_pipeline(y_train):
         subsample=0.8063874268723661,
         colsample_bytree=0.9426920344934752,
         reg_alpha=0.0,
-        reg_lambda=1.0,
+        reg_lambda=0.5,
         eval_metric="aucpr",
         tree_method="hist",
         n_jobs=-1,
