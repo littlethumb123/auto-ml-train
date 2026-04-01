@@ -49,7 +49,29 @@ if hasattr(signal, "SIGALRM"):
 # Configuration (edit freely)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "XGBoost with scale_pos_weight — canonical A_model tournament config"
+DESCRIPTION = "XGBoost + all 4 feature groups: log_amount, time_features, v_interactions, amount_interactions"
+
+# ---------------------------------------------------------------------------
+# Feature engineering
+# ---------------------------------------------------------------------------
+
+def engineer_features(X):
+    X = X.copy()
+    # log_amount
+    X["log_amount"] = np.log1p(X["Amount"])
+    # time_features
+    seconds_in_day = 86400
+    X["Time_hour"] = (X["Time"] % seconds_in_day) / 3600
+    X["Time_sin"] = np.sin(2 * np.pi * X["Time"] / seconds_in_day)
+    X["Time_cos"] = np.cos(2 * np.pi * X["Time"] / seconds_in_day)
+    # v_interactions
+    X["V1_V2"] = X["V1"] * X["V2"]
+    X["V1_V3"] = X["V1"] * X["V3"]
+    X["V3_V4"] = X["V3"] * X["V4"]
+    # amount_interactions
+    X["Amt_V1"] = X["Amount"] * X["V1"]
+    X["Amt_V2"] = X["Amount"] * X["V2"]
+    return X
 
 # ---------------------------------------------------------------------------
 # Pipeline
@@ -85,6 +107,10 @@ t_start = time.time()
 
 # Load data (from frozen prepare.py)
 X_train, X_val, X_test, y_train, y_val, y_test = get_splits()
+
+X_train = engineer_features(X_train)
+X_val = engineer_features(X_val)
+X_test = engineer_features(X_test)
 
 print(f"Dataset: {X_train.shape[0]:,} train, {X_val.shape[0]:,} val, {X_test.shape[0]:,} test")
 print(f"Features: {X_train.shape[1]}")
