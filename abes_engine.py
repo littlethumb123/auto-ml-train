@@ -9,6 +9,9 @@ tracks a multi-metric Pareto front, and recommends the next action.
 Usage:
     python3 abes_engine.py init [--budget N] [--tag TAG]
     python3 abes_engine.py recommend
+    python3 abes_engine.py log <commit> <pr_auc> <lift> <macro_f1> <val_f1> <status> <n_features> <model_family> <action_type> "<hypothesis>" "<description>"
+    python3 abes_engine.py check
+    python3 abes_engine.py status
 """
 
 import argparse
@@ -358,6 +361,223 @@ def cmd_recommend(_args):
     print("=" * 60)
 
 
+def cmd_log(args):
+    state = load_state()
+
+    if args.action_type not in ACTION_TYPES:
+        print(f"ERROR: invalid action_type '{args.action_type}'. Must be one of: {ACTION_TYPES}", file=sys.stderr)
+        sys.exit(2)
+    if args.model_family not in ALL_MODEL_TAGS:
+        print(f"ERROR: invalid model_family '{args.model_family}'. Must be one of: {ALL_MODEL_TAGS}", file=sys.stderr)
+        sys.exit(2)
+
+    row = (
+        f"{args.commit}\t{args.pr_auc}\t{args.lift}\t{args.macro_f1}\t"
+        f"{args.val_f1}\t{args.status}\t{args.n_features}\t{args.model_family}\t"
+        f"{args.action_type}\t{args.hypothesis}\t{args.description}\n"
+    )
+    with open(RESULTS_FILE, "a", encoding="utf-8") as f:
+        f.write(row)
+
+    pr_auc = float(args.pr_auc)
+    lift = float(args.lift)
+    macro_f1 = float(args.macro_f1)
+    status = args.status
+
+    state["experiment_count"] = state.get("experiment_count", 0) + 1
+    state.setdefault("last_action_types", []).append(args.action_type)
+    if len(state["last_action_types"]) > 20:
+        state["last_action_types"] = state["last_action_types"][-20:]
+
+    state.setdefault("action_type_counts", {})
+    state["action_type_counts"][args.action_type] = state["action_type_counts"].get(args.action_type, 0) + 1
+
+    if args.model_family in MODEL_FAMILIES and status != "crash":
+        state.setdefault("model_family_trials", {})
+        state["model_family_trials"][args.model_family] = state["model_family_trials"].get(args.model_family, 0) + 1
+
+    if args.action_type == "A_feature":
+        desc_lower = (args.description.lower() + " " + args.hypothesis.lower()).strip()
+        tested = state.get("feature_groups_tested", [])
+        for feature_group in FEATURE_GROUPS:
+            fg_space = feature_group.replace("_", " ")
+            if fg_space in desc_lower or feature_group in desc_lower:
+                if feature_group not in tested:
+                    tested.append(feature_group)
+        state["feature_groups_tested"] = tested
+
+    if status == "keep":
+        state["consecutive_discards"] = 0
+        reward = max(0.0, pr_auc - float(state.get("best_pr_auc", 0.0)))
+        if pr_auc > float(state.get("best_pr_auc", 0.0)):
+            state["best_pr_auc"] = pr_auc
+        if lift > float(state.get("best_lift", 0.0)):
+            state["best_lift"] = lift
+        if macro_f1 > float(state.get("best_macro_f1", 0.0)):
+            state["best_macro_f1"] = macro_f1
+    elif status == "discard":
+        state["consecutive_discards"] = state.get("consecutive_discards", 0) + 1
+        reward = 0.0
+    else:
+        state["consecutive_discards"] = state.get("consecutive_discards", 0) + 1
+        reward = -0.1
+
+    rewards_list = state.get("action_type_rewards", {}).get(args.action_type, [])
+    rewards_list.append(reward)
+    if len(rewards_list) > 20:
+        rewards_list = rewards_list[-20:]
+    state.setdefault("action_type_rewards", {})
+    state["action_type_rewards"][args.action_type] = rewards_list
+
+    save_state(state)
+    print(
+        f"Logged experiment {state['experiment_count']}/{state['budget']}: "
+        f"status={status}, pr_auc={pr_auc:.6f}"
+    )
+
+
+def _print_action_distribution(state):
+    counts = state.get("action_type_counts", {})
+    total = sum(counts.values())
+    if total == 0:
+        return
+    print("Action type distribution:")
+    for action in ACTION_TYPES:
+        count = counts.get(action, 0)
+        pct = count / total * 100 if total > 0 else 0
+        bar = "#" * int(pct / 2)
+        print(f"  {action:15s} {count:3d} ({pct:5.1f}%) {bar}")
+
+
+def cmd_check(_args):
+    state = load_state()
+    results = load_results()
+    if not results:
+        print("No results to check.")
+        return
+
+    last = results[-1]
+    pr_auc = float(last.get("val_pr_auc", 0))
+    lift = float(last.get("lift_at_10", 0))
+    macro_f1 = float(last.get("macro_f1", 0))
+    status = last.get("status", "")
+    best = float(state.get("best_pr_auc", 0))
+
+    print("=" * 60)
+    print("ABES POST-EXPERIMENT CHECK")
+    print("=" * 60)
+
+    threshold = max(0.5 * best, ANOMALY_FLOOR) if best > 0 else ANOMALY_FLOOR
+    if status != "crash" and 0 < pr_auc < threshold:
+        print(f"ANOMALY DETECTED: pr_auc={pr_auc:.6f} < threshold={threshold:.6f}")
+        print("  -> Add predict_proba diagnostic to next experiment")
+        print("  -> Do NOT dismiss this model family from one anomalous result")
+        anomalies = state.get("anomalies_undiagnosed", [])
+        anomalies.append(
+            {
+                "experiment": state.get("experiment_count", 0),
+                "pr_auc": pr_auc,
+                "model_family": last.get("model_family", "unknown"),
+                "description": last.get("description", ""),
+            }
+        )
+        state["anomalies_undiagnosed"] = anomalies
+    else:
+        print(f"No anomaly (pr_auc={pr_auc:.6f}, threshold={threshold:.6f})")
+
+    new_point = {
+        "pr_auc": pr_auc,
+        "lift": lift,
+        "macro_f1": macro_f1,
+        "experiment": state.get("experiment_count", 0),
+        "description": last.get("description", ""),
+    }
+    pareto = state.get("pareto_front", [])
+    dominated = False
+    to_remove = []
+
+    for idx, point in enumerate(pareto):
+        if (
+            point["pr_auc"] >= pr_auc
+            and point["lift"] >= lift
+            and point["macro_f1"] >= macro_f1
+            and (
+                point["pr_auc"] > pr_auc
+                or point["lift"] > lift
+                or point["macro_f1"] > macro_f1
+            )
+        ):
+            dominated = True
+            break
+        if (
+            pr_auc >= point["pr_auc"]
+            and lift >= point["lift"]
+            and macro_f1 >= point["macro_f1"]
+            and (
+                pr_auc > point["pr_auc"]
+                or lift > point["lift"]
+                or macro_f1 > point["macro_f1"]
+            )
+        ):
+            to_remove.append(idx)
+
+    if not dominated and status != "crash":
+        for idx in sorted(to_remove, reverse=True):
+            pareto.pop(idx)
+        pareto.append(new_point)
+        state["pareto_front"] = pareto
+        print(f"PARETO UPDATE: New point added to Pareto front ({len(pareto)} points total)")
+    else:
+        print(f"Pareto front unchanged ({len(pareto)} points)")
+
+    consec = state.get("consecutive_discards", 0)
+    if consec >= 5:
+        print(f"WARNING: {consec} consecutive discards - approaching plateau trigger (8)")
+    if consec >= 8:
+        print("PLATEAU TRIGGERED: Next recommendation will be A_restart")
+
+    print()
+    print(f"Budget: {state['experiment_count']}/{state['budget']}")
+    _print_action_distribution(state)
+
+    save_state(state)
+    print("=" * 60)
+
+
+def cmd_status(_args):
+    state = load_state()
+    _ = load_results()
+    print("=" * 60)
+    print(f"ABES STATUS - Run: {state.get('run_tag', '?')}")
+    print("=" * 60)
+    print(f"Experiments: {state['experiment_count']}/{state['budget']}")
+    print(f"Best val_pr_auc: {state.get('best_pr_auc', 0):.6f}")
+    print(f"Best lift@10:    {state.get('best_lift', 0):.2f}")
+    print(f"Best macro_f1:   {state.get('best_macro_f1', 0):.6f}")
+    print(f"Consecutive discards: {state.get('consecutive_discards', 0)}")
+    print()
+    _print_action_distribution(state)
+    print()
+    print("Model family trials:")
+    for fam in MODEL_FAMILIES:
+        print(f"  {fam:12s} {state.get('model_family_trials', {}).get(fam, 0)} trials")
+    print()
+    print(f"Feature groups tested: {state.get('feature_groups_tested', [])}")
+    print(f"Undiagnosed anomalies: {len(state.get('anomalies_undiagnosed', []))}")
+    print(f"Pareto front size: {len(state.get('pareto_front', []))}")
+    if state.get("pareto_front"):
+        print("Pareto front:")
+        for point in state["pareto_front"]:
+            print(
+                f"  pr_auc={point['pr_auc']:.6f}  lift={point['lift']:.2f}  "
+                f"macro_f1={point['macro_f1']:.6f}  (exp {point.get('experiment', '?')})"
+            )
+    print()
+    dead = state.get("dead_ends", [])
+    print(f"Dead ends ({len(dead)}): {dead}")
+    print("=" * 60)
+
+
 def main():
     parser = argparse.ArgumentParser(description="ABES Decision Engine")
     sub = parser.add_subparsers(dest="command")
@@ -368,11 +588,33 @@ def main():
 
     sub.add_parser("recommend", help="Get next experiment recommendation")
 
+    p_log = sub.add_parser("log", help="Log an experiment result")
+    p_log.add_argument("commit")
+    p_log.add_argument("pr_auc")
+    p_log.add_argument("lift")
+    p_log.add_argument("macro_f1")
+    p_log.add_argument("val_f1")
+    p_log.add_argument("status")
+    p_log.add_argument("n_features")
+    p_log.add_argument("model_family")
+    p_log.add_argument("action_type")
+    p_log.add_argument("hypothesis")
+    p_log.add_argument("description")
+
+    sub.add_parser("check", help="Run anomaly detection and Pareto update")
+    sub.add_parser("status", help="Print full state dump for recovery")
+
     args = parser.parse_args()
     if args.command == "init":
         cmd_init(args)
     elif args.command == "recommend":
         cmd_recommend(args)
+    elif args.command == "log":
+        cmd_log(args)
+    elif args.command == "check":
+        cmd_check(args)
+    elif args.command == "status":
+        cmd_status(args)
     else:
         parser.print_help()
 
