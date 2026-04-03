@@ -38,7 +38,7 @@ if hasattr(signal, "SIGALRM"):
     signal.signal(signal.SIGALRM, _timeout_handler)
     signal.alarm(HARD_TIMEOUT)
 
-DESCRIPTION = "baseline: XGBoost canonical + log_amount + amount_interactions"
+DESCRIPTION = "A_restart: jump to prior high-performing XGBoost basin after plateau"
 
 def engineer_features(X):
     X = X.copy()
@@ -54,15 +54,15 @@ def build_pipeline(y_train):
     n_pos = (y_train == 1).sum()
     ratio = n_neg / n_pos
     return XGBClassifier(
-        n_estimators=500,
-        max_depth=5,
-        learning_rate=0.05,
+        n_estimators=1500,
+        max_depth=6,
+        learning_rate=0.07769625287126433,
         scale_pos_weight=ratio,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        reg_alpha=1.0,
-        reg_lambda=1.0,
-        min_child_weight=5,
+        subsample=0.8063874268723661,
+        colsample_bytree=0.9426920344934752,
+        reg_alpha=0.0,
+        reg_lambda=0.5,
+        min_child_weight=7,
         eval_metric="aucpr",
         tree_method="hist",
         n_jobs=-1,
