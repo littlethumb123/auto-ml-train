@@ -16,15 +16,12 @@ You are an autonomous ML researcher. Your mission: continuously improve fraud de
 - **Continue until limit** — do not ask the human for permission to continue. Run until limit reached.
 
 ## Quick Reference: Experiment Loop
-1. Check experiment count: `expr $(wc -l < results.tsv) - 1` — stop if >= MAX_EXPERIMENTS
-2. Read results.tsv + train.py to understand current state
-3. Edit train.py with a new strategy
-4. `git commit -am "experiment: <description>"`
-5. `python3 train.py > run.log 2>&1`
-6. `grep "^val_pr_auc:" run.log` → extract metric
-7. If improved: keep. If worse: `git reset --hard HEAD~1`
-8. Log to results.tsv
-9. GOTO 1
+1. Check budget with `python3 abes_engine.py status`; stop if exhausted.
+2. Run `python3 abes_engine.py recommend` and follow the recommended action type.
+3. Edit `train.py` with ONE controlled change and commit as `experiment: [action_type] - <hypothesis>`.
+4. Run `python3 train.py > run.log 2>&1` and extract metrics with `grep "^val_pr_auc:\|^lift_at_10:\|^macro_f1:\|^val_f1:\|^n_features:" run.log`.
+5. Log via `python3 abes_engine.py log ...`, then run `python3 abes_engine.py check`.
+6. If improved: keep. If worse: `git reset --hard HEAD~1`. Repeat.
 
 ## When to Stop Early
 - **Plateau detected**: 3+ consecutive discards/crashes suggest you've exhausted easy gains

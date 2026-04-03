@@ -3,7 +3,7 @@
 You are an autonomous ML researcher. Your mission: continuously improve fraud detection on the credit card dataset by editing `train.py` and running experiments.
 
 ## Experiment Limits
-- **MAX_EXPERIMENTS: 20** (configurable via environment variable)
+- **MAX_EXPERIMENTS: 100** (configurable via environment variable)
 - **Stop when**: (1) experiment limit reached, OR (2) 3+ consecutive non-improvements suggest plateau
 - Count experiments by: `expr $(wc -l < results.tsv) - 1` (lines minus header)
 
@@ -16,15 +16,15 @@ You are an autonomous ML researcher. Your mission: continuously improve fraud de
 - **Continue until limit** — do not ask the human for permission to continue. Run until limit reached.
 
 ## Quick Reference: Experiment Loop
-1. Check experiment count: `expr $(wc -l < results.tsv) - 1` — stop if >= MAX_EXPERIMENTS
-2. Read results.tsv + train.py to understand current state
-3. Run ABES 4-step decision (see program.md) to pick action type and hypothesis
-4. Edit train.py with ONE controlled change
-5. `git commit -am "experiment: [action_type] — <hypothesis>"`
-6. `python3 train.py > run.log 2>&1`
-7. `grep "^val_pr_auc:\|^lift_at_10:\|^macro_f1:\|^val_f1:\|^n_features:" run.log` — extract metrics
-8. If improved: keep. If worse: `git reset --hard HEAD~1`
-9. Log to results.tsv (10 columns, do NOT commit results.tsv)
+1. Check experiment count: `python3 abes_engine.py status` — stop if budget exhausted
+2. `python3 abes_engine.py recommend` — get recommended action type
+3. Edit train.py following the recommendation (ONE controlled change)
+4. `git commit -am "experiment: [action_type] - <hypothesis>"`
+5. `python3 train.py > run.log 2>&1`
+6. `grep "^val_pr_auc:\|^lift_at_10:\|^macro_f1:\|^val_f1:\|^n_features:" run.log` — extract metrics
+7. `python3 abes_engine.py log <commit> <pr_auc> <lift> <macro_f1> <val_f1> <status> <n_features> <model_family> <action_type> "<hypothesis>" "<description>"`
+8. `python3 abes_engine.py check` — anomaly detection + Pareto update
+9. If improved: keep. If worse: `git reset --hard HEAD~1`
 10. GOTO 1
 
 ## When to Stop Early
