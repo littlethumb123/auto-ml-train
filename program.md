@@ -72,150 +72,117 @@ grep "^val_pr_auc:\|^lift_at_10:\|^macro_f1:\|^val_f1:\|^n_features:" run.log
 
 ## Logging results
 
-When an experiment is done, log it to `results.tsv` (tab-separated, NOT comma-separated).
-
-The TSV has a header row and 10 columns:
+The TSV has a header row and **11 columns**:
 
 ```
-commit	val_pr_auc	lift_at_10	macro_f1	val_f1	status	n_features	action_type	hypothesis	description
+commit	val_pr_auc	lift_at_10	macro_f1	val_f1	status	n_features	model_family	action_type	hypothesis	description
 ```
 
-1. git commit hash (short, 7 chars)
-2. val_pr_auc achieved (e.g. 0.750000) — use 0.000000 for crashes
-3. lift_at_10 (float, e.g. 85.23) — use 0.00 for crashes
-4. macro_f1 (float, e.g. 0.912000) — use 0.000000 for crashes
-5. val_f1 achieved (e.g. 0.800000) — use 0.000000 for crashes
-6. status: `keep`, `discard`, or `crash`
-7. n_features used (integer) — use 0 for crashes
-8. action_type: one of `A_model`, `A_feature`, `A_hp`, `A_imbalance`, `A_ensemble`, `A_diagnose`, `A_validate`
-9. hypothesis: one sentence stating the single variable changed and predicted effect
-10. short text description of what this experiment tried
+Use `python3 abes_engine.py log` to append rows - do NOT manually edit `results.tsv`.
 
-Example:
-
-```
-commit	val_pr_auc	lift_at_10	macro_f1	val_f1	status	n_features	action_type	hypothesis	description
-a1b2c3d	0.750000	12.50	0.856000	0.800000	keep	30	A_model	LogReg baseline establishes floor	baseline: LogisticRegression + StandardScaler
-b2c3d4e	0.780000	95.30	0.912000	0.820000	keep	30	A_model	XGBoost with scale_pos_weight should beat LogReg	XGBoost with scale_pos_weight
-c3d4e5f	0.770000	88.10	0.900000	0.810000	discard	45	A_feature	polynomial features may add signal	added polynomial features (no improvement)
-d4e5f6g	0.000000	0.00	0.000000	0.000000	crash	0	A_model	CatBoost may fit faster than XGBoost	CatBoost OOM with 100 features
-```
+The `model_family` column is one of:
+`xgboost`, `lightgbm`, `catboost`, `rf`, `gbm`, `et`, `ensemble`, `other`.
 
 ## The experiment loop
 
-The experiment runs on a dedicated branch (e.g. `autotrain/mar22`).
+The experiment runs on a dedicated branch (e.g. `autotrain/apr03`).
 
-LOOP FOREVER:
+LOOP:
 
-1. Look at `results.tsv` to see what has been tried and what worked.
+1. `python3 abes_engine.py recommend` - read the recommended action type and suggestion
 2. Look at the current `train.py` to understand the current best approach.
-3. Think about what to try next. Consult the **Strategy Catalog** below for ideas.
-4. Edit `train.py` with your experimental idea.
-5. `git commit -am "experiment: <brief description>"`
-6. Run the experiment: `python3 train.py > run.log 2>&1`
-7. Read out the results: `grep "^val_pr_auc:\|^lift_at_10:\|^macro_f1:\|^val_f1:\|^n_features:" run.log`
-8. If the grep output is empty, the run crashed. Run `tail -n 50 run.log` to read the Python stack trace and attempt a fix. If you can't fix it after 2 attempts, give up on this idea.
-9. Record the results in results.tsv (do NOT commit results.tsv — leave it untracked by git)
-10. If val_pr_auc improved (higher), you "advance" the branch, keeping the git commit.
-11. If val_pr_auc is equal or worse, you git reset back to where you started: `git reset --hard HEAD~1`
+3. Edit `train.py` with the recommended action type (ONE controlled change)
+4. `git commit -am "experiment: [action_type] - <hypothesis>"`
+5. `python3 train.py > run.log 2>&1`
+6. `grep "^val_pr_auc:\|^lift_at_10:\|^macro_f1:\|^val_f1:\|^n_features:" run.log` - extract metrics
+7. If the grep output is empty, the run crashed. Run `tail -n 50 run.log` to read the stack trace.
+8. `python3 abes_engine.py log <commit> <pr_auc> <lift> <macro_f1> <val_f1> <status> <n_features> <model_family> <action_type> "<hypothesis>" "<description>"`
+9. `python3 abes_engine.py check` - read anomaly/Pareto/plateau output
+10. If val_pr_auc improved: keep (advance branch). If worse: `git reset --hard HEAD~1`
+11. GOTO 1
 
-## ABES: Adaptive Experiment Selection
+## ABES: Executable Decision Engine
 
-Before proposing each experiment, run this 4-step meta-decision to ensure you explore the search space efficiently rather than hill-climbing on one model family.
+Before each experiment, **run the engine** - do NOT select action types by intuition:
 
-### Step 1 — Compute Urgency for Each Action Type
-
-From results.tsv and current state, score each action type (0.0–1.0):
-
-| Action Type | Urgency Rule |
-|-------------|-------------|
-| `A_model`   | (count of model families with fewer than 2 completed trials, including untried ones with 0) ÷ 6 |
-| `A_feature` | 1 − (feature groups ablated ÷ 4 total groups) |
-| `A_hp`      | 1 ÷ (1 + count of A_hp experiments in last 5 rows of results.tsv) |
-| `A_diagnose`| min(1.0, 0.5 × count of undiagnosed anomalies), where anomaly = score < max(0.5×best, 0.68) |
-| `A_ensemble`| 0.3 if ≥2 models are within 5% of best; 0.0 otherwise |
-| `A_validate`| max(0, (t÷T − 0.8) × 5) — ramps up only in the final 20% of budget |
-
-Model families to track: `xgboost`, `lightgbm`, `catboost`, `rf`, `gbm`, `et`
-
-Feature groups for ablation (4 total):
-1. `log_amount`: `log1p(Amount)`
-2. `time_features`: `Time_hour`, `Time_sin`, `Time_cos`
-3. `v_interactions`: `V1*V2`, `V1*V3`, `V3*V4`
-4. `amount_interactions`: `Amount*V1`, `Amount*V2`
-
-### Step 2 — Select Action Type
-
-Pick the highest-urgency action type. Break ties by:
-- Prefer `A_model` early (experiment t < T×0.4)
-- Prefer `A_feature` in the middle range (T×0.4 ≤ t ≤ T×0.7)
-- Prefer `A_hp` late (experiment t > T×0.7)
-- Prioritize `A_diagnose` if urgency > 0, but limit to at most 2 consecutive diagnosis experiments before returning to normal selection
-
-### Step 3 — Propose ONE Controlled Experiment
-
-Within the selected action type:
-- **A_model**: Try the untried/under-tried model family with its canonical config
-- **A_feature**: Add or remove ONE feature group; keep all else equal
-- **A_hp**: Change ONE hyperparameter; keep all else equal
-- **A_diagnose**: Re-run the anomalous config, print `model.predict_proba(X_val[:5])` to check for probability inversion
-- **A_ensemble**: Stack top-2 competitive models with equal weights
-- **A_validate**: Apply proper hold-out early stopping (reserve 20% of train as stop set, separate from val)
-
-**Single-variable rule**: ONE variable changed per experiment. Commit message must state both the action type and hypothesis:
+### Before Each Experiment
 ```
-experiment: [action_type] — [hypothesis]
-# Example: experiment: A_model — LightGBM with scale_pos_weight (fair trial, fixes is_unbalance bug)
+python3 abes_engine.py recommend
 ```
 
-### Step 4 — Anomaly Detection
+Read the output. It prints:
+- Urgency scores for all 8 action types
+- The RECOMMENDED action type
+- A specific suggestion for what to try
+- Hard constraint status (blocked types, plateau warnings)
 
-After each run, check for anomalies:
-- If `val_pr_auc < max(0.5 × current_best, 0.68)` → **FLAG as anomaly**
-  - Print `model.predict_proba(X_val[:5])` — check if fraud probabilities are near 0 (inversion bug)
-  - Log this result as-is, set action_type = `A_diagnose` for the **next** experiment
-  - Do NOT conclude the model family is bad from one anomalous result
+**Follow the recommendation.** If you have a strong reason to deviate, state it explicitly in the hypothesis.
+
+### After Each Experiment
+```
+python3 abes_engine.py log <commit> <pr_auc> <lift> <macro_f1> <val_f1> <status> <n_features> <model_family> <action_type> "<hypothesis>" "<description>"
+python3 abes_engine.py check
+```
+
+The `check` command:
+- Detects anomalies (score below floor -> flags for diagnosis)
+- Updates the Pareto front (tracks val_pr_auc x lift@10 x macro_f1)
+- Warns on plateau (5+ consecutive discards)
+- Triggers A_restart if 8+ consecutive discards
+
+### Recovery
+If context is compacted:
+```
+python3 abes_engine.py status
+```
+This prints full state: experiment count, best metrics, action distribution, Pareto front, anomalies.
 
 ---
 
-## Warm-Start: Prior Knowledge from mar30
+## Warm-Start: Prior Knowledge from mar30 + apr01
 
-Apply these lessons before selecting your first experiment. Do not repeat known dead ends.
+The ABES engine is pre-loaded with these priors (in `abes_state.json`).
+Do not repeat known dead ends.
 
-### Known Dead Ends — Do NOT Repeat
+### Known Dead Ends - Do NOT Retry (printed by engine before each experiment)
 
-| What | Why Dead End |
-|------|-------------|
-| SMOTE + scale_pos_weight | Double-counts imbalance correction; SMOTE alone also worse |
-| QuantileTransformer on tree models | Monotonic transforms cannot change tree splits — no effect |
-| BaggingClassifier wrapping XGBoost | XGBoost has subsample/colsample built-in; bagging is redundant |
-| `eval_metric="aucpr"` for early stopping | PR-AUC is noisy/non-monotonic as early-stopping signal; use `logloss` for stopping. (OK as internal eval when early stopping is disabled.) |
-| LightGBM with `is_unbalance=True` | **BUG**: inverted probabilities → score 0.036 is meaningless, not real performance |
+| What | Why Dead End | Source |
+|------|-------------|--------|
+| SMOTE + scale_pos_weight | Double-counts imbalance correction | mar30 |
+| QuantileTransformer on tree models | Monotonic transform can't change tree splits | mar30 |
+| BaggingClassifier wrapping XGBoost | Redundant with subsample/colsample | mar30 |
+| aucpr as early stopping metric | Too noisy for stopping; use logloss | mar30 |
+| LightGBM is_unbalance=True | Inverts probabilities - use scale_pos_weight or class_weight | mar30+apr01 |
+| DART booster | Exceeds 90s timeout even at 500 trees | apr01 |
+| tree_method=approx | Exceeds 90s timeout on 170K rows | apr01 |
+| sklearn GBM (GradientBoostingClassifier) | Exceeds 90s even at 100 trees - no histogram optimization | apr01 |
 
-### Untried / Unfairly Tried — High Priority
+### Structural Learnings (Apply Immediately)
 
-| Family | Status | Canonical Config to Try |
-|--------|--------|------------------------|
-| LightGBM | 1 trial (BUGGY) | `LGBMClassifier(scale_pos_weight=ratio, n_estimators=500, num_leaves=63, learning_rate=0.05, n_jobs=-1)` |
-| CatBoost | 1 trial (wrong defaults) | `CatBoostClassifier(depth=4, l2_leaf_reg=3, auto_class_weights='SqrtBalanced', iterations=500, verbose=0)` |
-| RandomForest | 0 trials | `RandomForestClassifier(n_estimators=500, class_weight='balanced', n_jobs=-1)` |
-| Extra Trees | 0 trials | `ExtraTreesClassifier(n_estimators=500, class_weight='balanced', n_jobs=-1)` |
-| GBM | 0 trials | `GradientBoostingClassifier(n_estimators=300, subsample=0.8, max_depth=5, learning_rate=0.05)` |
+| Learning | Evidence | Action |
+|----------|----------|--------|
+| log_amount adds signal | apr01: removing it hurts by ~0.002 | Keep in default features |
+| Amount*V1, Amount*V2 add signal | apr01: removing them hurts by ~0.016 | Keep in default features |
+| v_interactions (V1*V2, V1*V3, V3*V4) are noise | apr01: removing improves by ~0.002 | Do not add |
+| time_features are noise | apr01: removing improves by ~0.003 | Do not add |
+| XGBoost is best single-model family | apr01: beat all 5 alternatives | Start with XGBoost |
+| LightGBM is competitive (0.818-0.834) | apr01: after fixing is_unbalance bug | Worthy of fair HP tuning |
+| CatBoost, RF, ET are 2-3% below XGBoost | apr01: consistent across feature sets | Lower priority |
+| depth in {4,5,6} is optimal range for XGBoost | apr01: depth=4 and depth=6 both found optimal basins | Search within this range |
+| Ensembles don't help (insufficient diversity) | apr01: 5 attempts, all worse than solo XGBoost | Low priority until diverse models found |
 
-### Best Known Config (Honest, val_pr_auc ≈ 0.8337)
+Feature groups for ablation (6 total):
+1. `log_amount`: `log1p(Amount)` - **KNOWN GOOD**
+2. `time_features`: `Time_hour`, `Time_sin`, `Time_cos` - **KNOWN BAD**
+3. `v_interactions`: `V1*V2`, `V1*V3`, `V3*V4` - **KNOWN BAD**
+4. `amount_interactions`: `Amount*V1`, `Amount*V2` - **KNOWN GOOD**
+5. `magnitude_features`: `abs(V14)`, `abs(V17)`, `V14**2` - **UNTESTED**
+6. `rank_features`: `Amount.rank(pct=True)`, `V14.rank(pct=True)` - **UNTESTED**
 
-```python
-XGBClassifier(
-    n_estimators=500, max_depth=5, learning_rate=0.05,
-    scale_pos_weight=n_neg/n_pos,  # ~578
-    subsample=0.8, colsample_bytree=0.8,
-    reg_alpha=1.0, reg_lambda=1.0, min_child_weight=5,
-    eval_metric="aucpr", tree_method="hist", n_jobs=-1
-)
-# + 9 engineered features:
-#   log1p(Amount), Time_hour, Time_sin, Time_cos,
-#   V1*V2, V1*V3, V3*V4, Amount*V1, Amount*V2
-```
+### HP Priors Are RESET
+The engine starts with canonical XGBoost defaults (depth=5, lr=0.05, n_est=500).
+This is intentional - the engine should rediscover the optimal basin independently
+to avoid anchoring to the apr01 local optimum.
 
 ---
 
