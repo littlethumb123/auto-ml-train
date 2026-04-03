@@ -26,16 +26,9 @@ from prepare import (
     print_summary,
 )
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, average_precision_score
 
-# ---------------------------------------------------------------------------
-# Time budget enforcement (hard kill if exceeded)
-# ---------------------------------------------------------------------------
-
-HARD_TIMEOUT = TIME_BUDGET + 30  # 90s hard limit (60s budget + 30s for eval/overhead)
+HARD_TIMEOUT = TIME_BUDGET + 30
 
 def _timeout_handler(signum, frame):
     print(f"FAIL: hard timeout at {HARD_TIMEOUT}s")
@@ -45,15 +38,7 @@ if hasattr(signal, "SIGALRM"):
     signal.signal(signal.SIGALRM, _timeout_handler)
     signal.alarm(HARD_TIMEOUT)
 
-# ---------------------------------------------------------------------------
-# Configuration (edit freely)
-# ---------------------------------------------------------------------------
-
-DESCRIPTION = "A_hp: reg_lambda=0.5 — less L2 regularization (reg_alpha=0 helped, try less L2 too)"
-
-# ---------------------------------------------------------------------------
-# Feature engineering
-# ---------------------------------------------------------------------------
+DESCRIPTION = "baseline: XGBoost canonical + log_amount + amount_interactions"
 
 def engineer_features(X):
     X = X.copy()
@@ -62,10 +47,6 @@ def engineer_features(X):
     X["Amt_V2"] = X["Amount"] * X["V2"]
     return X
 
-# ---------------------------------------------------------------------------
-# Pipeline
-# ---------------------------------------------------------------------------
-
 from xgboost import XGBClassifier
 
 def build_pipeline(y_train):
@@ -73,24 +54,73 @@ def build_pipeline(y_train):
     n_pos = (y_train == 1).sum()
     ratio = n_neg / n_pos
     return XGBClassifier(
-        n_estimators=1500,
-        max_depth=6,
-        learning_rate=0.07769625287126433,
-        min_child_weight=7,
+        n_estimators=500,
+        max_depth=5,
+        learning_rate=0.05,
         scale_pos_weight=ratio,
-        subsample=0.8063874268723661,
-        colsample_bytree=0.9426920344934752,
-        reg_alpha=0.0,
-        reg_lambda=0.5,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_alpha=1.0,
+        reg_lambda=1.0,
+        min_child_weight=5,
         eval_metric="aucpr",
         tree_method="hist",
         n_jobs=-1,
         random_state=RANDOM_SEED,
     )
 
-# ---------------------------------------------------------------------------
-# Main execution
-# ---------------------------------------------------------------------------
+def screen_configs(X_train, y_train, X_val, y_val, n_configs=16):
+    """Low-fidelity screening: 200 trees on 25% data for basin restart."""
+    rng = np.random.RandomState(RANDOM_SEED)
+    sample_size = len(X_train) // 4
+    sample_idx = rng.choice(len(X_train), size=sample_size, replace=False)
+    X_sub = X_train.iloc[sample_idx]
+    y_sub = y_train.iloc[sample_idx]
+
+    n_neg = (y_sub == 0).sum()
+    n_pos = max((y_sub == 1).sum(), 1)
+    ratio = n_neg / n_pos
+
+    configs = []
+    for _ in range(n_configs):
+        cfg = {
+            "max_depth": int(rng.choice([3, 4, 5, 6, 7, 8])),
+            "learning_rate": float(10 ** rng.uniform(-2, -0.5)),
+            "subsample": float(rng.uniform(0.5, 1.0)),
+            "colsample_bytree": float(rng.uniform(0.5, 1.0)),
+            "reg_alpha": float(10 ** rng.uniform(-2, 1)),
+            "reg_lambda": float(10 ** rng.uniform(-2, 1)),
+            "min_child_weight": int(rng.choice([1, 3, 5, 7, 10])),
+        }
+        configs.append(cfg)
+
+    results = []
+    for cfg in configs:
+        try:
+            model = XGBClassifier(
+                n_estimators=200,
+                scale_pos_weight=ratio,
+                eval_metric="aucpr",
+                tree_method="hist",
+                n_jobs=-1,
+                random_state=RANDOM_SEED,
+                **cfg,
+            )
+            model.fit(X_sub, y_sub)
+            y_prob = model.predict_proba(X_val)[:, 1]
+            pr_auc = average_precision_score(y_val, y_prob)
+            results.append((cfg, pr_auc))
+        except Exception:
+            results.append((cfg, 0.0))
+
+    results.sort(key=lambda x: x[1], reverse=True)
+    print(f"screen_configs: tested {n_configs} configs on {sample_size} samples (200 trees)")
+    for idx, (cfg, score) in enumerate(results[:5]):
+        print(
+            f"  #{idx + 1}: pr_auc={score:.6f}  depth={cfg['max_depth']} "
+            f"lr={cfg['learning_rate']:.4f} sub={cfg['subsample']:.2f}"
+        )
+    return results[:3]
 
 t_start = time.time()
 
