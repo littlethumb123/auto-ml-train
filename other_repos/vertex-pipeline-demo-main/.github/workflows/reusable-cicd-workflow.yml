@@ -1,0 +1,135 @@
+name: Resuable Deployment Workflow for HCM-CM-DE
+on:
+  workflow_call:
+    inputs:
+      environment:  
+        description: "Environment to deploy"
+        required: true
+        type: string
+
+      code_base:  
+         description: "Code base to which the code needs to be deployed. [Composer/GCS]"
+         required: true
+         type: string  
+
+      repo_id:  
+        description: "Repository ID from which the code needs to be deployed"
+        required: false
+        type: string
+
+      model_id:  
+        description: "Model ID from which the code needs to be deployed"
+        required: false
+        type: string
+
+      code_id:  
+        description: "Code type to deploy - dags, config or scripts. If not provided, all code files will be deployed"
+        required: false
+        type: string
+
+      script_file:  
+        description: "Select the script file to deploy"
+        required: false
+        type: string            
+         
+jobs:
+  deploy:
+    runs-on: self-hosted # Make sure your action is run on a self-hosted runner
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+ 
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v4
+
+    - name: Set environment variables
+      run: |
+        if [ "${{ inputs.environment }}" == "dev" ]; then
+          echo "COMPOSER_BUCKET=us-east4-io-hcb-dev-6-e42c0685-bucket/dags/hcm-cm-de-hcb/" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_GCS_PATH=hcm-cm-de-code-hcb-dev/" >> $GITHUB_ENV
+          
+        elif [ "${{ inputs.environment }}" == "test" ]; then
+          echo "COMPOSER_BUCKET=us-east4-io-hcb-test-6-dfe4568c-bucket/dags/hcm-cm-de-hcb/" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/995383034658/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-test-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-onppq@anbc-test-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_GCS_PATH=hcm-cm-de-code-hcb-test/" >> $GITHUB_ENV
+        else
+          echo "COMPOSER_BUCKET=us-east4-io-hcb-prod-6-420819c3-bucket/dags/hcm-cm-de-hcb/" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/46504011566/locations/global/workloadIdentityPools/wif-pool-github-prod/providers/wif-pool-github-prod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-onppp@anbc-prod-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_GCS_PATH=hcm-cm-de-code-hcb-prod/" >> $GITHUB_ENV
+        fi
+      
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+        
+    - name: 'Setup Cloud SDK'
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+ 
+    - name: Get Google Token
+      id: token
+      run: |-
+        gcloud info
+        gcloud config list
+        gcloud config set auth/impersonate_service_account  ${{ env.TARGET_SERVICE_ACCOUNT }}
+        
+    - name: Access GCS bucket
+      run: |-
+        ls 
+        if [ "${{ inputs.code_base }}" == "composer" ]; then
+          ls 
+          gsutil cp -r dags/* gs://${{ env.COMPOSER_BUCKET }}
+          gsutil ls gs://${{ env.COMPOSER_BUCKET }}/${{ github.event.workflow_call.repository.name }}"
+        else
+          if [ -z "${{ inputs.script_file }}" ] && [ "${{ inputs.code_id }}" == "all" ] ; then
+            echo "No specific code type or script file provided, copying all code files [.json, .py and .SQL]"
+            gsutil cp -r "${{ inputs.model_id }}"/config/* gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/config/
+            gsutil cp -r "${{ inputs.model_id }}"/scripts/* gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/scripts/
+            gsutil ls gs://${{ env.COMPOSER_BUCKET }}
+            gsutil cp -r "${{ inputs.model_id }}"/dags/* gs://${{ env.COMPOSER_BUCKET }}
+            gsutil ls gs://${{ env.COMPOSER_BUCKET }}
+          else
+            if [ -n "${{ inputs.code_id }}" ]; then
+              echo "Code type provided: ${{ inputs.code_id }}"
+                if [ -n "${{ inputs.script_file }}" ]; then
+                  echo "Script file provided: ${{ inputs.script_file }}"
+                  if [ "${{ inputs.code_id }}" == "dags" ]; then
+                    gsutil ls gs://${{ env.COMPOSER_BUCKET }}
+                    gsutil cp -r "${{ inputs.model_id }}"/dags/"${{ inputs.script_file }}" gs://${{ env.COMPOSER_BUCKET }}
+                    gsutil ls gs://${{ env.COMPOSER_BUCKET }}
+                  fi
+                  if [ "${{ inputs.code_id }}" == "config" ]; then
+                    gsutil cp "${{ inputs.model_id }}"/config/"${{ inputs.script_file }}" gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/config/
+                    gsutil ls -lr gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/config/
+                  else
+                    gsutil cp "${{ inputs.model_id }}"/scripts/"${{ inputs.script_file }}" gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/scripts/
+                    gsutil ls -lr gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/scripts/
+                  fi
+                else
+                  echo "Only code type provided: ${{ inputs.code_id }}"
+                  if [ "${{ inputs.code_id }}" == "dags" ]; then
+                    gsutil ls gs://${{ env.COMPOSER_BUCKET }}
+                    gsutil cp -r "${{ inputs.model_id }}"/dags/* gs://${{ env.COMPOSER_BUCKET }}
+                    gsutil ls gs://${{ env.COMPOSER_BUCKET }}
+                  fi
+                  if [ "${{ inputs.code_id }}" == "config" ]; then
+                    gsutil cp -r "${{ inputs.model_id }}"/config/* gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/config/
+                    gsutil ls -lr gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/config/
+                  else
+                    gsutil cp -r "${{ inputs.model_id }}"/scripts/* gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/scripts/
+                    gsutil ls -lr gs://${{ env.TARGET_GCS_PATH }}"${{ inputs.repo_id }}"/"${{ inputs.model_id }}"/scripts/
+                  fi 
+                fi  
+            fi
+          fi  
+        fi  

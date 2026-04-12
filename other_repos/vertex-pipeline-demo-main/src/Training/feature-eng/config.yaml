@@ -1,0 +1,95 @@
+# MLOps Pipeline Configuration
+# Version: 1.0.0
+# Schema: config_v1
+
+# Metadata and versioning
+metadata:
+  cfg_version: "1.0.0"
+  component_version: "1.0.0" 
+  image_tag: "latest"
+  schema_version: "v1"
+  created_by: "mlops-pipeline"
+  created_at: "2025-09-02T00:00:00Z"
+
+# Runtime configuration (includes service account and encryption key)
+runtime:
+  project: "anbc-dev-hcm-cm-de"
+  costcenter: "13070"
+  owner: "sahil_gadge_aetna_com"
+  tenant: "hcm-cm-de"
+  pipeline_root: "gs://hcm-cm-de-data-hcb-dev/mlops-pipeline-test"
+  location: "us-east4"
+  service_account: "gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com"
+  cmek_key: "projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4"
+  labels:
+    lob: "hcb"
+    project: "anbc-dev-hcm-cm-de"
+    compute_project: "anbc-dev-hcm-cm-de"
+    shared_project: "anbc-hcb-dev"
+
+# BigQuery component configuration
+bigquery:
+  dataset: "my_dataset"
+  features_table: "features"
+  sql_path: "sql/features.sql"
+  destination_table: "my_dataset.features_output"
+  query_params:
+    timeout_minutes: 60
+    use_cache: true
+    dry_run: false
+
+# Training component configuration
+training:
+  machine_type:
+    machine_type: "n1-standard-4"
+    accelerator_type: null
+    accelerator_count: 0
+  image_config:
+    base_image: "gcr.io/my-gcp-project/ml-base"
+    image_tag: "latest"
+  execution:
+    file_to_run: "py/train_xgboost.py"
+    args: []
+    env_vars:
+      PYTHONPATH: "/opt/ml/code"
+      ML_FRAMEWORK: "xgboost"
+  hyperparameters:
+    learning_rate:
+      type: "double"
+      min: 0.001
+      max: 0.3
+      scale: "log"
+    n_estimators:
+      type: "int"
+      min: 100
+      max: 2000
+      scale: "linear"
+  tuning:
+    parallel_trials: 2
+    max_trials: 8
+    max_failed_trials: 2
+    optimization_goal: "maximize"
+    primary_metric: "f1_top_1_percent"
+
+# Evaluation component configuration
+evaluation:
+  execution:
+    timeout_minutes: 30
+  data:
+    id_column: "id"
+    truth_column: "label"
+    pred_column: "prediction_score"
+    ground_truth_project: "anbc-dev-hcm-cm-de"
+    ground_truth_dataset: "my_dataset"
+    ground_truth_table: "ground_truth"
+
+# Model registration configuration
+model_registry:
+  model_name: "ip_prediction_xgboost"
+  version_strategy: "auto_increment"
+  description: "XGBoost model for IP prediction"
+  approval:
+    auto_approve: false
+    required_metrics:
+      f1_top_1_percent: 0.15
+      roc_auc: 0.7

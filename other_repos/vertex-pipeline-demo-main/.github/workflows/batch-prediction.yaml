@@ -1,0 +1,142 @@
+# ...existing code...
+name: Batch Prediction - Multi Env
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options: [dev, test, prod]
+        default: dev
+      input-table:
+        description: 'Input BigQuery table (project.dataset.table)'
+        required: true
+        type: string
+      output-table:
+        description: 'Final Output BigQuery table (project.dataset.table)'
+        required: true
+        type: string
+      service-account:
+        description: 'Service account to run batch job'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  # Defaults for dev; test/prod will override below
+  PROJECT_ID: anbc-dev-hcm-cm-de
+  REGION: us-east4
+  MODEL_RESOURCE_NAME: projects/46378383599/locations/us-east4/models/5522130024737538048
+  CMEK_KEY: projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4
+  MACHINE_TYPE: n1-standard-4
+  STARTING_REPLICA_COUNT: 1
+  MAX_REPLICA_COUNT: 1
+  COMPUTE_DATASET: hcm_cm_de_beam_dev_hcm_cm_de
+  OWNER: sahil_gadge_aetna_com
+  COST_CENTER: 13070
+  WIF_PROVIDER: projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod
+  WIF_SERVICE_ACCOUNT: hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com
+
+jobs:
+  batch-prediction:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set env by target environment
+      run: |
+        case "${{ inputs.environment }}" in
+          dev)
+            echo "ENV=dev" >> $GITHUB_ENV
+            # Dev values already set in env block; nothing to override
+            ;;
+          test)
+            echo "ENV=test" >> $GITHUB_ENV
+            # Empty placeholders for test; fill later as you provision
+            echo "PROJECT_ID=anbc-test-hcm-cm-de" >> $GITHUB_ENV
+            echo "REGION=us-east4" >> $GITHUB_ENV
+            echo "MODEL_RESOURCE_NAME=" >> $GITHUB_ENV
+            echo "CMEK_KEY=" >> $GITHUB_ENV
+            echo "COMPUTE_DATASET=" >> $GITHUB_ENV
+            echo "OWNER=" >> $GITHUB_ENV
+            echo "COST_CENTER=" >> $GITHUB_ENV
+            echo "WIF_PROVIDER=" >> $GITHUB_ENV
+            echo "WIF_SERVICE_ACCOUNT=" >> $GITHUB_ENV
+            ;;
+          prod)
+            echo "ENV=prod" >> $GITHUB_ENV
+            # Empty placeholders for prod; fill later as you provision
+            echo "PROJECT_ID=anbc-prod-hcm-cm-de" >> $GITHUB_ENV
+            echo "REGION=us-east4" >> $GITHUB_ENV
+            echo "MODEL_RESOURCE_NAME=projects/979416662908/locations/us-east4/models/2421401681292951552" >> $GITHUB_ENV
+            echo "CMEK_KEY=projects/cvs-key-vault-prod/locations/us-east4/keyRings/gkr-prod-us-east4/cryptoKeys/gk-anbc-prod-hcm-cm-de-us-east4" >> $GITHUB_ENV
+            echo "COMPUTE_DATASET=hcm_cm_de_beam_prod_hcm_cm_de" >> $GITHUB_ENV
+            echo "OWNER=sahil_gadge_aetna_com" >> $GITHUB_ENV
+            echo "COST_CENTER=13070" >> $GITHUB_ENV
+            echo "WIF_PROVIDER=projects/46504011566/locations/global/workloadIdentityPools/wif-pool-github-prod/providers/wif-pool-github-prod" >> $GITHUB_ENV
+            echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+            ;;
+        esac
+
+    - name: Authenticate via WIF
+      uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+      with:
+        version: latest
+
+    - name: Impersonate target SA and get access token
+      run: |
+        gcloud config set auth/impersonate_service_account "${{ inputs.service-account }}"
+        ACCESS_TOKEN=$(gcloud auth print-access-token)
+        echo "::add-mask::$ACCESS_TOKEN"
+        echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install deps
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install google-cloud-aiplatform google-cloud-bigquery google-auth requests
+
+    - name: Validate required env
+      run: |
+        for v in PROJECT_ID REGION MODEL_RESOURCE_NAME CMEK_KEY COMPUTE_DATASET; do
+          if [ -z "${!v}" ]; then
+            echo "Missing env: $v"
+            exit 1
+          fi
+        done
+
+    - name: Run batch prediction
+      env:
+        PROJECT: ${{ env.PROJECT_ID }}
+        LOCATION: ${{ env.REGION }}
+        MODEL_RESOURCE_NAME: ${{ env.MODEL_RESOURCE_NAME }}
+        INPUT_TABLE: ${{ inputs.input-table }}
+        OUTPUT_TABLE: ${{ inputs.output-table }}
+        SERVICE_ACCOUNT: ${{ inputs.service-account }}
+        MACHINE_TYPE: ${{ env.MACHINE_TYPE }}
+        STARTING_REPLICA_COUNT: ${{ env.STARTING_REPLICA_COUNT }}
+        MAX_REPLICA_COUNT: ${{ env.MAX_REPLICA_COUNT }}
+        CMEK_KEY: ${{ env.CMEK_KEY }}
+        COMPUTE_DATASET: ${{ env.COMPUTE_DATASET }}
+        OWNER: ${{ env.OWNER }}
+        COST_CENTER: ${{ env.COST_CENTER }}
+        EXPIRATION_DAYS: ""
+        ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+      run: |
+        python run_batch_prediction.py

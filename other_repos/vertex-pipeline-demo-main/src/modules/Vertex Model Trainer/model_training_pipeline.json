@@ -1,0 +1,369 @@
+{
+  "components": {
+    "comp-custom-training-job": {
+      "executorLabel": "exec-custom-training-job",
+      "inputDefinitions": {
+        "parameters": {
+          "base_output_directory": {
+            "defaultValue": "",
+            "description": "The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. See [more information ](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/GcsDestination).",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "display_name": {
+            "description": "The name of the CustomJob.",
+            "parameterType": "STRING"
+          },
+          "enable_web_access": {
+            "defaultValue": false,
+            "description": "Whether you want Vertex AI to enable [interactive shell access ](https://cloud.google.com/vertex-ai/docs/training/monitor-debug-interactive-shell) to training containers. If `True`, you can access interactive shells at the URIs given by [CustomJob.web_access_uris][].",
+            "isOptional": true,
+            "parameterType": "BOOLEAN"
+          },
+          "encryption_spec_key_name": {
+            "defaultValue": "",
+            "description": "Customer-managed encryption key options for the CustomJob. If this is set, then all resources created by the CustomJob will be encrypted with the provided encryption key.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "labels": {
+            "defaultValue": {},
+            "description": "The labels with user-defined metadata to organize the CustomJob. See [more information](https://goo.gl/xmQnxf).",
+            "isOptional": true,
+            "parameterType": "STRUCT"
+          },
+          "location": {
+            "defaultValue": "{{$.pipeline_google_cloud_location}}",
+            "description": "Location for creating the custom training job. If not set, default to the location where the PipelineJob is run.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "max_wait_duration": {
+            "defaultValue": "86400s",
+            "description": "The maximum time to wait for the custom training job to be scheduled only if the scheduling strategy is set to FLEX_START. If set to 0, the job will wait indefinitely. The default is 24 hours. See [more information](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#Strategy).",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "network": {
+            "defaultValue": "",
+            "description": "The full name of the Compute Engine network to which the job should be peered. For example, `projects/12345/global/networks/myVPC`. Format is of the form `projects/{project}/global/networks/{network}`. Where `{project}` is a project number, as in `12345`, and `{network}` is a network name. Private services access must already be configured for the network. If left unspecified, the job is not peered with any network.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "persistent_resource_id": {
+            "defaultValue": "{{$.pipeline_persistent_resource_id}}",
+            "description": "The ID of the PersistentResource in the same Project and Location which to run. The default value is a placeholder that will be resolved to the PipelineJob [RuntimeConfig](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/projects.locations.pipelineJobs#PipelineJob.RuntimeConfig)'s persistent resource id at runtime. However, if the PipelineJob doesn't set Persistent Resource as the job level runtime, the placedholder will be resolved to an empty string and the custom job will be run on demand. If the value is set explicitly, the custom job will runs in the specified persistent resource, in this case, please note the network and CMEK configs on the job should be consistent with those on the PersistentResource, otherwise, the job will be rejected.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "project": {
+            "defaultValue": "{{$.pipeline_google_cloud_project_id}}",
+            "description": "Project to create the custom training job in. Defaults to the project in which the PipelineJob is run.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "psc_interface_config": {
+            "defaultValue": {},
+            "description": "Configuration CustomJob with PSC-I. See [more information](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#PscInterfaceConfig).",
+            "isOptional": true,
+            "parameterType": "STRUCT"
+          },
+          "reserved_ip_ranges": {
+            "defaultValue": [],
+            "description": "A list of names for the reserved IP ranges under the VPC network that can be used for this job. If set, we will deploy the job within the provided IP ranges. Otherwise, the job will be deployed to any IP ranges under the provided VPC network.",
+            "isOptional": true,
+            "parameterType": "LIST"
+          },
+          "restart_job_on_worker_restart": {
+            "defaultValue": false,
+            "description": "Restarts the entire CustomJob if a worker gets restarted. This feature can be used by distributed training jobs that are not resilient to workers leaving and joining a job.",
+            "isOptional": true,
+            "parameterType": "BOOLEAN"
+          },
+          "service_account": {
+            "defaultValue": "",
+            "description": "Sets the default service account for workload run-as account. The [service account ](https://cloud.google.com/vertex-ai/docs/pipelines/configure-project#service-account) running the pipeline submitting jobs must have act-as permission on this run-as account. If unspecified, the Vertex AI Custom Code [Service Agent ](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) for the CustomJob's project.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "strategy": {
+            "defaultValue": "STANDARD",
+            "description": "The strategy to use for the custom training job. The default is 'STANDARD'. See [more information](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#Strategy).",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "tensorboard": {
+            "defaultValue": "",
+            "description": "The name of a Vertex AI TensorBoard resource to which this CustomJob will upload TensorBoard logs.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "timeout": {
+            "defaultValue": "604800s",
+            "description": "The maximum job running time. The default is 7 days. A duration in seconds with up to nine fractional digits, terminated by 's', for example: \"3.5s\".",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "worker_pool_specs": {
+            "defaultValue": [],
+            "description": "Serialized json spec of the worker pools including machine type and Docker image. All worker pools except the first one are optional and can be skipped by providing an empty value. See [more information](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#WorkerPoolSpec).",
+            "isOptional": true,
+            "parameterType": "LIST"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "gcp_resources": {
+            "description": "Serialized JSON of `gcp_resources` [proto](https://github.com/kubeflow/pipelines/tree/master/components/google-cloud/google_cloud_pipeline_components/proto) which tracks the CustomJob.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    }
+  },
+  "deploymentSpec": {
+    "executors": {
+      "exec-custom-training-job": {
+        "container": {
+          "args": [
+            "--type",
+            "CustomJob",
+            "--payload",
+            "{\"display_name\": \"{{$.inputs.parameters['display_name']}}\", \"job_spec\": {\"worker_pool_specs\": {{$.inputs.parameters['worker_pool_specs']}}, \"scheduling\": {\"timeout\": \"{{$.inputs.parameters['timeout']}}\", \"restart_job_on_worker_restart\": {{$.inputs.parameters['restart_job_on_worker_restart']}}, \"strategy\": \"{{$.inputs.parameters['strategy']}}\", \"max_wait_duration\": \"{{$.inputs.parameters['max_wait_duration']}}\"}, \"service_account\": \"{{$.inputs.parameters['service_account']}}\", \"tensorboard\": \"{{$.inputs.parameters['tensorboard']}}\", \"enable_web_access\": {{$.inputs.parameters['enable_web_access']}}, \"network\": \"{{$.inputs.parameters['network']}}\", \"reserved_ip_ranges\": {{$.inputs.parameters['reserved_ip_ranges']}}, \"base_output_directory\": {\"output_uri_prefix\": \"{{$.inputs.parameters['base_output_directory']}}\"}, \"persistent_resource_id\": \"{{$.inputs.parameters['persistent_resource_id']}}\", \"psc_interface_config\": {{$.inputs.parameters['psc_interface_config']}}}, \"labels\": {{$.inputs.parameters['labels']}}, \"encryption_spec\": {\"kms_key_name\": \"{{$.inputs.parameters['encryption_spec_key_name']}}\"}}",
+            "--project",
+            "{{$.inputs.parameters['project']}}",
+            "--location",
+            "{{$.inputs.parameters['location']}}",
+            "--gcp_resources",
+            "{{$.outputs.parameters['gcp_resources'].output_file}}"
+          ],
+          "command": [
+            "python3",
+            "-u",
+            "-m",
+            "google_cloud_pipeline_components.container.v1.custom_job.launcher"
+          ],
+          "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:2.22.0"
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "description": "XGBoost model training using pre-selected features (ss-models)",
+    "name": "model-training-pipeline"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "custom-training-job": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-custom-training-job"
+          },
+          "inputs": {
+            "parameters": {
+              "base_output_directory": {
+                "runtimeValue": {
+                  "constant": "gs://hcm-cm-de-code-hcb-dev/vertex-test/ss-models"
+                }
+              },
+              "display_name": {
+                "runtimeValue": {
+                  "constant": "xgb-model-training"
+                }
+              },
+              "encryption_spec_key_name": {
+                "runtimeValue": {
+                  "constant": "projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4"
+                }
+              },
+              "labels": {
+                "runtimeValue": {
+                  "constant": {
+                    "costcenter": "13070",
+                    "lob": "hcb",
+                    "owner": "parked_aetna_com",
+                    "pipeline_type": "model_training",
+                    "unique_id": "ss-cancer-model-v1"
+                  }
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-east4"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "anbc-dev-hcm-cm-de"
+                }
+              },
+              "service_account": {
+                "runtimeValue": {
+                  "constant": "gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com"
+                }
+              },
+              "worker_pool_specs": {
+                "runtimeValue": {
+                  "constant": [
+                    {
+                      "env": [
+                        {
+                          "name": "LOB",
+                          "value": "hcb"
+                        },
+                        {
+                          "name": "PROJECT",
+                          "value": "anbc-dev-hcm-cm-de"
+                        },
+                        {
+                          "name": "COMPUTE_PROJECT",
+                          "value": "anbc-dev-hcm-cm-de"
+                        },
+                        {
+                          "name": "SHARED_PROJECT",
+                          "value": "anbc-hcb-dev"
+                        },
+                        {
+                          "name": "AIP_DIR",
+                          "value": "gs://hcm-cm-de-code-hcb-dev/vertex-test/ss-models"
+                        },
+                        {
+                          "name": "OWNER",
+                          "value": "parked_aetna_com"
+                        },
+                        {
+                          "name": "COSTCENTER",
+                          "value": "13070"
+                        },
+                        {
+                          "name": "UNIQUE_ID",
+                          "value": "ss-cancer-model-v1"
+                        },
+                        {
+                          "name": "PIPELINE_TYPE",
+                          "value": "model_training"
+                        },
+                        {
+                          "name": "FEATURE_NAMES",
+                          "value": "[\"emb131\", \"emb169\", \"emb186\", \"uniq_dx_cd_cnt_3mo\", \"emb14\", \"change_q1_minus_q_2\", \"Oncologic_case_pre_12\", \"other_spec_visits_pre_1\", \"cost_9_12\", \"pcp_visits_pre_9\", \"spec_visits_pre_6\", \"emb194\", \"emb116\", \"lab_max_psa_1yr\", \"emb94\", \"emb238\", \"emb125\", \"emb190\", \"dx_cd_cnt_6mo\", \"Endocrine_Metabolic_case_pre_12\", \"emb42\", \"emb166\", \"emb89\", \"cancer_cv\", \"Cardiac_case_pre_12\", \"spec_visit_cnt_6mo\", \"emb248\", \"cancer_visits_pre_9\", \"prostate_cancer\", \"emb145\", \"emb152\", \"Respiratory_case_pre_12\", \"emb250\", \"cost_6_9\", \"emb176\", \"emb222\", \"endo_cv\", \"cancer_visits_pre_12\", \"emb61\", \"emb6\", \"emb80\", \"emb74\", \"emb118\", \"emb233\", \"emb46\", \"spec_visits_pre_1\", \"emb92\", \"emb57\", \"emb66\", \"emb197\", \"emb244\", \"pcp_visits_pre_1\", \"emb91\", \"colorectal_cancer\", \"lab_max_psa_2yr\", \"emb170\", \"lab_visit_cnt_2yr\", \"Musculoskeletal_case_pre_12\", \"spec_visits_pre_12\", \"emb185\", \"emb31\", \"age\", \"emb225\", \"emb202\", \"change_q1_minus_q_3\", \"Digestive_case_pre_12\", \"emb86\", \"change_h_1_minus_h_2\", \"emb149\", \"lab_visit_cnt_3mo\", \"spec_visits_pre_9\", \"emb29\", \"card_visits_pre_12\", \"leukemia_myeloma\", \"emb110\", \"health_habits\", \"emb35\", \"breast_cancer\", \"emb219\", \"cancer_visits_pre_3\", \"emb242\", \"emb224\", \"cancer\", \"dx_diff\", \"Oncologic_case_pre_3\", \"emb21\", \"cost_0_3\", \"pcp_cv\", \"emb187\", \"emb73\", \"emb175\", \"social_risk_score\", \"emb142\", \"emb2\", \"brain_cancer\", \"uniq_proc_cd_cnt_6mo\", \"emb62\", \"clm_ln_cnt_2yr\", \"emb160\", \"Obstetric_case_pre_12\", \"emb24\", \"emb37\", \"emb68\", \"language_score\", \"uniq_rev_cd_cnt_3mo\", \"emb77\", \"cost_3_6\", \"emb128\", \"emb25\", \"cancer_visits_pre_1\", \"clm_ln_cnt_1yr\", \"emb214\", \"er_clm_cnt_6mo\", \"lab_visit_cnt_6mo\", \"emb41\", \"emb75\", \"emb137\", \"emb234\", \"emb85\", \"emb56\", \"emb207\", \"Injury_Poisoning_case_pre_12\", \"emb203\", \"rx_diff\", \"emb32\", \"emb182\", \"emb232\", \"uniq_proc_cd_cnt_3mo\", \"emb228\", \"Renal_case_pre_12\", \"Neurologic_case_pre_12\", \"emb33\", \"index_month\", \"emb71\", \"hpd_count\", \"emb143\", \"emb235\", \"emb159\", \"emb247\", \"emb120\", \"emb236\", \"other_cancer\", \"Infectious_case_pre_12\", \"emb45\", \"emb64\", \"emb181\", \"emb180\", \"emb124\", \"pcp_visits_pre_6\", \"Oncologic_case_pre_6\", \"emb114\", \"emb220\", \"emb227\", \"ortho_visits_pre_3\", \"change_q1_minus_q_4\", \"emb147\"]"
+                        },
+                        {
+                          "name": "MODEL_TIMESTAMP",
+                          "value": "1771948645"
+                        }
+                      ],
+                      "machineSpec": {
+                        "machineType": "n1-standard-16"
+                      },
+                      "pythonPackageSpec": {
+                        "args": [
+                          "--gcp-project",
+                          "anbc-dev-hcm-cm-de",
+                          "--gcp-bq-project",
+                          "anbc-hcb-dev",
+                          "--gcp-db",
+                          "clin_analytics_hcb_dev",
+                          "--location",
+                          "US",
+                          "--bucket-name",
+                          "hcm-cm-de-code-hcb-dev",
+                          "--gcs-destination-path",
+                          "vertex-test/ss-models",
+                          "--owner",
+                          "parked_aetna_com",
+                          "--costcenter",
+                          "13070",
+                          "--unique-id",
+                          "ss-cancer-model-v1",
+                          "--lob",
+                          "hcb",
+                          "--pipeline-type",
+                          "model_training",
+                          "--expiration-days",
+                          "7",
+                          "--sql-queries",
+                          "base64:eyJvdXRjb21lX3F1ZXJ5IjoiU0VMRUNUXG4gIGluZGl2aWR1YWxfaWQsXG4gIE9uY29sb2dpY19jYXNlX3Bvc3QgQVMgY2FuY2VyX2Nhc2VcbkZST00gYGFuYmMtaGNiLWRldi5jbGluX2FuYWx5dGljc19oY2JfZGV2LmEzNjc3MjZfc3NfcmV2YW1wX3RyYWluaW5nX2FsbF9jYXNlc19hbmFseXRpY193X21vZGVsYFxuV0hFUkUgdHJhaW5fdGVzdF9zcGxpdCA8PSA3NVxuIiwidHJhaW5fZmVhdHVyZXNfcXVlcnkiOiJTRUxFQ1RcbiAgKiBFWENFUFQoXG4gICAgQ2FyZGlhY19jYXNlX3Bvc3QsIERpZ2VzdGl2ZV9jYXNlX3Bvc3QsIEVuZG9jcmluZV9NZXRhYm9saWNfY2FzZV9wb3N0LFxuICAgIEluZmVjdGlvdXNfY2FzZV9wb3N0LCBJbmp1cnlfUG9pc29uaW5nX2Nhc2VfcG9zdCwgTXVzY3Vsb3NrZWxldGFsX2Nhc2VfcG9zdCxcbiAgICBOZXVyb2xvZ2ljX2Nhc2VfcG9zdCwgT2JzdGV0cmljX2Nhc2VfcG9zdCwgT25jb2xvZ2ljX2Nhc2VfcG9zdCxcbiAgICBSZW5hbF9jYXNlX3Bvc3QsIFJlc3BpcmF0b3J5X2Nhc2VfcG9zdCxcbiAgICBDYXJkaWFjX2Nhc2VfcG9zdF8xXzcsIERpZ2VzdGl2ZV9jYXNlX3Bvc3RfMV83LCBFbmRvY3JpbmVfTWV0YWJvbGljX2Nhc2VfcG9zdF8xXzcsXG4gICAgSW5mZWN0aW91c19jYXNlX3Bvc3RfMV83LCBJbmp1cnlfUG9pc29uaW5nX2Nhc2VfcG9zdF8xXzcsXG4gICAgTXVzY3Vsb3NrZWxldGFsX2Nhc2VfcG9zdF8xXzcsIE5ldXJvbG9naWNfY2FzZV9wb3N0XzFfNywgT2JzdGV0cmljX2Nhc2VfcG9zdF8xXzcsXG4gICAgT25jb2xvZ2ljX2Nhc2VfcG9zdF8xXzcsIFJlbmFsX2Nhc2VfcG9zdF8xXzcsIFJlc3BpcmF0b3J5X2Nhc2VfcG9zdF8xXzdcbiAgKVxuRlJPTSBgYW5iYy1oY2ItZGV2LmNsaW5fYW5hbHl0aWNzX2hjYl9kZXYuYTM2NzcyNl9zc19yZXZhbXBfdHJhaW5pbmdfYWxsX2Nhc2VzX2FuYWx5dGljX3dfbW9kZWxgXG5XSEVSRSB0cmFpbl90ZXN0X3NwbGl0IDw9IDc1XG4iLCJob2xkb3V0X2ZlYXR1cmVzX3F1ZXJ5IjoiU0VMRUNUXG4gICogRVhDRVBUKFxuICAgIENhcmRpYWNfY2FzZV9wb3N0LCBEaWdlc3RpdmVfY2FzZV9wb3N0LCBFbmRvY3JpbmVfTWV0YWJvbGljX2Nhc2VfcG9zdCxcbiAgICBJbmZlY3Rpb3VzX2Nhc2VfcG9zdCwgSW5qdXJ5X1BvaXNvbmluZ19jYXNlX3Bvc3QsIE11c2N1bG9za2VsZXRhbF9jYXNlX3Bvc3QsXG4gICAgTmV1cm9sb2dpY19jYXNlX3Bvc3QsIE9ic3RldHJpY19jYXNlX3Bvc3QsIE9uY29sb2dpY19jYXNlX3Bvc3QsXG4gICAgUmVuYWxfY2FzZV9wb3N0LCBSZXNwaXJhdG9yeV9jYXNlX3Bvc3QsXG4gICAgQ2FyZGlhY19jYXNlX3Bvc3RfMV83LCBEaWdlc3RpdmVfY2FzZV9wb3N0XzFfNywgRW5kb2NyaW5lX01ldGFib2xpY19jYXNlX3Bvc3RfMV83LFxuICAgIEluZmVjdGlvdXNfY2FzZV9wb3N0XzFfNywgSW5qdXJ5X1BvaXNvbmluZ19jYXNlX3Bvc3RfMV83LFxuICAgIE11c2N1bG9za2VsZXRhbF9jYXNlX3Bvc3RfMV83LCBOZXVyb2xvZ2ljX2Nhc2VfcG9zdF8xXzcsIE9ic3RldHJpY19jYXNlX3Bvc3RfMV83LFxuICAgIE9uY29sb2dpY19jYXNlX3Bvc3RfMV83LCBSZW5hbF9jYXNlX3Bvc3RfMV83LCBSZXNwaXJhdG9yeV9jYXNlX3Bvc3RfMV83XG4gIClcbkZST00gYGFuYmMtaGNiLWRldi5jbGluX2FuYWx5dGljc19oY2JfZGV2LmEzNjc3MjZfc3NfcmV2YW1wX3RyYWluaW5nX2FsbF9jYXNlc19hbmFseXRpY193X21vZGVsYFxuV0hFUkUgdHJhaW5fdGVzdF9zcGxpdCA+IDc1XG4ifQ==",
+                          "--bigquery-query-config",
+                          "base64:eyJ1c2VfYnFzdG9yYWdlX2FwaSI6dHJ1ZSwicHJvZ3Jlc3NfYmFyX2VuYWJsZWQiOmZhbHNlLCJ1c2VfcXVlcnlfY2FjaGUiOmZhbHNlLCJ1c2VfbGVnYWN5X3NxbCI6ZmFsc2UsImRpYWxlY3QiOiJzdGFuZGFyZCIsImF1dGhfbG9jYWxfd2Vic2VydmVyIjpmYWxzZX0=",
+                          "--random-seed",
+                          "53",
+                          "--outcome-var",
+                          "cancer_case",
+                          "--indexing-var",
+                          "individual_id",
+                          "--embedding-pattern",
+                          "emb[0-255]+",
+                          "--test-size",
+                          "0.2",
+                          "--val-size",
+                          "0.5",
+                          "--categorical-config",
+                          "base64:eyJnZW5kZXJfY2QiOnsibWFwcGluZyI6eyJNIjoxLCJGIjowfSwiZmlsbF9uYSI6LTF9LCJkcnVnX2luZCI6eyJtYXBwaW5nIjp7IlkiOjEsIk4iOjB9LCJmaWxsX25hIjotMX0sInJlZ2lvbiI6eyJ0eXBlIjoib25lX2hvdCJ9fQ==",
+                          "--selected-features-list",
+                          "base64:WyJlbWIxMzEiLCJlbWIxNjkiLCJlbWIxODYiLCJ1bmlxX2R4X2NkX2NudF8zbW8iLCJlbWIxNCIsImNoYW5nZV9xMV9taW51c19xXzIiLCJPbmNvbG9naWNfY2FzZV9wcmVfMTIiLCJvdGhlcl9zcGVjX3Zpc2l0c19wcmVfMSIsImNvc3RfOV8xMiIsInBjcF92aXNpdHNfcHJlXzkiLCJzcGVjX3Zpc2l0c19wcmVfNiIsImVtYjE5NCIsImVtYjExNiIsImxhYl9tYXhfcHNhXzF5ciIsImVtYjk0IiwiZW1iMjM4IiwiZW1iMTI1IiwiZW1iMTkwIiwiZHhfY2RfY250XzZtbyIsIkVuZG9jcmluZV9NZXRhYm9saWNfY2FzZV9wcmVfMTIiLCJlbWI0MiIsImVtYjE2NiIsImVtYjg5IiwiY2FuY2VyX2N2IiwiQ2FyZGlhY19jYXNlX3ByZV8xMiIsInNwZWNfdmlzaXRfY250XzZtbyIsImVtYjI0OCIsImNhbmNlcl92aXNpdHNfcHJlXzkiLCJwcm9zdGF0ZV9jYW5jZXIiLCJlbWIxNDUiLCJlbWIxNTIiLCJSZXNwaXJhdG9yeV9jYXNlX3ByZV8xMiIsImVtYjI1MCIsImNvc3RfNl85IiwiZW1iMTc2IiwiZW1iMjIyIiwiZW5kb19jdiIsImNhbmNlcl92aXNpdHNfcHJlXzEyIiwiZW1iNjEiLCJlbWI2IiwiZW1iODAiLCJlbWI3NCIsImVtYjExOCIsImVtYjIzMyIsImVtYjQ2Iiwic3BlY192aXNpdHNfcHJlXzEiLCJlbWI5MiIsImVtYjU3IiwiZW1iNjYiLCJlbWIxOTciLCJlbWIyNDQiLCJwY3BfdmlzaXRzX3ByZV8xIiwiZW1iOTEiLCJjb2xvcmVjdGFsX2NhbmNlciIsImxhYl9tYXhfcHNhXzJ5ciIsImVtYjE3MCIsImxhYl92aXNpdF9jbnRfMnlyIiwiTXVzY3Vsb3NrZWxldGFsX2Nhc2VfcHJlXzEyIiwic3BlY192aXNpdHNfcHJlXzEyIiwiZW1iMTg1IiwiZW1iMzEiLCJhZ2UiLCJlbWIyMjUiLCJlbWIyMDIiLCJjaGFuZ2VfcTFfbWludXNfcV8zIiwiRGlnZXN0aXZlX2Nhc2VfcHJlXzEyIiwiZW1iODYiLCJjaGFuZ2VfaF8xX21pbnVzX2hfMiIsImVtYjE0OSIsImxhYl92aXNpdF9jbnRfM21vIiwic3BlY192aXNpdHNfcHJlXzkiLCJlbWIyOSIsImNhcmRfdmlzaXRzX3ByZV8xMiIsImxldWtlbWlhX215ZWxvbWEiLCJlbWIxMTAiLCJoZWFsdGhfaGFiaXRzIiwiZW1iMzUiLCJicmVhc3RfY2FuY2VyIiwiZW1iMjE5IiwiY2FuY2VyX3Zpc2l0c19wcmVfMyIsImVtYjI0MiIsImVtYjIyNCIsImNhbmNlciIsImR4X2RpZmYiLCJPbmNvbG9naWNfY2FzZV9wcmVfMyIsImVtYjIxIiwiY29zdF8wXzMiLCJwY3BfY3YiLCJlbWIxODciLCJlbWI3MyIsImVtYjE3NSIsInNvY2lhbF9yaXNrX3Njb3JlIiwiZW1iMTQyIiwiZW1iMiIsImJyYWluX2NhbmNlciIsInVuaXFfcHJvY19jZF9jbnRfNm1vIiwiZW1iNjIiLCJjbG1fbG5fY250XzJ5ciIsImVtYjE2MCIsIk9ic3RldHJpY19jYXNlX3ByZV8xMiIsImVtYjI0IiwiZW1iMzciLCJlbWI2OCIsImxhbmd1YWdlX3Njb3JlIiwidW5pcV9yZXZfY2RfY250XzNtbyIsImVtYjc3IiwiY29zdF8zXzYiLCJlbWIxMjgiLCJlbWIyNSIsImNhbmNlcl92aXNpdHNfcHJlXzEiLCJjbG1fbG5fY250XzF5ciIsImVtYjIxNCIsImVyX2NsbV9jbnRfNm1vIiwibGFiX3Zpc2l0X2NudF82bW8iLCJlbWI0MSIsImVtYjc1IiwiZW1iMTM3IiwiZW1iMjM0IiwiZW1iODUiLCJlbWI1NiIsImVtYjIwNyIsIkluanVyeV9Qb2lzb25pbmdfY2FzZV9wcmVfMTIiLCJlbWIyMDMiLCJyeF9kaWZmIiwiZW1iMzIiLCJlbWIxODIiLCJlbWIyMzIiLCJ1bmlxX3Byb2NfY2RfY250XzNtbyIsImVtYjIyOCIsIlJlbmFsX2Nhc2VfcHJlXzEyIiwiTmV1cm9sb2dpY19jYXNlX3ByZV8xMiIsImVtYjMzIiwiaW5kZXhfbW9udGgiLCJlbWI3MSIsImhwZF9jb3VudCIsImVtYjE0MyIsImVtYjIzNSIsImVtYjE1OSIsImVtYjI0NyIsImVtYjEyMCIsImVtYjIzNiIsIm90aGVyX2NhbmNlciIsIkluZmVjdGlvdXNfY2FzZV9wcmVfMTIiLCJlbWI0NSIsImVtYjY0IiwiZW1iMTgxIiwiZW1iMTgwIiwiZW1iMTI0IiwicGNwX3Zpc2l0c19wcmVfNiIsIk9uY29sb2dpY19jYXNlX3ByZV82IiwiZW1iMTE0IiwiZW1iMjIwIiwiZW1iMjI3Iiwib3J0aG9fdmlzaXRzX3ByZV8zIiwiY2hhbmdlX3ExX21pbnVzX3FfNCIsImVtYjE0NyJd",
+                          "--model-params",
+                          "base64:eyJvYmplY3RpdmUiOiJiaW5hcnk6bG9naXN0aWMiLCJiYXNlX3Njb3JlIjowLjUsImJvb3N0ZXIiOiJnYnRyZWUiLCJjb2xzYW1wbGVfYnlsZXZlbCI6MSwiY29sc2FtcGxlX2J5bm9kZSI6MSwiY29sc2FtcGxlX2J5dHJlZSI6MC41NTE2OTE2MDU0MTgyOTgsImRldmljZSI6ImNwdSIsImV2YWxfbWV0cmljIjoibG9nbG9zcyIsImdhbW1hIjowLCJncm93X3BvbGljeSI6Imxvc3NndWlkZSIsImxlYXJuaW5nX3JhdGUiOjAuMDA4NDEwODQwMTUzNDAzODU1LCJtYXhfYmluIjoyNTYsIm1heF9kZWx0YV9zdGVwIjowLCJtYXhfZGVwdGgiOjQsIm1heF9sZWF2ZXMiOjAsIm1pbl9jaGlsZF93ZWlnaHQiOjEsIm11bHRpX3N0cmF0ZWd5Ijoib25lX291dHB1dF9wZXJfdHJlZSIsIm5fam9icyI6LTEsIm51bV9wYXJhbGxlbF90cmVlIjoxLCJyYW5kb21fc3RhdGUiOjUzLCJyZWdfYWxwaGEiOjAsInJlZ19sYW1iZGEiOjEsInNhbXBsaW5nX21ldGhvZCI6InVuaWZvcm0iLCJzY2FsZV9wb3Nfd2VpZ2h0IjoxLCJzdWJzYW1wbGUiOjAuNTgyNjY2Nzc4OTY3MjkxNywidHJlZV9tZXRob2QiOiJoaXN0IiwidmVyYm9zaXR5IjoxfQ==",
+                          "--num-boost-round",
+                          "3101",
+                          "--verbose-eval",
+                          "100",
+                          "--percentiles",
+                          "base64:WzAuMDEsMC4xXQ==",
+                          "--output-config",
+                          "base64:eyJwcmVkaWN0aW9uc190YWJsZSI6IiJ9",
+                          "--model-name",
+                          "ss-xgboost-model",
+                          "--tenant",
+                          "hcm-cm-de",
+                          "--self-serve",
+                          "true",
+                          "--vertex-model-id",
+                          "none",
+                          "--vertex-model-version-alias",
+                          "none",
+                          "--model-registry-display-name",
+                          "ss-xgboost-model",
+                          "--serving-container-image-uri",
+                          "us-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.2-1:latest",
+                          "--model-registry-location",
+                          "us-east4",
+                          "--model-registry-cmek-key",
+                          "projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4",
+                          "--model-registry-service-account",
+                          "gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com",
+                          "--upload-to-existing-model",
+                          "false",
+                          "--existing-model-resource-name",
+                          "",
+                          "--model-description",
+                          "XGBoost binary-classification model trained via ss-models pipeline",
+                          "--batch-predict-config",
+                          "{\"enable\": true, \"output_table\": \"anbc-hcb-dev.clin_analytics_hcb_dev.ss_model_test_predictions\", \"compute_dataset\": \"hcm_cm_de_beam_dev_hcm_cm_de\", \"machine_type\": \"n2-standard-16\", \"starting_replica_count\": 1, \"max_replica_count\": 1, \"batch_size\": null, \"expiration_days\": 7}"
+                        ],
+                        "executorImageUri": "us-docker.pkg.dev/vertex-ai/training/xgboost-cpu.2-1:latest",
+                        "packageUris": [
+                          "gs://hcm-cm-de-code-hcb-dev/vertex-test/ss-models/packages/ss_models_trainer-0.1.0.tar.gz"
+                        ],
+                        "pythonModule": "trainer.task"
+                      },
+                      "replicaCount": "1"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "xgb-model-training"
+          }
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.13.0"
+}

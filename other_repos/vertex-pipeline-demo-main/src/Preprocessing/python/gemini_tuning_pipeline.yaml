@@ -1,0 +1,171 @@
+# PIPELINE DEFINITION
+# Name: gemini-managed-tuning-pipeline
+# Description: Pipeline to fine-tune Gemini Pro/Flash
+# Inputs:
+#    base_model: str [Default: 'gemini-2.0-flash-001']
+#    encryption_spec_key_name: str [Default: 'projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4']
+#    epochs: int [Default: 3.0]
+#    learning_rate_multiplier: float [Default: 1.0]
+#    location: str [Default: 'us-east4']
+#    project_id: str [Default: 'anbc-dev-hcm-cm-de']
+#    service_account: str [Default: 'gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com']
+#    training_dataset: str [Default: 'gs://hcm-cm-de-data-hcb-dev/zj_a455644_test/peft_train_sample_gemini.jsonl']
+#    tuned_model_name: str [Default: 'gemini-2.0-flash-001-tuned-v1']
+#    validation_dataset: str [Default: 'gs://hcm-cm-de-data-hcb-dev/zj_a455644_test/peft_eval_sample_gemini.jsonl']
+components:
+  comp-gemini-tuning-component:
+    executorLabel: exec-gemini-tuning-component
+    inputDefinitions:
+      parameters:
+        base_model:
+          parameterType: STRING
+        encryption_spec_key_name:
+          isOptional: true
+          parameterType: STRING
+        epochs:
+          defaultValue: 3.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        learning_rate_multiplier:
+          defaultValue: 1.0
+          isOptional: true
+          parameterType: NUMBER_DOUBLE
+        location:
+          parameterType: STRING
+        project:
+          parameterType: STRING
+        service_account:
+          parameterType: STRING
+        training_dataset_uri:
+          parameterType: STRING
+        tuned_model_display_name:
+          parameterType: STRING
+        validation_dataset_uri:
+          parameterType: STRING
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-gemini-tuning-component:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - gemini_tuning_component
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.13.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'google-cloud-aiplatform>=1.38.0'\
+          \ 'vertexai>=1.38.0' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef gemini_tuning_component(\n    project: str,\n    location: str,\n\
+          \    base_model: str,\n    training_dataset_uri: str,\n    validation_dataset_uri:\
+          \ str,\n    tuned_model_display_name: str,\n    service_account: str,\n\
+          \    epochs: int = 3,\n    learning_rate_multiplier: float = 1.0,\n    encryption_spec_key_name:\
+          \ str = None,\n) -> str:\n    \"\"\"\n    Custom component to create a Gemini\
+          \ supervised tuning job.\n    Returns the tuned model resource name.\n \
+          \   \"\"\"\n    from vertexai.tuning import sft\n    from google.cloud import\
+          \ aiplatform\n\n    # Initialize Vertex AI\n    aiplatform.init(project=project,\
+          \ location=location)\n\n    # Create supervised tuning job\n    tuning_job\
+          \ = sft.train(\n        source_model=base_model,\n        train_dataset=training_dataset_uri,\n\
+          \        validation_dataset=validation_dataset_uri,\n        tuned_model_display_name=tuned_model_display_name,\n\
+          \        epochs=epochs,\n        learning_rate_multiplier=learning_rate_multiplier\n\
+          \    )\n\n\n    # Return the tuned model resource name\n    return tuning_job.tuned_model_name\n\
+          \n"
+        image: python:3.9
+pipelineInfo:
+  description: Pipeline to fine-tune Gemini Pro/Flash
+  name: gemini-managed-tuning-pipeline
+root:
+  dag:
+    tasks:
+      gemini-tuning-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-gemini-tuning-component
+        inputs:
+          parameters:
+            base_model:
+              componentInputParameter: base_model
+            encryption_spec_key_name:
+              componentInputParameter: encryption_spec_key_name
+            epochs:
+              componentInputParameter: epochs
+            learning_rate_multiplier:
+              componentInputParameter: learning_rate_multiplier
+            location:
+              componentInputParameter: location
+            project:
+              componentInputParameter: project_id
+            service_account:
+              componentInputParameter: service_account
+            training_dataset_uri:
+              componentInputParameter: training_dataset
+            tuned_model_display_name:
+              componentInputParameter: tuned_model_name
+            validation_dataset_uri:
+              componentInputParameter: validation_dataset
+        taskInfo:
+          name: gemini-tuning-component
+  inputDefinitions:
+    parameters:
+      base_model:
+        defaultValue: gemini-2.0-flash-001
+        isOptional: true
+        parameterType: STRING
+      encryption_spec_key_name:
+        defaultValue: projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4
+        isOptional: true
+        parameterType: STRING
+      epochs:
+        defaultValue: 3.0
+        isOptional: true
+        parameterType: NUMBER_INTEGER
+      learning_rate_multiplier:
+        defaultValue: 1.0
+        isOptional: true
+        parameterType: NUMBER_DOUBLE
+      location:
+        defaultValue: us-east4
+        isOptional: true
+        parameterType: STRING
+      project_id:
+        defaultValue: anbc-dev-hcm-cm-de
+        isOptional: true
+        parameterType: STRING
+      service_account:
+        defaultValue: gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com
+        isOptional: true
+        parameterType: STRING
+      training_dataset:
+        defaultValue: gs://hcm-cm-de-data-hcb-dev/zj_a455644_test/peft_train_sample_gemini.jsonl
+        isOptional: true
+        parameterType: STRING
+      tuned_model_name:
+        defaultValue: gemini-2.0-flash-001-tuned-v1
+        isOptional: true
+        parameterType: STRING
+      validation_dataset:
+        defaultValue: gs://hcm-cm-de-data-hcb-dev/zj_a455644_test/peft_eval_sample_gemini.jsonl
+        isOptional: true
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.13.0

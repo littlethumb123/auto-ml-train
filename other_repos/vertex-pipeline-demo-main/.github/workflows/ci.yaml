@@ -1,0 +1,61 @@
+name: Build and Push XGBoost Serving Image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  version:
+    runs-on: self-hosted
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          latest="$(git tag -l 'xgboost-serving-hcm-cm-de-[0-9]*.[0-9]*.[0-9]*' | sed 's/^xgboost-serving-hcm-cm-de-//' | sort -V | tail -n1 || true)"
+          if [ -z "$latest" ]; then
+            next="1.0.0"
+          else
+            IFS=. read M m p <<<"$latest"
+            next="$M.$((m+1)).0"
+          fi
+          if [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            git -c user.name=github-actions -c user.email=github-actions@github.com tag "xgboost-serving-hcm-cm-de-$next" || true
+            git push origin "refs/tags/xgboost-serving-hcm-cm-de-$next" || true
+          fi
+          echo "version=$next" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    uses: cvs-health-source-code/gha_workflow_actions/.github/workflows/python_docker.yaml@latest
+    with:
+      PYTHON_VERSION: '3.10'
+      PYTHON_TEST_COMMAND: 'NA'
+      PYTHON_LINT_COMMAND: 'NA'
+      PYTHON_BUILD_COMMAND: 'NA'
+      PYTHON_DEPS_COMMAND: 'echo "No dependencies to install"'
+      DOCKERFILE_PATH: 'Dockerfile'   # <-- update this
+      ARTIFACT_NAME: 'xgboost-serving-hcm-cm-de'              # <-- your image name in GAR
+      DOCKER_REGISTRY_NAME: 'cvs-caremark-docker'   # <-- confirm with your team
+      DOCKER_PUBLISH: true
+      PUSH_REGISTRY: 'gar'
+      IMAGE_TAG_VERSION: "${{ needs.version.outputs.version }}"
+      USE_LATEST_TAG: 'false'
+      LIBRARY_PUBLISH: false
+      SAST_TOOL: 'snyk'
+      SCA_TOOL: 'snyk'
+      CONTAINER_SCAN_TOOL: 'snyk'
+      SKIP_UNRESOLVED_SNYK: 'true'
+    secrets: inherit

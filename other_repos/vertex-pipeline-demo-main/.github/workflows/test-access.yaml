@@ -1,0 +1,57 @@
+name: Verify prod SA can pull GAR image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  # Prod (from maternity-model.yaml)
+  TARGET_SERVICE_ACCOUNT: gchcb-hcm-cm-de-dec-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com
+  WIF_PROVIDER: projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod
+  WIF_SERVICE_ACCOUNT: hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com
+  # Full image reference to test
+  IMAGE: us-docker.pkg.dev/ent-prod-gar/ent-prod-gar/ghemu/cvs-health-source-code/vertex-pipeline-demo/xgboost-serving-hcm-cm-de:1.0.0
+
+jobs:
+  docker-pull-check:
+    runs-on: self-hosted   # change to ubuntu-latest if you use GitHub-hosted + Docker
+
+    steps:
+      - name: Authenticate to Google Cloud (WIF)
+        uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+
+      - name: Impersonate prod service account
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud config set auth/impersonate_service_account "${{ env.TARGET_SERVICE_ACCOUNT }}"
+          gcloud auth print-access-token >/dev/null
+
+      - name: Docker login to Artifact Registry (as impersonated SA)
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-docker.pkg.dev
+
+      - name: Pull image (access check)
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker pull "${{ env.IMAGE }}"
+
+      - name: List images in GAR repo (optional)
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud artifacts docker images list \
+            us-docker.pkg.dev/ent-prod-gar/ent-prod-gar/ghemu \
+            --include-tags

@@ -1,0 +1,43 @@
+# Large data files
+*.feather
+*.parquet
+*.h5
+*.hdf5
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.venv
+env/
+venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model files (often large)
+*.pkl
+*.joblib
+*.model
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp

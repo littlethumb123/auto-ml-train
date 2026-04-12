@@ -1,0 +1,154 @@
+name: Pipeline Runner - Multi Environment
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+      pipeline-file:
+        description: 'Pipeline file from dev bucket (JSON or YAML)'
+        required: true
+        type: string
+        default: 'gs://hcm-cm-de-code-hcb-dev/vertex-test/hello_world_pipeline.json'
+      runs-on-group:
+        description: 'The runner group to use'
+        required: true
+        type: string
+        default: cvs-linux-self-hosted
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set environment variables
+      run: |
+        if [ "${{ inputs.environment }}" == "prod" ]; then
+          echo "PROJECT_ID=anbc-prod-hcm-cm-de" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/46504011566/locations/global/workloadIdentityPools/wif-pool-github-prod/providers/wif-pool-github-prod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-onppp@anbc-prod-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "BUCKET_NAME=hcm-cm-de-data-hcb-prod" >> $GITHUB_ENV
+          echo "PIPELINE_ROOT=gs://hcm-cm-de-code-hcb-prod/vertex-test/" >> $GITHUB_ENV
+          echo "ENCRYPTION_KEY=projects/cvs-key-vault-prod/locations/us-east4/keyRings/gkr-prod-us-east4/cryptoKeys/gk-anbc-prod-hcm-cm-de-us-east4" >> $GITHUB_ENV
+          echo "DEV_WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "DEV_WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "DEV_TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+        else
+          echo "PROJECT_ID=anbc-dev-hcm-cm-de" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "DEV_TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "BUCKET_NAME=hcm-cm-de-data-hcb-dev" >> $GITHUB_ENV
+          echo "PIPELINE_ROOT=gs://hcm-cm-de-code-hcb-dev/vertex-test/" >> $GITHUB_ENV
+          echo "ENCRYPTION_KEY=projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4" >> $GITHUB_ENV
+        fi
+        echo "PIPELINE_FILENAME=$(basename ${{ inputs.pipeline-file }})" >> $GITHUB_ENV
+
+    # Step 1: Authenticate with DEV SA to download pipeline file from dev bucket
+    - name: Authenticate to Google Cloud (Dev for file download)
+      id: auth-dev
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ env.DEV_WIF_PROVIDER || env.WIF_PROVIDER }}
+        service_account: ${{ env.DEV_WIF_SERVICE_ACCOUNT || env.WIF_SERVICE_ACCOUNT }}
+
+    - name: 'Setup Cloud SDK for Dev'
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+
+    - name: Set up dev impersonation for file download
+      run: |-
+        gcloud config set auth/impersonate_service_account ${{ env.DEV_TARGET_SERVICE_ACCOUNT }}
+
+    - name: Download pipeline definition from dev bucket
+      run: |
+        echo "Downloading pipeline file: ${{ inputs.pipeline-file }}"
+        gsutil cp ${{ inputs.pipeline-file }} .
+        echo "Pipeline file downloaded successfully: ${{ env.PIPELINE_FILENAME }}"
+
+    # Step 2: Re-authenticate with target environment SA for pipeline execution
+    - name: Clear impersonation before re-auth
+      if: inputs.environment == 'prod'
+      run: |-
+        gcloud config unset auth/impersonate_service_account
+        gcloud auth revoke --all || true
+        echo "Cleared previous authentication and impersonation"
+
+    - name: Authenticate to Google Cloud (Target Environment)
+      id: auth-target
+      if: inputs.environment == 'prod'
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+
+    - name: 'Setup Cloud SDK for Target Environment'
+      if: inputs.environment == 'prod'
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+
+    - name: Set up target environment impersonation
+      id: impersonate
+      run: |-
+        gcloud config set auth/impersonate_service_account ${{ env.TARGET_SERVICE_ACCOUNT }}
+        ACCESS_TOKEN=$(gcloud auth print-access-token)
+        echo "::add-mask::$ACCESS_TOKEN"
+        echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
+
+    - name: Detect Python interpreter
+      run: |-
+        set -e
+        if command -v python3 >/dev/null 2>&1; then
+          PY=python3
+        elif command -v python >/dev/null 2>&1; then
+          PY=python
+        else
+          echo "Python not found on runner" >&2
+          exit 1
+        fi
+        echo "Using Python interpreter: $PY"
+        $PY --version
+        echo "PYTHON_INTERPRETER=$PY" >> "$GITHUB_ENV"
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-vertex-${{ hashFiles('**/requirements.txt', '**/setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-vertex-
+          ${{ runner.os }}-pip-
+
+    - name: Install Python dependencies
+      run: |-
+        "$PYTHON_INTERPRETER" -m pip install --upgrade pip
+        "$PYTHON_INTERPRETER" -m pip install google-cloud-aiplatform kfp google-auth
+
+    - name: Submit Vertex AI Pipeline via Python SDK
+      env:
+        GOOGLE_CLOUD_PROJECT: ${{ env.PROJECT_ID }}
+        IMPERSONATED_SERVICE_ACCOUNT: ${{ env.TARGET_SERVICE_ACCOUNT }}
+        PIPELINE_TEMPLATE_PATH: ${{ env.PIPELINE_FILENAME }}
+        PIPELINE_ROOT: ${{ env.PIPELINE_ROOT }}
+        ENCRYPTION_KEY: ${{ env.ENCRYPTION_KEY }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        ACCESS_TOKEN: ${{ steps.impersonate.outputs.access_token }}
+      run: |-
+        "$PYTHON_INTERPRETER" unified_pipeline_runner.py
+
+    - name: Cleanup downloaded pipeline file
+      if: always()
+      run: |-
+        rm -f ${{ env.PIPELINE_FILENAME }}
+        echo "Cleaned up pipeline file: ${{ env.PIPELINE_FILENAME }}"

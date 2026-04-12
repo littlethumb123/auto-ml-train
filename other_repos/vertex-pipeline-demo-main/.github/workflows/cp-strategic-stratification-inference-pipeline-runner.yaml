@@ -1,0 +1,145 @@
+name: CP Strategic Stratification Inference Pipeline Runner
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+        default: dev
+      enable_caching:
+        description: 'Enable Vertex pipeline task caching. Set true to skip already-succeeded tasks on re-run (use after a failure). Must be false for normal production runs.'
+        required: false
+        type: boolean
+        default: false
+      create_schedule:
+        description: 'Create or refresh the Vertex pipeline schedule after running. Set false for a one-off triggered run.'
+        required: false
+        type: boolean
+        default: true
+      run_immediately:
+        description: 'Trigger an immediate pipeline run after setup. Set true to execute the pipeline now (always on for dev/test, optional for prod).'
+        required: false
+        type: boolean
+        default: false
+      runs-on-group:
+        description: 'The runner group to use'
+        required: true
+        type: string
+        default: cvs-linux-self-hosted
+
+jobs:
+  run-pipeline:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        shell: bash
+        run: |
+          if [ "${{ inputs.environment }}" == "prod" ]; then
+            echo "PROJECT_ID=anbc-prod-hcm-cm-de" >> $GITHUB_ENV
+            echo "REGION=us-east4" >> $GITHUB_ENV
+            echo "PIPELINE_ROOT=gs://hcm-cm-de-code-hcb-prod/vertex-test/" >> $GITHUB_ENV
+            echo "ENCRYPTION_KEY=projects/cvs-key-vault-prod/locations/us-east4/keyRings/gkr-prod-us-east4/cryptoKeys/gk-anbc-prod-hcm-cm-de-us-east4" >> $GITHUB_ENV
+            echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-onppp@anbc-prod-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+            echo "WIF_PROVIDER=projects/46504011566/locations/global/workloadIdentityPools/wif-pool-github-prod/providers/wif-pool-github-prod" >> $GITHUB_ENV
+            echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+            echo "PIPELINE_FILE=src/Prod/python/cp-strategic-stratification-inference-pipeline.py" >> $GITHUB_ENV
+          elif [ "${{ inputs.environment }}" == "test" ]; then
+            echo "PROJECT_ID=anbc-test-hcm-cm-de" >> $GITHUB_ENV
+            echo "REGION=us-east4" >> $GITHUB_ENV
+            echo "PIPELINE_ROOT=gs://hcm-cm-de-code-hcb-test/vertex-test/" >> $GITHUB_ENV
+            echo "ENCRYPTION_KEY=projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-test-hcm-cm-de-us-east4" >> $GITHUB_ENV
+            echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-onppq@anbc-test-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+            echo "WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+            echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+            echo "PIPELINE_FILE=src/Prod/python/cp-strategic-stratification-inference-pipeline.py" >> $GITHUB_ENV
+          else
+            echo "PROJECT_ID=anbc-dev-hcm-cm-de" >> $GITHUB_ENV
+            echo "REGION=us-east4" >> $GITHUB_ENV
+            echo "PIPELINE_ROOT=gs://hcm-cm-de-code-hcb-dev/vertex-test/" >> $GITHUB_ENV
+            echo "ENCRYPTION_KEY=projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4" >> $GITHUB_ENV
+            echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+            echo "WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+            echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+            echo "PIPELINE_FILE=src/Prod/python/cp-strategic-stratification-inference-pipeline.py" >> $GITHUB_ENV
+          fi
+
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+
+      - name: Impersonate target service account
+        id: impersonate
+        shell: bash
+        run: |
+          gcloud config set auth/impersonate_service_account "${{ env.TARGET_SERVICE_ACCOUNT }}"
+          gcloud auth print-access-token > /dev/null
+
+      - name: Install python3-venv
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-venv
+
+      - name: Detect Python interpreter
+        run: |-
+          set -e
+          if command -v python3 >/dev/null 2>&1; then
+            PY=python3
+          elif command -v python >/dev/null 2>&1; then
+            PY=python
+          else
+            echo "Python not found on runner" >&2
+            exit 1
+          fi
+          echo "PYTHON_INTERPRETER=$PY" >> "$GITHUB_ENV"
+          $PY --version
+
+      - name: Create virtual environment
+        run: |
+          "$PYTHON_INTERPRETER" -m venv .venv
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          echo "VENV_PY=.venv/bin/python" >> "$GITHUB_ENV"
+          echo "VENV_PIP=.venv/bin/pip" >> "$GITHUB_ENV"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install Python dependencies
+        run: |
+          "$VENV_PIP" install google-cloud-aiplatform kfp google-auth google-cloud-bigquery requests pyarrow pandas db-dtypes google-cloud-pipeline-components cytoolz
+
+      - name: Run pipeline Python
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ env.PROJECT_ID }}
+          REGION: ${{ env.REGION }}
+          PIPELINE_ROOT: ${{ env.PIPELINE_ROOT }}
+          ENCRYPTION_KEY: ${{ env.ENCRYPTION_KEY }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          TARGET_SERVICE_ACCOUNT: ${{ env.TARGET_SERVICE_ACCOUNT }}
+          ENABLE_CACHING: ${{ inputs.enable_caching }}
+          CREATE_SCHEDULE: ${{ inputs.create_schedule }}
+          RUN_IMMEDIATELY: ${{ inputs.run_immediately }}
+        shell: bash
+        run: |
+          "$VENV_PY" "${{ env.PIPELINE_FILE }}"

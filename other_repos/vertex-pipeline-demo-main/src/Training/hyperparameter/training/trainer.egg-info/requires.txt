@@ -1,0 +1,11 @@
+db-dtypes==1.2.0
+xgboost
+joblib
+pandas
+numpy
+scikit-learn
+google-cloud-bigquery
+google-cloud-storage
+pandas-gbq
+tqdm
+cloudml-hypertune

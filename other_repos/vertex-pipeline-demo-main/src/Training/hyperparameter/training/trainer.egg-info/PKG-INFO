@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: trainer
+Version: 0.1
+Summary: My training application.
+Requires-Python: >=3.8
+Requires-Dist: db-dtypes==1.2.0
+Requires-Dist: xgboost
+Requires-Dist: joblib
+Requires-Dist: pandas
+Requires-Dist: numpy
+Requires-Dist: scikit-learn
+Requires-Dist: google-cloud-bigquery
+Requires-Dist: google-cloud-storage
+Requires-Dist: pandas-gbq
+Requires-Dist: tqdm
+Requires-Dist: cloudml-hypertune
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
