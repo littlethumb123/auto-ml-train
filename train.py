@@ -38,7 +38,7 @@ if hasattr(signal, "SIGALRM"):
     signal.signal(signal.SIGALRM, _timeout_handler)
     signal.alarm(HARD_TIMEOUT)
 
-DESCRIPTION = "A_restart: jump to prior high-performing XGBoost basin after plateau"
+DESCRIPTION = "A_restart: LightGBM Optuna 50-trial with searchable scale_pos_weight"
 
 def engineer_features(X):
     X = X.copy()
@@ -47,80 +47,8 @@ def engineer_features(X):
     X["Amt_V2"] = X["Amount"] * X["V2"]
     return X
 
-from xgboost import XGBClassifier
-
-def build_pipeline(y_train):
-    n_neg = (y_train == 0).sum()
-    n_pos = (y_train == 1).sum()
-    ratio = n_neg / n_pos
-    return XGBClassifier(
-        n_estimators=1500,
-        max_depth=6,
-        learning_rate=0.07769625287126433,
-        scale_pos_weight=ratio,
-        subsample=0.8063874268723661,
-        colsample_bytree=0.9426920344934752,
-        reg_alpha=0.0,
-        reg_lambda=0.5,
-        min_child_weight=7,
-        eval_metric="aucpr",
-        tree_method="hist",
-        n_jobs=-1,
-        random_state=RANDOM_SEED,
-    )
-
-def screen_configs(X_train, y_train, X_val, y_val, n_configs=16):
-    """Low-fidelity screening: 200 trees on 25% data for basin restart."""
-    rng = np.random.RandomState(RANDOM_SEED)
-    sample_size = len(X_train) // 4
-    sample_idx = rng.choice(len(X_train), size=sample_size, replace=False)
-    X_sub = X_train.iloc[sample_idx]
-    y_sub = y_train.iloc[sample_idx]
-
-    n_neg = (y_sub == 0).sum()
-    n_pos = max((y_sub == 1).sum(), 1)
-    ratio = n_neg / n_pos
-
-    configs = []
-    for _ in range(n_configs):
-        cfg = {
-            "max_depth": int(rng.choice([3, 4, 5, 6, 7, 8])),
-            "learning_rate": float(10 ** rng.uniform(-2, -0.5)),
-            "subsample": float(rng.uniform(0.5, 1.0)),
-            "colsample_bytree": float(rng.uniform(0.5, 1.0)),
-            "reg_alpha": float(10 ** rng.uniform(-2, 1)),
-            "reg_lambda": float(10 ** rng.uniform(-2, 1)),
-            "min_child_weight": int(rng.choice([1, 3, 5, 7, 10])),
-        }
-        configs.append(cfg)
-
-    results = []
-    for cfg in configs:
-        try:
-            model = XGBClassifier(
-                n_estimators=200,
-                scale_pos_weight=ratio,
-                eval_metric="aucpr",
-                tree_method="hist",
-                n_jobs=-1,
-                random_state=RANDOM_SEED,
-                **cfg,
-            )
-            model.fit(X_sub, y_sub)
-            y_prob = model.predict_proba(X_val)[:, 1]
-            pr_auc = average_precision_score(y_val, y_prob)
-            results.append((cfg, pr_auc))
-        except Exception:
-            results.append((cfg, 0.0))
-
-    results.sort(key=lambda x: x[1], reverse=True)
-    print(f"screen_configs: tested {n_configs} configs on {sample_size} samples (200 trees)")
-    for idx, (cfg, score) in enumerate(results[:5]):
-        print(
-            f"  #{idx + 1}: pr_auc={score:.6f}  depth={cfg['max_depth']} "
-            f"lr={cfg['learning_rate']:.4f} sub={cfg['subsample']:.2f}"
-        )
-    return results[:3]
+import lightgbm as lgb
+import optuna
 
 t_start = time.time()
 
@@ -135,7 +63,60 @@ print(f"Features: {X_train.shape[1]}")
 print(f"Fraud rate (train): {y_train.mean():.4%}")
 print(f"Time budget: {TIME_BUDGET}s (hard limit: {HARD_TIMEOUT}s)")
 
-pipeline = build_pipeline(y_train)
+# Optuna LightGBM search with scale_pos_weight as searchable param
+n_neg = (y_train == 0).sum()
+n_pos = (y_train == 1).sum()
+
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+sampler = optuna.samplers.TPESampler(seed=13)
+
+def objective(trial):
+    params = {
+        "num_leaves": trial.suggest_int("num_leaves", 15, 127),
+        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+        "min_child_samples": trial.suggest_int("min_child_samples", 5, 50),
+        "subsample": trial.suggest_float("subsample", 0.5, 1.0),
+        "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
+        "reg_alpha": trial.suggest_float("reg_alpha", 1e-3, 10.0, log=True),
+        "reg_lambda": trial.suggest_float("reg_lambda", 1e-3, 10.0, log=True),
+        "scale_pos_weight": trial.suggest_float("scale_pos_weight", 10.0, 800.0, log=True),
+    }
+    model = lgb.LGBMClassifier(
+        n_estimators=200,
+        boosting_type="gbdt",
+        verbose=-1,
+        n_jobs=-1,
+        random_state=RANDOM_SEED,
+        **params,
+    )
+    model.fit(X_train, y_train)
+    y_prob = model.predict_proba(X_val)[:, 1]
+    return average_precision_score(y_val, y_prob)
+
+study = optuna.create_study(direction="maximize", sampler=sampler)
+study.optimize(objective, n_trials=50, timeout=25)
+
+best = study.best_params
+print(f"Optuna best (200-tree proxy): pr_auc={study.best_value:.6f}")
+print(f"  params: {best}")
+
+# Promote best config to full fidelity
+pipeline = lgb.LGBMClassifier(
+    n_estimators=1500,
+    boosting_type="gbdt",
+    num_leaves=best["num_leaves"],
+    learning_rate=best["learning_rate"],
+    min_child_samples=best["min_child_samples"],
+    subsample=best["subsample"],
+    colsample_bytree=best["colsample_bytree"],
+    reg_alpha=best["reg_alpha"],
+    reg_lambda=best["reg_lambda"],
+    scale_pos_weight=best["scale_pos_weight"],
+    subsample_freq=1,
+    verbose=-1,
+    n_jobs=-1,
+    random_state=RANDOM_SEED,
+)
 
 t_train_start = time.time()
 pipeline.fit(X_train, y_train)
