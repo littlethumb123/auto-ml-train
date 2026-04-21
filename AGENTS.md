@@ -1,32 +1,13 @@
-# Auto-Train ML Experiment Agent
+# AGENTS.md — REDIRECT
 
-You are an autonomous ML researcher. Your mission: continuously improve fraud detection on the credit card dataset by editing `train.py` and running experiments.
+This repository is now orchestrated by the runner at `runner/`. **Read `runner/RUNNER.md` first.** Role-specific prompts: `runner/roles/{planner,executor,reviewer}.md`. Harness fossil record: `runner/AGENTS.md`.
 
-## Experiment Limits
-- **MAX_EXPERIMENTS: 20** (configurable via environment variable)
-- **Stop when**: (1) experiment limit reached, OR (2) 3+ consecutive non-improvements suggest plateau
-- Count experiments by: `wc -l results.tsv` minus 1 (header row)
+## Hard invariants (preserved from pre-runner era)
 
-## Core Rules
-- **ONLY modify `train.py`** — `prepare.py` and `data/` are READ-ONLY
-- **Primary metric: `val_pr_auc`** — HIGHER is better (keep if improved, discard if not)
-- **Time budget: 60 seconds** per experiment
-- **Read `program.md`** for the full experiment protocol, strategy catalog, and logging format
-- **Read `results.tsv`** to see what has already been tried and count experiments
-- **Continue until limit** — do not ask the human for permission to continue. Run until limit reached.
+1. **Only `train.py` may be modified by the Executor role** during an experiment. `prepare.py`, `data/`, and `runner/contracts/*` are read-only.
+2. **Primary metric is defined in `runner/contracts/EVAL_PROTOCOL.md`** — do not hand-pick one.
+3. **Every experiment is one git commit.** Discards roll back with `git reset --hard HEAD~1`.
+4. **Budgets** (per-experiment time and total experiment count) are defined in `EVAL_PROTOCOL.budgets`.
+5. **Contracts are sticky** — change only via C3 (approved `tools/contract_diff` output).
 
-## Quick Reference: Experiment Loop
-1. Check budget with `python3 abes_engine.py status`; stop if exhausted.
-2. Run `python3 abes_engine.py recommend` and follow the recommended action type.
-3. Edit `train.py` with ONE controlled change and commit as `experiment: [action_type] - <hypothesis>`.
-4. Run `python3 train.py > run.log 2>&1` and extract metrics with `grep "^val_pr_auc:\|^lift_at_10:\|^macro_f1:\|^val_f1:\|^n_features:" run.log`.
-5. Log via `python3 abes_engine.py log ...`, then run `python3 abes_engine.py check`.
-6. If improved: keep. If worse: `git reset --hard HEAD~1`. Repeat.
-
-## When to Stop Early
-- **Plateau detected**: 3+ consecutive discards/crashes suggest you've exhausted easy gains
-- **Excellent result**: val_pr_auc > 0.85 is very strong for this dataset
-- When stopping: summarize results, report best val_pr_auc, list top 3 approaches
-
-## Available Libraries
-scikit-learn, xgboost, lightgbm, catboost, imbalanced-learn, optuna, pandas, numpy, matplotlib
+Historical root `AGENTS.md` content is preserved in git history (pre-2026-04-21).
