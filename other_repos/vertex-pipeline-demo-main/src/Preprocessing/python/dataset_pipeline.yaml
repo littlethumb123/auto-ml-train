@@ -1,0 +1,202 @@
+# PIPELINE DEFINITION
+# Name: gemini-dataset-creation-pipeline
+# Description: Create managed datasets for Gemini tuning
+# Inputs:
+#    encryption_spec_key_name: str [Default: 'projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4']
+#    location: str [Default: 'us-east4']
+#    project_id: str [Default: 'anbc-dev-hcm-cm-de']
+#    training_gcs_path: str [Default: 'gs://hcm-cm-de-data-hcb-dev/zj_a455644_test/peft_train_sample_gemini.jsonl']
+#    validation_gcs_path: str [Default: 'gs://hcm-cm-de-data-hcb-dev/zj_a455644_test/peft_eval_sample_gemini.jsonl']
+components:
+  comp-create-managed-dataset-component:
+    executorLabel: exec-create-managed-dataset-component
+    inputDefinitions:
+      parameters:
+        display_name:
+          parameterType: STRING
+        encryption_spec_key_name:
+          isOptional: true
+          parameterType: STRING
+        gcs_source:
+          parameterType: STRING
+        location:
+          parameterType: STRING
+        project:
+          parameterType: STRING
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: STRING
+  comp-create-managed-dataset-component-2:
+    executorLabel: exec-create-managed-dataset-component-2
+    inputDefinitions:
+      parameters:
+        display_name:
+          parameterType: STRING
+        encryption_spec_key_name:
+          isOptional: true
+          parameterType: STRING
+        gcs_source:
+          parameterType: STRING
+        location:
+          parameterType: STRING
+        project:
+          parameterType: STRING
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-create-managed-dataset-component:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - create_managed_dataset_component
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.13.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'google-cloud-aiplatform>=1.38.0'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef create_managed_dataset_component(\n    project: str,\n    location:\
+          \ str,\n    display_name: str,\n    gcs_source: str,\n    encryption_spec_key_name:\
+          \ str = None,\n) -> str:\n    \"\"\"\n    Creates a Vertex AI managed dataset\
+          \ from a JSONL file in GCS.\n    Returns the dataset resource name.\n  \
+          \  \"\"\"\n    from google.cloud import aiplatform\n    from google.cloud.aiplatform\
+          \ import datasets\n\n    aiplatform.init(project=project, location=location)\n\
+          \n    # Create dataset with encryption_spec_key_name as string parameter\n\
+          \    dataset = aiplatform.TextDataset.create(\n        display_name=display_name,\n\
+          \        gcs_source=gcs_source,\n        import_schema_uri=aiplatform.schema.dataset.ioformat.text.supervised_fine_tuning,\n\
+          \        encryption_spec_key_name=encryption_spec_key_name,\n        project=project,\n\
+          \        location=location,\n    )\n\n    # Wait for dataset creation to\
+          \ complete\n    dataset.result()\n\n    print(f\"Dataset created: {dataset.resource_name}\"\
+          )\n    return dataset.resource_name\n\n"
+        image: python:3.9
+    exec-create-managed-dataset-component-2:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - create_managed_dataset_component
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.13.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'google-cloud-aiplatform>=1.38.0'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef create_managed_dataset_component(\n    project: str,\n    location:\
+          \ str,\n    display_name: str,\n    gcs_source: str,\n    encryption_spec_key_name:\
+          \ str = None,\n) -> str:\n    \"\"\"\n    Creates a Vertex AI managed dataset\
+          \ from a JSONL file in GCS.\n    Returns the dataset resource name.\n  \
+          \  \"\"\"\n    from google.cloud import aiplatform\n    from google.cloud.aiplatform\
+          \ import datasets\n\n    aiplatform.init(project=project, location=location)\n\
+          \n    # Create dataset with encryption_spec_key_name as string parameter\n\
+          \    dataset = aiplatform.TextDataset.create(\n        display_name=display_name,\n\
+          \        gcs_source=gcs_source,\n        import_schema_uri=aiplatform.schema.dataset.ioformat.text.supervised_fine_tuning,\n\
+          \        encryption_spec_key_name=encryption_spec_key_name,\n        project=project,\n\
+          \        location=location,\n    )\n\n    # Wait for dataset creation to\
+          \ complete\n    dataset.result()\n\n    print(f\"Dataset created: {dataset.resource_name}\"\
+          )\n    return dataset.resource_name\n\n"
+        image: python:3.9
+pipelineInfo:
+  description: Create managed datasets for Gemini tuning
+  name: gemini-dataset-creation-pipeline
+root:
+  dag:
+    tasks:
+      create-managed-dataset-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-create-managed-dataset-component
+        inputs:
+          parameters:
+            display_name:
+              runtimeValue:
+                constant: test-gemini-training-dataset
+            encryption_spec_key_name:
+              componentInputParameter: encryption_spec_key_name
+            gcs_source:
+              componentInputParameter: training_gcs_path
+            location:
+              componentInputParameter: location
+            project:
+              componentInputParameter: project_id
+        taskInfo:
+          name: create-managed-dataset-component
+      create-managed-dataset-component-2:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-create-managed-dataset-component-2
+        inputs:
+          parameters:
+            display_name:
+              runtimeValue:
+                constant: test-gemini-validation-dataset
+            encryption_spec_key_name:
+              componentInputParameter: encryption_spec_key_name
+            gcs_source:
+              componentInputParameter: validation_gcs_path
+            location:
+              componentInputParameter: location
+            project:
+              componentInputParameter: project_id
+        taskInfo:
+          name: create-managed-dataset-component-2
+  inputDefinitions:
+    parameters:
+      encryption_spec_key_name:
+        defaultValue: projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4
+        isOptional: true
+        parameterType: STRING
+      location:
+        defaultValue: us-east4
+        isOptional: true
+        parameterType: STRING
+      project_id:
+        defaultValue: anbc-dev-hcm-cm-de
+        isOptional: true
+        parameterType: STRING
+      training_gcs_path:
+        defaultValue: gs://hcm-cm-de-data-hcb-dev/zj_a455644_test/peft_train_sample_gemini.jsonl
+        isOptional: true
+        parameterType: STRING
+      validation_gcs_path:
+        defaultValue: gs://hcm-cm-de-data-hcb-dev/zj_a455644_test/peft_eval_sample_gemini.jsonl
+        isOptional: true
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.13.0

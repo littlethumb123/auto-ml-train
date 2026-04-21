@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tennis Match Dataset Documentation</title>
+<style>
+  @page { size: A4; margin: 2.5cm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    line-height: 1.65;
+    color: #1a1a1a;
+    font-size: 15px;
+    background: #fff;
+  }
+  h1 {
+    font-size: 1.7rem;
+    text-align: center;
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
+  }
+  .subtitle {
+    text-align: center;
+    font-style: italic;
+    color: #555;
+    margin-bottom: 0.3rem;
+  }
+  .date {
+    text-align: center;
+    color: #777;
+    margin-bottom: 2rem;
+    font-size: 0.95em;
+  }
+  h2 {
+    font-size: 1.3rem;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.3rem;
+    margin-top: 2rem;
+    counter-increment: section;
+  }
+  h2::before {
+    content: counter(section) ". ";
+  }
+  h3 {
+    font-size: 1.1rem;
+    margin-top: 1.3rem;
+  }
+  body { counter-reset: section; }
+  p { text-align: justify; margin: 0.8em 0; }
+  table {
+    border-collapse: collapse;
+    margin: 1rem auto;
+    font-size: 0.88em;
+    width: 100%;
+  }
+  table.narrow { width: auto; min-width: 50%; }
+  th, td {
+    border: 1px solid #aaa;
+    padding: 0.35em 0.7em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+  tr:nth-child(even) td { background-color: #f9f9f9; }
+  tr:hover td { background-color: #eef3ff; }
+  .caption {
+    text-align: center;
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 0.3rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+  }
+  code {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    background: #f4f4f4;
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-size: 0.88em;
+  }
+  .tag {
+    display: inline-block;
+    background: #e8f5e9;
+    border: 1px solid #81c784;
+    border-radius: 3px;
+    padding: 0.1em 0.5em;
+    font-size: 0.85em;
+    color: #2e7d32;
+  }
+  .tag-warn {
+    background: #fff3e0;
+    border-color: #ffb74d;
+    color: #e65100;
+  }
+  .tag-info {
+    background: #e3f2fd;
+    border-color: #64b5f6;
+    color: #1565c0;
+  }
+  ul, ol { margin: 0.5em 0; padding-left: 2em; }
+  li { margin-bottom: 0.3em; }
+  .note-box {
+    border-left: 4px solid #1976d2;
+    background: #e3f2fd;
+    padding: 0.8rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.95em;
+  }
+  .warn-box {
+    border-left: 4px solid #f57c00;
+    background: #fff3e0;
+    padding: 0.8rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.95em;
+  }
+  @media print {
+    body { font-size: 11pt; padding: 0; }
+    table { break-inside: avoid; font-size: 9pt; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Tennis Match Dataset Documentation</h1>
+<p class="subtitle">tennis-xgboost-autoresearch project</p>
+<p class="date">March 14, 2026 &mdash; Version 1.0</p>
+
+<!-- ================================================================ -->
+<h2>Overview</h2>
+
+<p>
+This document describes the match-level dataset used by the <code>tennis-xgboost-autoresearch</code> prediction pipeline. The dataset covers professional tennis matches on both the ATP (men's) and WTA (women's) tours from 1985 through early March 2026.
+</p>
+
+<table class="narrow">
+<tr><th>Dimension</th><th>ATP</th><th>WTA</th></tr>
+<tr><td>Total matches</td><td>133,110</td><td>112,678</td></tr>
+<tr><td>Year range</td><td>1985&ndash;2026</td><td>1985&ndash;2026</td></tr>
+<tr><td>Unique tournaments</td><td>3,180</td><td>4,596</td></tr>
+<tr><td>Columns per match</td><td colspan="2" style="text-align:center;">49</td></tr>
+<tr><td>File format (raw)</td><td colspan="2" style="text-align:center;">CSV (Sackmann schema)</td></tr>
+<tr><td>File format (processed)</td><td colspan="2" style="text-align:center;">Parquet (210+ engineered features)</td></tr>
+</table>
+<p class="caption">Table 1. Dataset summary statistics.</p>
+
+<!-- ================================================================ -->
+<h2>Sources &amp; Provenance</h2>
+
+<h3>2.1 Primary Source: JeffSackmann Tennis Repositories</h3>
+
+<p>
+The backbone of the dataset is Jeff Sackmann's open-source tennis data, maintained at:
+</p>
+<ul>
+<li><code>github.com/JeffSackmann/tennis_atp</code> &mdash; ATP match data, 1968&ndash;2024</li>
+<li><code>github.com/JeffSackmann/tennis_wta</code> &mdash; WTA match data, 1968&ndash;2024</li>
+</ul>
+
+<p>
+<strong>License:</strong> Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). Commercial use requires separate permission from the repository maintainer.
+</p>
+
+<p>
+The Sackmann repositories are the de facto standard for academic and hobbyist tennis analytics, providing match-by-match records with winner/loser identity, tournament metadata, detailed serve and return statistics, rankings at the time of the match, and player biographical data (height, handedness, nationality).
+</p>
+
+<p>
+We use main-tour match files from 1985 onward, excluding:
+</p>
+<ul>
+<li>Qualifying draws (<code>*_qual_*</code>)</li>
+<li>ITF-level events (<code>*_itf_*</code>)</li>
+<li>Futures (<code>*_futures_*</code>)</li>
+<li>Challengers (<code>*_chall_*</code>)</li>
+</ul>
+
+<h3>2.2 TML-Database (ATP 2025&ndash;2026)</h3>
+
+<p>
+For ATP matches in 2025 and early 2026 not yet incorporated into the Sackmann repository, we use data from the TML (Tennis Match Log) Database, converted to Sackmann-compatible CSV format via the pipeline script <code>scripts/convert_tml_to_sackmann.py</code>.
+</p>
+
+<p>
+The conversion maps TML column names and value encodings to the Sackmann 49-column schema. Player IDs are cross-referenced against the Sackmann player database to maintain consistent identity. Matches with no Sackmann ID mapping are retained with empty ID fields.
+</p>
+
+<h3>2.3 Web Scraping (WTA 2025&ndash;2026)</h3>
+
+<p>
+WTA match data for late 2025 and 2026 is obtained from:
+</p>
+<ul>
+<li><strong>tennisexplorer.com</strong> &mdash; match results, scores, and bracket information</li>
+<li><strong>tennisabstract.com</strong> &mdash; supplementary player statistics and cross-referencing</li>
+</ul>
+
+<p>
+Scraping scripts are located in <code>scripts/scrape_wta_tennisabstract.py</code> and <code>scripts/fill_wta_nov_dec_2025.py</code>. The scraped data follows the same 49-column schema but lacks serve/return statistics (which are not available from results-only pages).
+</p>
+
+<h3>2.4 Indian Wells 2026 Validation Set</h3>
+
+<p>
+A manually curated validation set covering the 2026 BNP Paribas Open (Indian Wells):
+</p>
+
+<table class="narrow">
+<tr><th>Field</th><th>ATP</th><th>WTA</th></tr>
+<tr><td>File</td><td><code>indian_wells_2026_atp.csv</code></td><td><code>indian_wells_2026_wta.csv</code></td></tr>
+<tr><td>Matches</td><td>93</td><td>96</td></tr>
+<tr><td>Coverage</td><td>R128 through SF</td><td>R128 through F</td></tr>
+<tr><td>tourney_id</td><td>2026-0404</td><td>2026-609</td></tr>
+<tr><td>tourney_level</td><td>M (Masters)</td><td>PM (Premier Mandatory)</td></tr>
+<tr><td>Surface</td><td>Hard</td><td>Hard</td></tr>
+<tr><td>Source</td><td colspan="2">tennisexplorer.com, scraped 2026-03-14</td></tr>
+</table>
+<p class="caption">Table 2. Indian Wells 2026 validation set details.</p>
+
+<div class="note-box">
+<strong>Deduplication:</strong> When validation CSVs are merged with the main Sackmann data, deduplication is performed on the <code>(tourney_id, match_num)</code> pair to prevent double-counting of matches that appear in both sources.
+</div>
+
+<!-- ================================================================ -->
+<h2>Schema</h2>
+
+<p>
+Each match record follows the 49-column Sackmann schema. The table below describes every column, its data type, and its role in the pipeline.
+</p>
+
+<table>
+<tr><th>#</th><th>Column</th><th>Type</th><th>Description</th></tr>
+<tr><td>1</td><td><code>tourney_id</code></td><td>str</td><td>Unique tournament identifier, typically <code>YYYY-NNNN</code> format</td></tr>
+<tr><td>2</td><td><code>tourney_name</code></td><td>str</td><td>Tournament name (e.g., "Australian Open", "Indian Wells Masters")</td></tr>
+<tr><td>3</td><td><code>surface</code></td><td>str</td><td>Playing surface: Hard, Clay, Grass, Carpet, or Unknown</td></tr>
+<tr><td>4</td><td><code>draw_size</code></td><td>int</td><td>Main draw size (32, 48, 64, 96, 128)</td></tr>
+<tr><td>5</td><td><code>tourney_level</code></td><td>str</td><td>Tournament tier. ATP: G, M, 500, 250, D, F, O. WTA: G, PM, P, T1&ndash;T5, CC, I, D, W, E, F, O</td></tr>
+<tr><td>6</td><td><code>tourney_date</code></td><td>int</td><td>Tournament start date as <code>YYYYMMDD</code> integer</td></tr>
+<tr><td>7</td><td><code>match_num</code></td><td>int</td><td>Match number within tournament. <span class="tag-warn tag">Convention changed in 2025</span> &mdash; see Section 6</td></tr>
+<tr><td>8</td><td><code>winner_id</code></td><td>int</td><td>Sackmann player ID of the winner</td></tr>
+<tr><td>9</td><td><code>winner_seed</code></td><td>int/NaN</td><td>Winner's tournament seed (NaN if unseeded)</td></tr>
+<tr><td>10</td><td><code>winner_entry</code></td><td>str/NaN</td><td>Winner's entry type: WC (wild card), Q (qualifier), LL (lucky loser), or NaN</td></tr>
+<tr><td>11</td><td><code>winner_name</code></td><td>str</td><td>Winner's full name in "First Last" format</td></tr>
+<tr><td>12</td><td><code>winner_hand</code></td><td>str</td><td>Winner's dominant hand: R (right), L (left), U (unknown)</td></tr>
+<tr><td>13</td><td><code>winner_ht</code></td><td>int/NaN</td><td>Winner's height in centimeters</td></tr>
+<tr><td>14</td><td><code>winner_ioc</code></td><td>str</td><td>Winner's country (IOC 3-letter code)</td></tr>
+<tr><td>15</td><td><code>winner_age</code></td><td>float/NaN</td><td>Winner's age at match time (decimal years)</td></tr>
+<tr><td>16</td><td><code>loser_id</code></td><td>int</td><td>Sackmann player ID of the loser</td></tr>
+<tr><td>17</td><td><code>loser_seed</code></td><td>int/NaN</td><td>Loser's tournament seed</td></tr>
+<tr><td>18</td><td><code>loser_entry</code></td><td>str/NaN</td><td>Loser's entry type</td></tr>
+<tr><td>19</td><td><code>loser_name</code></td><td>str</td><td>Loser's full name</td></tr>
+<tr><td>20</td><td><code>loser_hand</code></td><td>str</td><td>Loser's dominant hand</td></tr>
+<tr><td>21</td><td><code>loser_ht</code></td><td>int/NaN</td><td>Loser's height in centimeters</td></tr>
+<tr><td>22</td><td><code>loser_ioc</code></td><td>str</td><td>Loser's country (IOC code)</td></tr>
+<tr><td>23</td><td><code>loser_age</code></td><td>float/NaN</td><td>Loser's age at match time</td></tr>
+<tr><td>24</td><td><code>score</code></td><td>str</td><td>Match score (e.g., "6-4 7-6(3) 6-2")</td></tr>
+<tr><td>25</td><td><code>best_of</code></td><td>int</td><td>Best-of format: 3 or 5</td></tr>
+<tr><td>26</td><td><code>round</code></td><td>str</td><td>Round: R128, R64, R32, R16, R4, QF, SF, F, RR, BR, ER</td></tr>
+<tr><td>27</td><td><code>minutes</code></td><td>float/NaN</td><td>Match duration in minutes</td></tr>
+<tr><td>28</td><td><code>w_ace</code></td><td>float/NaN</td><td>Winner's ace count</td></tr>
+<tr><td>29</td><td><code>w_df</code></td><td>float/NaN</td><td>Winner's double fault count</td></tr>
+<tr><td>30</td><td><code>w_svpt</code></td><td>float/NaN</td><td>Winner's total service points played</td></tr>
+<tr><td>31</td><td><code>w_1stIn</code></td><td>float/NaN</td><td>Winner's first serves in</td></tr>
+<tr><td>32</td><td><code>w_1stWon</code></td><td>float/NaN</td><td>Winner's first-serve points won</td></tr>
+<tr><td>33</td><td><code>w_2ndWon</code></td><td>float/NaN</td><td>Winner's second-serve points won</td></tr>
+<tr><td>34</td><td><code>w_SvGms</code></td><td>float/NaN</td><td>Winner's service games played</td></tr>
+<tr><td>35</td><td><code>w_bpSaved</code></td><td>float/NaN</td><td>Winner's break points saved</td></tr>
+<tr><td>36</td><td><code>w_bpFaced</code></td><td>float/NaN</td><td>Winner's break points faced</td></tr>
+<tr><td>37</td><td><code>l_ace</code></td><td>float/NaN</td><td>Loser's ace count</td></tr>
+<tr><td>38</td><td><code>l_df</code></td><td>float/NaN</td><td>Loser's double fault count</td></tr>
+<tr><td>39</td><td><code>l_svpt</code></td><td>float/NaN</td><td>Loser's total service points played</td></tr>
+<tr><td>40</td><td><code>l_1stIn</code></td><td>float/NaN</td><td>Loser's first serves in</td></tr>
+<tr><td>41</td><td><code>l_1stWon</code></td><td>float/NaN</td><td>Loser's first-serve points won</td></tr>
+<tr><td>42</td><td><code>l_2ndWon</code></td><td>float/NaN</td><td>Loser's second-serve points won</td></tr>
+<tr><td>43</td><td><code>l_SvGms</code></td><td>float/NaN</td><td>Loser's service games played</td></tr>
+<tr><td>44</td><td><code>l_bpSaved</code></td><td>float/NaN</td><td>Loser's break points saved</td></tr>
+<tr><td>45</td><td><code>l_bpFaced</code></td><td>float/NaN</td><td>Loser's break points faced</td></tr>
+<tr><td>46</td><td><code>winner_rank</code></td><td>float/NaN</td><td>Winner's ATP/WTA ranking at match time</td></tr>
+<tr><td>47</td><td><code>winner_rank_points</code></td><td>float/NaN</td><td>Winner's ranking points at match time</td></tr>
+<tr><td>48</td><td><code>loser_rank</code></td><td>float/NaN</td><td>Loser's ATP/WTA ranking at match time</td></tr>
+<tr><td>49</td><td><code>loser_rank_points</code></td><td>float/NaN</td><td>Loser's ranking points at match time</td></tr>
+</table>
+<p class="caption">Table 3. Complete schema of raw match data (49 columns).</p>
+
+<!-- ================================================================ -->
+<h2>Coverage</h2>
+
+<h3>4.1 Year-by-Year Match Counts</h3>
+
+<p>
+The dataset spans 42 years of professional tennis. Match volume reflects the evolution of both tours, including expansion in the 1990s, the impact of the 2020 COVID-19 pandemic, and the gradual recovery thereafter.
+</p>
+
+<table class="narrow">
+<tr><th>Period</th><th>ATP Matches</th><th>WTA Matches</th></tr>
+<tr><td>1985&ndash;1989</td><td>17,503</td><td>13,683</td></tr>
+<tr><td>1990&ndash;1994</td><td>19,028</td><td>13,624</td></tr>
+<tr><td>1995&ndash;1999</td><td>18,122</td><td>14,001</td></tr>
+<tr><td>2000&ndash;2004</td><td>16,404</td><td>14,869</td></tr>
+<tr><td>2005&ndash;2009</td><td>15,931</td><td>13,918</td></tr>
+<tr><td>2010&ndash;2014</td><td>14,899</td><td>13,933</td></tr>
+<tr><td>2015&ndash;2019</td><td>14,498</td><td>13,935</td></tr>
+<tr><td>2020&ndash;2024</td><td>13,257</td><td>11,966</td></tr>
+<tr><td>2025&ndash;2026*</td><td>3,468</td><td>2,749</td></tr>
+<tr style="font-weight:bold;"><td>Total</td><td>133,110</td><td>112,678</td></tr>
+</table>
+<p class="caption">Table 4. Match counts by five-year period. *2025&ndash;2026 data is partial (through March 14, 2026).</p>
+
+<h3>4.2 Tournament Level Distribution</h3>
+
+<p>
+The ATP tournament hierarchy comprises Grand Slams (G), Masters 1000 (M), ATP 500, ATP 250, Davis Cup (D), Tour Finals (F), and Olympics (O). The WTA uses a broader set of tier designations that has evolved over time: Grand Slams (G), Premier Mandatory (PM), Premier 5 (P), Tiers 1&ndash;5 (T1&ndash;T5), Championships (CC), International (I), and several minor categories.
+</p>
+
+<h3>4.3 Surface Distribution</h3>
+
+<table class="narrow">
+<tr><th>Surface</th><th>ATP Matches</th><th>WTA Matches</th></tr>
+<tr><td>Hard</td><td>~53%</td><td>~55%</td></tr>
+<tr><td>Clay</td><td>~30%</td><td>~28%</td></tr>
+<tr><td>Grass</td><td>~9%</td><td>~8%</td></tr>
+<tr><td>Carpet</td><td>~7%</td><td>~8%</td></tr>
+<tr><td>Unknown</td><td>&lt;1%</td><td>&lt;1%</td></tr>
+</table>
+<p class="caption">Table 5. Approximate surface distribution (full dataset).</p>
+
+<p>
+Note: Carpet courts were phased out of the ATP tour after 2009 and appear only in pre-2009 data. They remain in the dataset as they provide historical context for ELO computation and career statistics.
+</p>
+
+<!-- ================================================================ -->
+<h2>Data Quality</h2>
+
+<h3>5.1 Missing Value Rates</h3>
+
+<p>
+Missing data is a significant concern, particularly for serve/return statistics in older matches and supplementary data sources.
+</p>
+
+<table>
+<tr><th>Column Group</th><th>ATP Missing Rate</th><th>WTA Missing Rate</th><th>Notes</th></tr>
+<tr><td>Core identity (IDs, names)</td><td>&lt;0.1%</td><td>&lt;0.1%</td><td>Required; rows with missing IDs are dropped</td></tr>
+<tr><td>Serve stats (w_ace through l_bpFaced)</td><td>~12%</td><td>~18%</td><td>Higher in pre-1991 and 2025+ data</td></tr>
+<tr><td>Minutes</td><td>~15%</td><td>~20%</td><td>Frequently missing for older events and minor tours</td></tr>
+<tr><td>Rankings (rank, rank_points)</td><td>~8%</td><td>~12%</td><td>Missing for unranked players and very early data</td></tr>
+<tr><td>Height</td><td>~5%</td><td>~15%</td><td>WTA height data is significantly sparser</td></tr>
+<tr><td>Age</td><td>~3%</td><td>~5%</td><td>Missing when birth date is unavailable</td></tr>
+<tr><td>Seed</td><td>~75%</td><td>~75%</td><td>Expected: most players in a draw are unseeded</td></tr>
+</table>
+<p class="caption">Table 6. Approximate missing value rates by column group.</p>
+
+<div class="warn-box">
+<strong>2025&ndash;2026 data gap:</strong> The supplementary data sources (TML-Database, web scraping) provide match results and basic metadata but not detailed serve/return statistics. This means all rolling-window features based on serve statistics (ace rate, first-serve percentage, break point rates, etc.) are computed from NaN-valued inputs for recent matches, effectively relying on the model's imputation to handle them. The features are not removed because historical data still provides training signal, but their predictive contribution is degraded for the 2026 validation set.
+</div>
+
+<h3>5.2 ATP vs. WTA Data Quality Comparison</h3>
+
+<p>
+The ATP dataset is generally more complete than WTA:
+</p>
+<ul>
+<li><strong>Serve statistics:</strong> ATP has ~6% fewer missing values, reflecting earlier adoption of detailed match statistics tracking in men's tennis.</li>
+<li><strong>Height:</strong> WTA has approximately 3x the missing rate for player height, a known gap in the Sackmann data.</li>
+<li><strong>Tournament levels:</strong> WTA uses a more fragmented tier system (T1&ndash;T5, PM, P, CC, I, W, E vs. ATP's simpler G/M/500/250/D/F), which increases categorical diversity and can make tournament-level features noisier.</li>
+<li><strong>Player ID coverage:</strong> A small number of WTA players (particularly new or minor-tour players) lack Sackmann IDs, resulting in empty ID fields. These matches are retained but produce NaN for all player-state features.</li>
+</ul>
+
+<!-- ================================================================ -->
+<h2>Known Issues &amp; Caveats</h2>
+
+<h3>6.1 The <code>match_num</code> Convention Change (2025)</h3>
+
+<p>
+<span class="tag-warn tag">Critical</span> Prior to the 2025 data files, Sackmann's <code>match_num</code> field used ascending order from early rounds to finals (R128 matches had low match_num, the final had the highest). Starting with 2025 data files, this convention was reversed: the final has <code>match_num=1</code> and early-round matches have the highest values.
+</p>
+
+<p>
+<strong>Impact:</strong> Any code that sorts matches by ascending <code>match_num</code> within a tournament will produce reverse-chronological order for 2025+ data, potentially causing temporal leakage in ELO computations and feature engineering.
+</p>
+
+<p>
+<strong>Mitigation:</strong> The pipeline sorts by explicit round ordinals (R128=1, R64=2, ..., F=8) rather than <code>match_num</code>. The <code>match_num</code> field is retained only as a tiebreaker within the same round.
+</p>
+
+<h3>6.2 WTA Height Missingness</h3>
+
+<p>
+The WTA dataset has approximately 15% missing height values, compared to 5% for ATP. This primarily affects the <code>height_diff</code> feature. The model handles this through median imputation, but the effective signal from height in WTA predictions is weaker than for ATP.
+</p>
+
+<h3>6.3 Carpet Surface Phase-Out</h3>
+
+<p>
+Carpet courts were removed from the ATP and WTA tours after the 2009 season. The ~8,000 historical carpet-court matches remain in the dataset and contribute to overall ELO computation, but the "Carpet" surface ELO is effectively frozen for all active players, as no new carpet-court matches are being played. The feature is retained for completeness but has zero predictive value for modern predictions.
+</p>
+
+<h3>6.4 Player ID Matching in Supplementary Data</h3>
+
+<p>
+When converting supplementary data (TML, scraped) to Sackmann format, player names are mapped to Sackmann canonical IDs via a name-matching pipeline with aliases. A small number of players (4 ATP, 3 WTA at Indian Wells 2026) have no Sackmann ID due to being new or minor-tour players not present in the historical database. These matches retain empty ID fields, and the affected players have no ELO or feature history.
+</p>
+
+<h3>6.5 Walkover and Retirement Matches</h3>
+
+<p>
+Walkovers (W/O) and retirements (RET) are included in the dataset with the score field indicating the outcome type (e.g., "6-3 3-1 RET"). These matches update ELO and career statistics normally. For serve/return statistics, retirement matches typically have complete stats only for completed sets; the model's rolling-window features handle partial data through NaN propagation.
+</p>
+
+<h3>6.6 Round Robin Scoring</h3>
+
+<p>
+Round-robin events (tour finals, some team events) are included with <code>round=RR</code>. In these tournaments, a player may lose a match but still advance, which differs from standard elimination brackets. The model treats RR matches identically to elimination matches for ELO and feature purposes.
+</p>
+
+<!-- ================================================================ -->
+<h2>Validation Set</h2>
+
+<h3>7.1 Construction</h3>
+
+<p>
+The validation set is defined by a temporal cutoff: all matches with <code>match_date</code> strictly after December 31, 2025, constitute the test set. This provides a genuine out-of-time evaluation where the model predicts future matches using only historical data.
+</p>
+
+<table class="narrow">
+<tr><th>Property</th><th>ATP</th><th>WTA</th></tr>
+<tr><td>Cutoff date</td><td colspan="2" style="text-align:center;">2025-12-31</td></tr>
+<tr><td>Test matches</td><td>607</td><td>335</td></tr>
+<tr><td>Test tournaments</td><td>17</td><td>7</td></tr>
+<tr><td>Period</td><td colspan="2" style="text-align:center;">Jan 1 &ndash; Mar 14, 2026</td></tr>
+</table>
+<p class="caption">Table 7. Validation set parameters.</p>
+
+<h3>7.2 Deduplication</h3>
+
+<p>
+When validation CSV files (e.g., Indian Wells 2026 scraped data) are merged with the main Sackmann dataset, deduplication is performed on the <code>(tourney_id, match_num)</code> composite key. If a match appears in both sources, the Sackmann version is retained (as it typically has more complete data). The merge is logged with counts of new matches added and duplicates removed.
+</p>
+
+<h3>7.3 ATP Validation Tournaments (2026)</h3>
+
+<table>
+<tr><th>Tournament</th><th>Matches</th><th>Level</th><th>Surface</th></tr>
+<tr><td>Australian Open</td><td>127</td><td>G</td><td>Hard</td></tr>
+<tr><td>Indian Wells Masters</td><td>89</td><td>M</td><td>Hard</td></tr>
+<tr><td>Acapulco</td><td>31</td><td>500</td><td>Hard</td></tr>
+<tr><td>Dubai</td><td>31</td><td>500</td><td>Hard</td></tr>
+<tr><td>Rotterdam</td><td>31</td><td>500</td><td>Hard</td></tr>
+<tr><td>Rio de Janeiro</td><td>31</td><td>500</td><td>Clay</td></tr>
+<tr><td>Doha</td><td>31</td><td>250</td><td>Hard</td></tr>
+<tr><td>Dallas</td><td>31</td><td>250</td><td>Hard</td></tr>
+<tr><td>Brisbane</td><td>31</td><td>250</td><td>Hard</td></tr>
+<tr><td>Adelaide</td><td>27</td><td>250</td><td>Hard</td></tr>
+<tr><td>Hong Kong</td><td>27</td><td>250</td><td>Hard</td></tr>
+<tr><td>Auckland</td><td>27</td><td>250</td><td>Hard</td></tr>
+<tr><td>United Cup</td><td>25</td><td>D</td><td>Hard</td></tr>
+<tr><td>Montpellier</td><td>19</td><td>250</td><td>Hard</td></tr>
+<tr><td>Santiago</td><td>19</td><td>250</td><td>Clay</td></tr>
+<tr><td>Delray Beach</td><td>15</td><td>250</td><td>Hard</td></tr>
+<tr><td>Buenos Aires</td><td>15</td><td>250</td><td>Clay</td></tr>
+</table>
+<p class="caption">Table 8. ATP 2026 tournaments in the validation set.</p>
+
+<h3>7.4 WTA Validation Tournaments (2026)</h3>
+
+<table>
+<tr><th>Tournament</th><th>Matches</th><th>Level</th><th>Surface</th></tr>
+<tr><td>Indian Wells</td><td>89</td><td>PM</td><td>Hard</td></tr>
+<tr><td>Doha</td><td>55</td><td>P</td><td>Hard</td></tr>
+<tr><td>Dubai</td><td>55</td><td>P</td><td>Hard</td></tr>
+<tr><td>Brisbane</td><td>47</td><td>I</td><td>Hard</td></tr>
+<tr><td>Auckland</td><td>31</td><td>I</td><td>Hard</td></tr>
+<tr><td>Hobart</td><td>31</td><td>I</td><td>Hard</td></tr>
+<tr><td>Abu Dhabi</td><td>27</td><td>I</td><td>Hard</td></tr>
+</table>
+<p class="caption">Table 9. WTA 2026 tournaments in the validation set.</p>
+
+<div class="note-box">
+<strong>Note:</strong> The 2026 validation set is entirely composed of hard-court events (with the exception of three ATP clay-court 250s). Clay, grass, and carpet surfaces are not represented in the current validation period, which runs through early March. Clay-court season and the grass-court swing will provide broader surface coverage as the 2026 season progresses.
+</div>
+
+<hr style="margin-top:3rem;">
+<p style="text-align:center; font-size:0.85em; color:#888;">
+  Generated by tennis-xgboost-autoresearch &bull; March 14, 2026 &bull; Version 1.0
+</p>
+
+</body>
+</html>

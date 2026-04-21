@@ -1,0 +1,286 @@
+# ss-models Cancer XGBoost Training Pipeline – Configuration
+# Version: 0.1.0
+#
+# This file provides default values.
+# All settings can be overridden by passing the equivalent CLI argument to task.py.
+
+# ── GCP / environment ────────────────────────────────────────────────────────
+gcp:
+  project: "anbc-dev-hcm-cm-de"           # Vertex AI / billing project
+  gcp_project: "anbc-hcb-dev"             # BigQuery project (query tables live here)
+  gcp_db: "clin_analytics_hcb_dev"        # BigQuery dataset
+  table_name: "a367726_ss_revamp_training_all_cases_analytic_w_model"
+  location: "US"                           # BigQuery location
+  bucket_name: "hcm-cm-de-code-hcb-dev"   # GCS bucket for artifacts
+  gcs_destination_path: "vertex-test/ss-models"
+
+# ── Vertex AI pipeline (for pipeline_helpers.py / orchestration notebooks) ──
+vertex_ai:
+  location: "us-east4"
+  service_account: "gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com"
+  cmek_key: "projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4"
+  # Use a pre-built XGBoost image so no custom Docker build is required
+  docker_uri: "us-docker.pkg.dev/vertex-ai/training/xgboost-cpu.2-1:latest"
+  pipeline_root: "gs://hcm-cm-de-code-hcb-dev/vertex-test/ss-models"
+  machine_type: "n1-standard-16"
+  accelerator_type: null   # set to NVIDIA_TESLA_T4 etc. for GPU
+  accelerator_count: 1
+
+# ── BigQuery labels ──────────────────────────────────────────────────────────
+bigquery_labels:
+  owner: "parked_aetna_com"
+  costcenter: "13070"
+  unique_id: "ss-cancer-model-v1"
+  pipeline_type: "model_training"
+  lob: "hcb"
+  expiration_days: 7
+
+# ── SQL queries ──────────────────────────────────────────────────────────────
+# These mirror the notebook queries. {GCP_PROJECT} and {GCP_DB} will be
+# substituted at runtime from the gcp section above.
+sql_queries:
+
+  outcome_query: |
+    SELECT
+      individual_id,
+      Oncologic_case_post AS cancer_case
+    FROM `anbc-hcb-dev.clin_analytics_hcb_dev.a367726_ss_revamp_training_all_cases_analytic_w_model`
+    WHERE train_test_split <= 75
+
+  train_features_query: |
+    SELECT
+      * EXCEPT(
+        Cardiac_case_post, Digestive_case_post, Endocrine_Metabolic_case_post,
+        Infectious_case_post, Injury_Poisoning_case_post, Musculoskeletal_case_post,
+        Neurologic_case_post, Obstetric_case_post, Oncologic_case_post,
+        Renal_case_post, Respiratory_case_post,
+        Cardiac_case_post_1_7, Digestive_case_post_1_7, Endocrine_Metabolic_case_post_1_7,
+        Infectious_case_post_1_7, Injury_Poisoning_case_post_1_7,
+        Musculoskeletal_case_post_1_7, Neurologic_case_post_1_7, Obstetric_case_post_1_7,
+        Oncologic_case_post_1_7, Renal_case_post_1_7, Respiratory_case_post_1_7
+      )
+    FROM `anbc-hcb-dev.clin_analytics_hcb_dev.a367726_ss_revamp_training_all_cases_analytic_w_model`
+    WHERE train_test_split <= 75
+
+  holdout_features_query: |
+    SELECT
+      * EXCEPT(
+        Cardiac_case_post, Digestive_case_post, Endocrine_Metabolic_case_post,
+        Infectious_case_post, Injury_Poisoning_case_post, Musculoskeletal_case_post,
+        Neurologic_case_post, Obstetric_case_post, Oncologic_case_post,
+        Renal_case_post, Respiratory_case_post,
+        Cardiac_case_post_1_7, Digestive_case_post_1_7, Endocrine_Metabolic_case_post_1_7,
+        Infectious_case_post_1_7, Injury_Poisoning_case_post_1_7,
+        Musculoskeletal_case_post_1_7, Neurologic_case_post_1_7, Obstetric_case_post_1_7,
+        Oncologic_case_post_1_7, Renal_case_post_1_7, Respiratory_case_post_1_7
+      )
+    FROM `anbc-hcb-dev.clin_analytics_hcb_dev.a367726_ss_revamp_training_all_cases_analytic_w_model`
+    WHERE train_test_split > 75
+
+# ── Data processing ──────────────────────────────────────────────────────────
+data_processing:
+  random_seed: 53
+  outcome_var: "cancer_case"
+  indexing_var: "individual_id"
+  embedding_pattern: "emb[0-255]+"
+  test_size: 0.2       # 80 % train, 20 % held out
+  val_size: 0.5        # split held-out 50/50 into test and validation
+
+# ── Categorical encoding ─────────────────────────────────────────────────────
+# Mirrors the notebook logic exactly:
+#   gender_cd: M → 1, F → 0, unknown → -1
+#   drug_ind:  Y → 1, N → 0, unknown → -1
+#   region:    one-hot via pd.get_dummies
+categorical:
+  gender_cd:
+    mapping: {"M": 1, "F": 0}
+    fill_na: -1
+  drug_ind:
+    mapping: {"Y": 1, "N": 0}
+    fill_na: -1
+  region:
+    type: "one_hot"
+
+# ── Selected features ────────────────────────────────────────────────────────
+# Path to the pre-selected feature list produced by the feature-engineering step.
+# Can be a local path or a GCS object path (combined with gcp.bucket_name).
+selected_features:
+  path: "xgboost_selected_features_cancer_v_case.txt"
+  # To load from GCS use the full URI, e.g.:
+  # path: "gs://hcm-cm-de-code-hcb-dev/vertex-test/ss-models/xgboost_selected_features_cancer_v_case.txt"
+
+# ── XGBoost model parameters ─────────────────────────────────────────────────
+# Optimal hyperparameters from Optuna tuning (matches the notebook exactly)
+model:
+  params:
+    objective: "binary:logistic"
+    base_score: 0.5
+    booster: "gbtree"
+    colsample_bylevel: 1
+    colsample_bynode: 1
+    colsample_bytree: 0.551691605418298
+    device: "cpu"                 # change to "cuda" on GPU machines
+    eval_metric: "logloss"
+    gamma: 0
+    grow_policy: "lossguide"
+    learning_rate: 0.008410840153403855
+    max_bin: 256
+    max_delta_step: 0
+    max_depth: 4
+    max_leaves: 0
+    min_child_weight: 1
+    multi_strategy: "one_output_per_tree"
+    n_jobs: -1
+    num_parallel_tree: 1
+    random_state: 53
+    reg_alpha: 0
+    reg_lambda: 1
+    sampling_method: "uniform"
+    scale_pos_weight: 1
+    subsample: 0.5826667789672917
+    tree_method: "hist"
+    verbosity: 1
+  num_boost_round: 3101
+  verbose_eval: 100              # print logloss every 100 rounds
+
+# ── Metrics ──────────────────────────────────────────────────────────────────
+metrics:
+  percentiles: [0.01, 0.10]     # evaluate lift / PPV / sensitivity at top 1 % and top 10 %
+
+# ── Output ───────────────────────────────────────────────────────────────────
+output:
+  # Model is always saved as model.bst (XGBoost binary / BST format).
+  # It is uploaded to gs://<bucket>/<gcs_destination_path>/model/model.bst
+  # so that the Model Registry artifact_uri points to a directory with only
+  # this one file (required by Vertex AI Model Registry).
+
+  # BigQuery table where holdout predictions are written.
+  # Leave blank to skip BQ upload and write a CSV to GCS instead.
+  predictions_table: ""          # e.g. "anbc-hcb-dev.clin_analytics_hcb_dev.cancer_model_preds"
+
+# ── Vertex AI Model Registry ─────────────────────────────────────────────────
+# Set model_registry_display_name to enable automatic registration after training.
+# Leave model_registry_display_name blank to skip registration.
+model_registry:
+  display_name: "ss-xgboost-model"
+  # Serving container must match the XGBoost version used for training.
+  # Use the prediction image (not the training image).
+  serving_container_image_uri: "us-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.2-1:latest"
+  description: "XGBoost binary-classification model trained via ss-models pipeline"
+  # Set to true to add a new version to an existing model instead of creating a new one.
+  # Requires existing_model_resource_name to be filled in (e.g. after the first run).
+  upload_to_existing_model: false
+  existing_model_resource_name: ""  # e.g. "projects/my-project/locations/us-east4/models/1234567890"
+
+# ── Batch Prediction ─────────────────────────────────────────────────────────
+# Set enable: true to trigger a BigQuery batch prediction job immediately after
+# the model is saved and registered.
+#
+# The INPUT is the same X_test split used during model evaluation — no separate
+# BQ table is needed.  The ID column (indexing_var) and the actual-label column
+# (actual_<outcome_var>) are excluded from what is sent to the model but are
+# preserved in the output so predictions and actuals can be compared directly.
+#
+# Output table uses a fully-qualified BigQuery ID: project.dataset.table
+batch_prediction:
+  enable: true
+
+  # ── Output BigQuery table ─────────────────────────────────────────────────
+  # Final table written after prediction:
+  #   <indexing_var> | actual_<outcome_var> | <feature_cols...> | prediction
+  output_table: "anbc-hcb-dev.clin_analytics_hcb_dev.ss_model_test_predictions"   # e.g. "anbc-hcb-dev.clin_analytics_hcb_dev.ss_model_test_predictions"
+
+  # Temp dataset in the compute project (used for intermediate tables).
+  # Must already exist before the job is run.
+  compute_dataset: "hcm_cm_de_beam_dev_hcm_cm_de"   # e.g. "hcm_cm_de_dec_beam_dev_hcm_cm_de"
+
+  # ── Compute resources ────────────────────────────────────────────────────
+  machine_type:           "n2-standard-16"
+  starting_replica_count: 1
+  max_replica_count:      1
+  batch_size:             ~    # null = auto
+
+  # ── Output table expiry ──────────────────────────────────────────────────
+  expiration_days: 7
+
+# ── Model identity / governance labels ───────────────────────────────────────
+# These are attached to the Vertex AI Model Registry entry in addition to the
+# auto-computed labels (roc_auc, feature count, hyper-params, etc.).
+# Any field left blank ("") is silently omitted from the final label dict.
+model_labels:
+  model_name:                  "ss-xgboost-model"   # human-readable model handle
+  tenant:                      "hcm-cm-de"
+  self_serve:                  "true"
+  vertex_model_id:             "none"               # filled in after first registration
+  vertex_model_version_alias:  "none"               # filled in after first registration
+  # vertex_ai_pipelines_run_billing_id is read automatically from the
+  # VERTEX_AI_PIPELINES_RUN_BILLING_ID environment variable set by Vertex AI Pipelines.
+
+# ── Training container environment variables ──────────────────────────────────
+# All key/value pairs here are injected as environment variables into the
+# Vertex AI custom training container.  Leave a value blank ("") to omit it.
+# FEATURE_NAMES is injected dynamically by the notebook from SELECTED_FEATURES_LIST.
+environment_variables:
+
+  # ── GCP infrastructure ──────────────────────────────────────────────────────
+  PROJECT:                      "anbc-dev-hcm-cm-de"
+  COMPUTE_PROJECT:              "anbc-dev-hcm-cm-de"
+  SHARED_PROJECT:               "anbc-hcb-dev"
+  REGION:                       "us-east4"
+  LOCATION:                     "us-east4"
+  LEVEL:                        "dev"                  # dev | staging | prod
+  USE_COMPUTE_PROJECT:          "true"
+
+  # ── Service accounts ─────────────────────────────────────────────────────────
+  SERVICE_ACCOUNT:              "gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com"
+  SERVICE_ACCOUNT_COMPUTE_PROJECT: "gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com"
+
+  # ── Encryption keys ───────────────────────────────────────────────────────────
+  CMEK_KEY:                     "projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-hcm-cm-de-us-east4"
+  CMEK_KEY_COMPUTE_PROJECT:     "projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4"
+  CMEK_KEY_BQ:                  "projects/cvs-key-vault-nonprod/locations/us/keyRings/gkr-nonprod-us/cryptoKeys/gk-anbc-hcb-dev-us"
+  BQ_CMEK_KEY:                  "projects/cvs-key-vault-nonprod/locations/us/keyRings/gkr-nonprod-us/cryptoKeys/gk-anbc-hcb-dev-us"
+
+  # ── Network ───────────────────────────────────────────────────────────────────
+  SUBNETWORK:                   "https://www.googleapis.com/compute/v1/projects/insurance-vpc/regions/us-east4/subnetworks/sn-aa-use4-anbc-dev-share"
+
+  # ── Model identity ────────────────────────────────────────────────────────────
+  MODEL_NAME:                   "ss-xgboost-model"
+  REPO_NAME:                    ""                     # e.g. "didactic-broccoli"
+  SERVE_VERSION:                ""                     # e.g. "didactic-broccoli"
+  MODEL_DESCRIPTION:            ""
+  OWNER:                        "parked_aetna_com"
+  EMAIL:                        ""                     # e.g. "user.name@aetna.com"
+  COSTCENTER:                   "13070"
+  TENANT:                       "hcm-cm-de"
+  LOB:                          "hcb"
+  TENANCY:                      "hcm_cm_de_hcb_dev"   # underscore form used in BQ naming
+  PIPELINE_TYPE:                "training_prediction"
+  SELF_SERVE:                   "true"
+  VERTEX_MODEL_ID:              "none"
+  VERTEX_MODEL_ALIAS:           "none"
+
+
+  # ── Model / prediction settings ───────────────────────────────────────────────
+  PROBLEM_TYPE:                 "binary_classification"  # binary_classification | regression
+  PREDICTION_THRESHOLD:         "0.5"
+  ID_NAME:                      "individual_id"        # member / patient ID column name
+  IGNORE_INDEX:                 "-100"                 # label value to ignore during evaluation
+
+  # ── Date / schedule settings ──────────────────────────────────────────────────
+  CRON_SCHEDULE:                "@once"                # cron expression or @once
+  EVAL_DATE:                    ""                     # e.g. "2021-06-16"
+  START_DATE:                   ""                     # e.g. "2021-01-01"
+  END_DATE:                     ""                     # e.g. "2025-05-19"
+  DATA_DATE:                    ""                     # e.g. "2025-08-17"
+  LAG_DAYS:                     "90"
+
+# ── BigQuery read settings ────────────────────────────────────────────────────
+bigquery_query:
+  use_bqstorage_api: true
+  progress_bar_enabled: false
+  use_query_cache: false
+  use_legacy_sql: false
+  dialect: "standard"
+  auth_local_webserver: false
+

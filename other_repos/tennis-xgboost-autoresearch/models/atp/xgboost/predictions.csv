@@ -1,0 +1,608 @@
+match_id,match_date,tourney_name,surface,round,player_a_name,player_b_name,winner_name,label,prob_player_a_wins,predicted_label,predicted_winner
+2026-9900-1,2026-01-02,United Cup,Hard,RR,Jaume Munar,Sebastian Baez,Sebastian Baez,0,0.7336930871009828,1,Jaume Munar
+2026-9900-2,2026-01-02,United Cup,Hard,RR,Stefanos Tsitsipas,Shintaro Mochizuki,Stefanos Tsitsipas,1,0.7070419430732727,1,Stefanos Tsitsipas
+2026-9900-3,2026-01-03,United Cup,Hard,RR,Zhizhen Zhang,Zizou Bergs,Zhizhen Zhang,1,0.31976970434188845,0,Zizou Bergs
+2026-9900-4,2026-01-03,United Cup,Hard,RR,Stan Wawrinka,Arthur Rinderknech,Stan Wawrinka,1,0.26671903729438784,0,Arthur Rinderknech
+2026-9900-5,2026-01-03,United Cup,Hard,RR,Taylor Fritz,Sebastian Baez,Sebastian Baez,0,0.8380974054336549,1,Taylor Fritz
+2026-9900-6,2026-01-03,United Cup,Hard,RR,Casper Ruud,Alex de Minaur,Casper Ruud,1,0.351743745803833,0,Alex de Minaur
+2026-339-1,2026-01-04,Brisbane,Hard,R32,Frances Tiafoe,Aleksandar Vukic,Frances Tiafoe,1,0.5771968269348146,1,Frances Tiafoe
+2026-339-2,2026-01-04,Brisbane,Hard,R32,Camilo Ugo Carabelli,Learner Tien,Learner Tien,0,0.13432136714458465,0,Learner Tien
+2026-9900-7,2026-01-04,United Cup,Hard,RR,Billy Harris,Shintaro Mochizuki,Billy Harris,1,0.38859730958938604,0,Shintaro Mochizuki
+2026-9900-8,2026-01-04,United Cup,Hard,RR,Alexander Zverev,Tallon Griekspoor,Alexander Zverev,1,0.7865792155265809,1,Alexander Zverev
+2026-9900-9,2026-01-04,United Cup,Hard,RR,Zhizhen Zhang,Felix Auger-Aliassime,Felix Auger-Aliassime,0,0.13181529194116592,0,Felix Auger-Aliassime
+2026-9900-10,2026-01-04,United Cup,Hard,RR,Stan Wawrinka,Flavio Cobolli,Flavio Cobolli,0,0.282818752527237,0,Flavio Cobolli
+2026-339-3,2026-01-05,Brisbane,Hard,R32,Quentin Halys,Alexei Popyrin,Quentin Halys,1,0.3371499943733215,0,Alexei Popyrin
+2026-339-4,2026-01-05,Brisbane,Hard,R32,Tomas Machac,Jiri Lehecka,Jiri Lehecka,0,0.32322659969329837,0,Jiri Lehecka
+2026-339-5,2026-01-05,Brisbane,Hard,R32,Valentin Vacherot,Sebastian Korda,Sebastian Korda,0,0.463600966334343,0,Sebastian Korda
+2026-339-6,2026-01-05,Brisbane,Hard,R32,Kamil Majchrzak,Daniel Altmaier,Kamil Majchrzak,1,0.5114007598161697,1,Kamil Majchrzak
+2026-339-7,2026-01-05,Brisbane,Hard,R32,James Duckworth,Alex Michelsen,Alex Michelsen,0,0.34680755078792574,0,Alex Michelsen
+2026-339-8,2026-01-05,Brisbane,Hard,R32,Reilly Opelka,Dane Sweeny,Reilly Opelka,1,0.6953872358798981,1,Reilly Opelka
+2026-339-9,2026-01-05,Brisbane,Hard,R32,Marton Fucsovics,Daniil Medvedev,Daniil Medvedev,0,0.1811878725886345,0,Daniil Medvedev
+2026-336-1,2026-01-05,Hong Kong,Hard,R32,Damir Dzumhur,Nuno Borges,Nuno Borges,0,0.31275515556335454,0,Nuno Borges
+2026-336-2,2026-01-05,Hong Kong,Hard,R32,Adrian Mannarino,Marin Cilic,Marin Cilic,0,0.5373060193657875,1,Adrian Mannarino
+2026-336-3,2026-01-05,Hong Kong,Hard,R32,Yibing Wu,Fabian Marozsan,Yibing Wu,1,0.3271729040145874,0,Fabian Marozsan
+2026-9900-11,2026-01-05,United Cup,Hard,RR,Taylor Fritz,Jaume Munar,Taylor Fritz,1,0.6952646255493165,1,Taylor Fritz
+2026-9900-12,2026-01-05,United Cup,Hard,RR,Alexander Zverev,Hubert Hurkacz,Hubert Hurkacz,0,0.7542547583580017,1,Alexander Zverev
+2026-9900-13,2026-01-05,United Cup,Hard,RR,Casper Ruud,Jakub Mensik,Jakub Mensik,0,0.5386269092559814,1,Casper Ruud
+2026-9900-14,2026-01-05,United Cup,Hard,RR,Billy Harris,Stefanos Tsitsipas,Stefanos Tsitsipas,0,0.18308892846107483,0,Stefanos Tsitsipas
+2026-339-10,2026-01-06,Brisbane,Hard,R32,Alejandro Davidovich Fokina,Brandon Nakashima,Brandon Nakashima,0,0.6724142527580261,1,Alejandro Davidovich Fokina
+2026-339-11,2026-01-06,Brisbane,Hard,R32,Denis Shapovalov,Raphael Collignon,Raphael Collignon,0,0.5585652154684067,1,Denis Shapovalov
+2026-339-12,2026-01-06,Brisbane,Hard,R32,Grigor Dimitrov,Pablo Carreno Busta,Grigor Dimitrov,1,0.7441616666316987,1,Grigor Dimitrov
+2026-339-13,2026-01-06,Brisbane,Hard,R32,Tommy Paul,Giovanni Mpetshi Perricard,Giovanni Mpetshi Perricard,0,0.46155065730214123,0,Giovanni Mpetshi Perricard
+2026-339-14,2026-01-06,Brisbane,Hard,R32,Cameron Norrie,Ugo Humbert,Cameron Norrie,1,0.4314358049631119,0,Ugo Humbert
+2026-339-15,2026-01-06,Brisbane,Hard,R32,Adam Walton,Rinky Hijikata,Rinky Hijikata,0,0.5619931447505953,1,Adam Walton
+2026-339-16,2026-01-06,Brisbane,Hard,R32,Nick Kyrgios,Aleksandar Kovacevic,Aleksandar Kovacevic,0,0.718949065208435,1,Nick Kyrgios
+2026-336-4,2026-01-06,Hong Kong,Hard,R32,Michael Mmoh,Alejandro Tabilo,Michael Mmoh,1,0.321424218416214,0,Alejandro Tabilo
+2026-336-5,2026-01-06,Hong Kong,Hard,R32,Rei Sakamoto,Lorenzo Sonego,Lorenzo Sonego,0,0.30446783781051634,0,Lorenzo Sonego
+2026-336-6,2026-01-06,Hong Kong,Hard,R32,Jesper de Jong,Gabriel Diallo,Gabriel Diallo,0,0.2585703364014626,0,Gabriel Diallo
+2026-336-7,2026-01-06,Hong Kong,Hard,R32,Alexandre Muller,Miomir Kecmanovic,Alexandre Muller,1,0.45466872751712806,0,Miomir Kecmanovic
+2026-336-8,2026-01-06,Hong Kong,Hard,R32,Tomas Martin Etcheverry,Valentin Royer,Tomas Martin Etcheverry,1,0.616310831308365,1,Tomas Martin Etcheverry
+2026-336-9,2026-01-06,Hong Kong,Hard,R32,Mariano Navone,Coleman Wong,Coleman Wong,0,0.4881153690814973,0,Coleman Wong
+2026-336-10,2026-01-06,Hong Kong,Hard,R32,Francisco Comesana,Juncheng Shang,Juncheng Shang,0,0.45309927701950076,0,Juncheng Shang
+2026-336-11,2026-01-06,Hong Kong,Hard,R32,Marcos Giron,Laslo Djere,Marcos Giron,1,0.5510550522804261,1,Marcos Giron
+2026-336-12,2026-01-06,Hong Kong,Hard,R32,Jan-Lennard Struff,Botic van de Zandschulp,Botic van de Zandschulp,0,0.5199238771200181,1,Jan-Lennard Struff
+2026-9900-15,2026-01-06,United Cup,Hard,RR,Felix Auger-Aliassime,Zizou Bergs,Zizou Bergs,0,0.7971803903579713,1,Felix Auger-Aliassime
+2026-9900-16,2026-01-06,United Cup,Hard,RR,Arthur Rinderknech,Flavio Cobolli,Arthur Rinderknech,1,0.4695575118064881,0,Flavio Cobolli
+2026-9900-17,2026-01-06,United Cup,Hard,RR,Alex de Minaur,Jakub Mensik,Alex de Minaur,1,0.5058736920356751,1,Alex de Minaur
+2026-339-17,2026-01-07,Brisbane,Hard,R16,Daniil Medvedev,Frances Tiafoe,Daniil Medvedev,1,0.7848776376247406,1,Daniil Medvedev
+2026-339-18,2026-01-07,Brisbane,Hard,R16,Sebastian Korda,Jiri Lehecka,Sebastian Korda,1,0.3224122610688209,0,Jiri Lehecka
+2026-339-19,2026-01-07,Brisbane,Hard,R16,Alex Michelsen,Learner Tien,Alex Michelsen,1,0.30440760731697086,0,Learner Tien
+2026-339-20,2026-01-07,Brisbane,Hard,R16,Kamil Majchrzak,Reilly Opelka,Kamil Majchrzak,1,0.44063320279121404,0,Reilly Opelka
+2026-336-13,2026-01-07,Hong Kong,Hard,R16,Tomas Martin Etcheverry,Lorenzo Musetti,Lorenzo Musetti,0,0.2298235486447811,0,Lorenzo Musetti
+2026-336-14,2026-01-07,Hong Kong,Hard,R16,Marin Cilic,Nuno Borges,Nuno Borges,0,0.5519757866859436,1,Marin Cilic
+2026-336-15,2026-01-07,Hong Kong,Hard,R16,Gabriel Diallo,Coleman Wong,Coleman Wong,0,0.6881777405738831,1,Gabriel Diallo
+2026-336-16,2026-01-07,Hong Kong,Hard,R16,Andrey Rublev,Yibing Wu,Andrey Rublev,1,0.5525443404912949,1,Andrey Rublev
+2026-9900-19,2026-01-07,United Cup,Hard,RR,Hubert Hurkacz,Tallon Griekspoor,Hubert Hurkacz,1,0.6777365207672119,1,Hubert Hurkacz
+2026-9900-18,2026-01-07,United Cup,Hard,QF,Taylor Fritz,Stefanos Tsitsipas,Stefanos Tsitsipas,0,0.6695334553718567,1,Taylor Fritz
+2026-9900-20,2026-01-07,United Cup,Hard,QF,Stan Wawrinka,Sebastian Baez,Sebastian Baez,0,0.5088074564933777,1,Stan Wawrinka
+2026-339-21,2026-01-08,Brisbane,Hard,R16,Cameron Norrie,Aleksandar Kovacevic,Aleksandar Kovacevic,0,0.7036158871650696,1,Cameron Norrie
+2026-339-22,2026-01-08,Brisbane,Hard,R16,Quentin Halys,Brandon Nakashima,Brandon Nakashima,0,0.30873919248580933,0,Brandon Nakashima
+2026-339-23,2026-01-08,Brisbane,Hard,R16,Rinky Hijikata,Giovanni Mpetshi Perricard,Giovanni Mpetshi Perricard,0,0.26536016166210175,0,Giovanni Mpetshi Perricard
+2026-339-24,2026-01-08,Brisbane,Hard,R16,Grigor Dimitrov,Raphael Collignon,Raphael Collignon,0,0.7234674298763276,1,Grigor Dimitrov
+2026-336-17,2026-01-08,Hong Kong,Hard,R16,Marcos Giron,Alexandre Muller,Marcos Giron,1,0.6224007475376129,1,Marcos Giron
+2026-336-18,2026-01-08,Hong Kong,Hard,R16,Lorenzo Sonego,Juncheng Shang,Juncheng Shang,0,0.60535453915596,1,Lorenzo Sonego
+2026-336-19,2026-01-08,Hong Kong,Hard,R16,Botic Van De Zandschulp,Alexander Bublik,Alexander Bublik,0,0.421725489795208,0,Alexander Bublik
+2026-336-20,2026-01-08,Hong Kong,Hard,R16,Karen Khachanov,Michael Mmoh,Michael Mmoh,0,0.6279309052228927,1,Karen Khachanov
+2026-9900-21,2026-01-08,United Cup,Hard,QF,Zizou Bergs,Jakub Mensik,Zizou Bergs,1,0.3780219078063965,0,Jakub Mensik
+2026-339-25,2026-01-09,Brisbane,Hard,QF,Aleksandar Kovacevic,Giovanni Mpetshi Perricard,Aleksandar Kovacevic,1,0.30143959194421766,0,Giovanni Mpetshi Perricard
+2026-339-26,2026-01-09,Brisbane,Hard,QF,Brandon Nakashima,Raphael Collignon,Brandon Nakashima,1,0.6143147969245911,1,Brandon Nakashima
+2026-339-27,2026-01-09,Brisbane,Hard,QF,Sebastian Korda,Alex Michelsen,Alex Michelsen,0,0.48039966464042666,0,Alex Michelsen
+2026-339-28,2026-01-09,Brisbane,Hard,QF,Daniil Medvedev,Kamil Majchrzak,Daniil Medvedev,1,0.7884897255897523,1,Daniil Medvedev
+2026-336-21,2026-01-09,Hong Kong,Hard,QF,Lorenzo Musetti,Coleman Wong,Lorenzo Musetti,1,0.7097392928600312,1,Lorenzo Musetti
+2026-336-22,2026-01-09,Hong Kong,Hard,QF,Andrey Rublev,Nuno Borges,Andrey Rublev,1,0.6686990082263947,1,Andrey Rublev
+2026-336-23,2026-01-09,Hong Kong,Hard,QF,Marcos Giron,Michael Mmoh,Marcos Giron,1,0.5767436254024505,1,Marcos Giron
+2026-336-24,2026-01-09,Hong Kong,Hard,QF,Alexander Bublik,Juncheng Shang,Alexander Bublik,1,0.6797616326808928,1,Alexander Bublik
+2026-9900-22,2026-01-09,United Cup,Hard,QF,Hubert Hurkacz,Alex de Minaur,Alex de Minaur,0,0.41961504220962526,0,Alex de Minaur
+2026-339-29,2026-01-10,Brisbane,Hard,SF,Aleksandar Kovacevic,Brandon Nakashima,Brandon Nakashima,0,0.23126071378588678,0,Brandon Nakashima
+2026-339-30,2026-01-10,Brisbane,Hard,SF,Daniil Medvedev,Alex Michelsen,Daniil Medvedev,1,0.7423942518234253,1,Daniil Medvedev
+2026-336-25,2026-01-10,Hong Kong,Hard,SF,Andrey Rublev,Lorenzo Musetti,Lorenzo Musetti,0,0.31837628662586215,0,Lorenzo Musetti
+2026-336-26,2026-01-10,Hong Kong,Hard,SF,Marcos Giron,Alexander Bublik,Alexander Bublik,0,0.3478517854213715,0,Alexander Bublik
+2026-9900-23,2026-01-10,United Cup,Hard,SF,Stan Wawrinka,Zizou Bergs,Zizou Bergs,0,0.2744999587535858,0,Zizou Bergs
+2026-9900-24,2026-01-10,United Cup,Hard,SF,Taylor Fritz,Hubert Hurkacz,Hubert Hurkacz,0,0.5028241515159607,1,Taylor Fritz
+2026-339-31,2026-01-11,Brisbane,Hard,F,Daniil Medvedev,Brandon Nakashima,Daniil Medvedev,1,0.7400269818305969,1,Daniil Medvedev
+2026-336-27,2026-01-11,Hong Kong,Hard,F,Alexander Bublik,Lorenzo Musetti,Alexander Bublik,1,0.466324502825737,0,Lorenzo Musetti
+2026-9900-25,2026-01-11,United Cup,Hard,F,Stan Wawrinka,Hubert Hurkacz,Hubert Hurkacz,0,0.21695887446403506,0,Hubert Hurkacz
+2026-8998-1,2026-01-12,Adelaide,Hard,R32,Reilly Opelka,Alexei Popyrin,Reilly Opelka,1,0.3932749557495117,0,Alexei Popyrin
+2026-8998-2,2026-01-12,Adelaide,Hard,R32,Miomir Kecmanovic,Valentin Vacherot,Valentin Vacherot,0,0.4033185738325119,0,Valentin Vacherot
+2026-8998-3,2026-01-12,Adelaide,Hard,R32,Daniel Altmaier,Jaume Munar,Jaume Munar,0,0.32016169726848603,0,Jaume Munar
+2026-8998-4,2026-01-12,Adelaide,Hard,R32,Thanasi Kokkinakis,Sebastian Korda,Thanasi Kokkinakis,1,0.24219437733292581,0,Sebastian Korda
+2026-8998-5,2026-01-12,Adelaide,Hard,R32,Ugo Humbert,Terence Atmane,Ugo Humbert,1,0.6688262462615967,1,Ugo Humbert
+2026-301-1,2026-01-12,Auckland,Hard,R32,Cameron Norrie,Hugo Gaston,Cameron Norrie,1,0.7787572717666627,1,Cameron Norrie
+2026-301-2,2026-01-12,Auckland,Hard,R32,Jenson Brooksby,James Watt,Jenson Brooksby,1,0.747081594467163,1,Jenson Brooksby
+2026-301-3,2026-01-12,Auckland,Hard,R32,Francisco Comesana,Valentin Royer,Francisco Comesana,1,0.4631758105754853,0,Valentin Royer
+2026-301-4,2026-01-12,Auckland,Hard,R32,Adrian Mannarino,Eliot Spizzirri,Eliot Spizzirri,0,0.5677408450841904,1,Adrian Mannarino
+2026-301-5,2026-01-12,Auckland,Hard,R32,Sebastian Baez,Emilio Nava,Sebastian Baez,1,0.6183800733089447,1,Sebastian Baez
+2026-8998-6,2026-01-13,Adelaide,Hard,R32,James Duckworth,Tomas Machac,Tomas Machac,0,0.2863356339931488,0,Tomas Machac
+2026-8998-7,2026-01-13,Adelaide,Hard,R32,Quentin Halys,Jacob Fearnley,Quentin Halys,1,0.5153222995996476,1,Quentin Halys
+2026-8998-8,2026-01-13,Adelaide,Hard,R32,Rinky Hijikata,Tristan Schoolkate,Rinky Hijikata,1,0.49074650287628174,0,Tristan Schoolkate
+2026-8998-9,2026-01-13,Adelaide,Hard,R32,Damir Dzumhur,Alexander Shevchenko,Alexander Shevchenko,0,0.4263763105869293,0,Alexander Shevchenko
+2026-8998-10,2026-01-13,Adelaide,Hard,R32,Stefanos Tsitsipas,Aleksandar Vukic,Aleksandar Vukic,0,0.7653269731998444,1,Stefanos Tsitsipas
+2026-8998-11,2026-01-13,Adelaide,Hard,R32,Marton Fucsovics,Ethan Quinn,Marton Fucsovics,1,0.4746007037162781,0,Ethan Quinn
+2026-8998-12,2026-01-13,Adelaide,Hard,R32,Andrea Vavassori,Gabriel Diallo,Andrea Vavassori,1,0.14142365634441376,0,Gabriel Diallo
+2026-301-6,2026-01-13,Auckland,Hard,R32,Gael Monfils,Fabian Marozsan,Fabian Marozsan,0,0.2754397416114807,0,Fabian Marozsan
+2026-301-7,2026-01-13,Auckland,Hard,R32,Mariano Navone,Alex Michelsen,Alex Michelsen,0,0.21881845623254775,0,Alex Michelsen
+2026-301-8,2026-01-13,Auckland,Hard,R32,Marcos Giron,Alexandre Muller,Marcos Giron,1,0.6889045393466949,1,Marcos Giron
+2026-301-9,2026-01-13,Auckland,Hard,R32,Aleksandar Kovacevic,Hamad Medjedovic,Hamad Medjedovic,0,0.3346473289653659,0,Hamad Medjedovic
+2026-301-10,2026-01-13,Auckland,Hard,R32,Roberto Bautista Agut,Giovanni Mpetshi Perricard,Giovanni Mpetshi Perricard,0,0.26777534008026127,0,Giovanni Mpetshi Perricard
+2026-301-11,2026-01-13,Auckland,Hard,R32,Alejandro Tabilo,Camilo Ugo Carabelli,Alejandro Tabilo,1,0.6288149178028107,1,Alejandro Tabilo
+2026-301-12,2026-01-13,Auckland,Hard,R32,Nuno Borges,Tomas Martin Etcheverry,Nuno Borges,1,0.43881659626960756,0,Tomas Martin Etcheverry
+2026-8998-13,2026-01-14,Adelaide,Hard,R16,Alejandro Davidovich Fokina,Rinky Hijikata,Alejandro Davidovich Fokina,1,0.5591394853591919,1,Alejandro Davidovich Fokina
+2026-8998-14,2026-01-14,Adelaide,Hard,R16,Reilly Opelka,Tommy Paul,Tommy Paul,0,0.3559992092847824,0,Tommy Paul
+2026-8998-15,2026-01-14,Adelaide,Hard,R16,Jaume Munar,Francisco Cerundolo,Jaume Munar,1,0.5246760523319244,1,Jaume Munar
+2026-8998-16,2026-01-14,Adelaide,Hard,R16,Tallon Griekspoor,Ugo Humbert,Ugo Humbert,0,0.2756929148733616,0,Ugo Humbert
+2026-8998-17,2026-01-14,Adelaide,Hard,R16,Thanasi Kokkinakis,Valentin Vacherot,Valentin Vacherot,0,0.5354189836978912,1,Thanasi Kokkinakis
+2026-8998-18,2026-01-14,Adelaide,Hard,R16,Quentin Halys,Tomas Machac,Tomas Machac,0,0.2361521475017071,0,Tomas Machac
+2026-8998-19,2026-01-14,Adelaide,Hard,R16,Marton Fucsovics,Alexander Shevchenko,Alexander Shevchenko,0,0.44074996262788774,0,Alexander Shevchenko
+2026-8998-20,2026-01-14,Adelaide,Hard,R16,Aleksandar Vukic,Andrea Vavassori,Aleksandar Vukic,1,0.4858082532882691,0,Andrea Vavassori
+2026-301-13,2026-01-14,Auckland,Hard,R16,Hamad Medjedovic,Jakub Mensik,Jakub Mensik,0,0.24346153080463412,0,Jakub Mensik
+2026-301-14,2026-01-14,Auckland,Hard,R16,Francisco Comesana,Ben Shelton,Ben Shelton,0,0.19832627519965174,0,Ben Shelton
+2026-301-15,2026-01-14,Auckland,Hard,R16,Casper Ruud,Fabian Marozsan,Fabian Marozsan,0,0.5928453981876374,1,Casper Ruud
+2026-301-16,2026-01-14,Auckland,Hard,R16,Alejandro Tabilo,Luciano Darderi,Luciano Darderi,0,0.7534473013877869,1,Alejandro Tabilo
+2026-301-17,2026-01-14,Auckland,Hard,R16,Cameron Norrie,Giovanni Mpetshi Perricard,Giovanni Mpetshi Perricard,0,0.44629674553871157,0,Giovanni Mpetshi Perricard
+2026-301-18,2026-01-14,Auckland,Hard,R16,Marcos Giron,Alex Michelsen,Marcos Giron,1,0.45185476958751686,0,Alex Michelsen
+2026-301-19,2026-01-14,Auckland,Hard,R16,Sebastian Baez,Jenson Brooksby,Sebastian Baez,1,0.2556150847673416,0,Jenson Brooksby
+2026-301-20,2026-01-14,Auckland,Hard,R16,Nuno Borges,Eliot Spizzirri,Eliot Spizzirri,0,0.5455552291870117,1,Nuno Borges
+2026-8998-21,2026-01-15,Adelaide,Hard,QF,Jaume Munar,Tomas Machac,Tomas Machac,0,0.5270932853221894,1,Jaume Munar
+2026-8998-22,2026-01-15,Adelaide,Hard,QF,Tommy Paul,Aleksandar Vukic,Tommy Paul,1,0.752655988931656,1,Tommy Paul
+2026-8998-23,2026-01-15,Adelaide,Hard,QF,Ugo Humbert,Alexander Shevchenko,Ugo Humbert,1,0.7846926701068878,1,Ugo Humbert
+2026-8998-24,2026-01-15,Adelaide,Hard,QF,Alejandro Davidovich Fokina,Valentin Vacherot,Alejandro Davidovich Fokina,1,0.4990916293859482,0,Valentin Vacherot
+2026-301-21,2026-01-15,Auckland,Hard,QF,Marcos Giron,Luciano Darderi,Marcos Giron,1,0.73818608045578,1,Marcos Giron
+2026-8998-25,2026-01-16,Adelaide,Hard,SF,Tommy Paul,Tomas Machac,Tomas Machac,0,0.5203606140613556,1,Tommy Paul
+2026-8998-26,2026-01-16,Adelaide,Hard,SF,Ugo Humbert,Alejandro Davidovich Fokina,Ugo Humbert,1,0.5009256172180176,1,Ugo Humbert
+2026-301-24,2026-01-16,Auckland,Hard,QF,Sebastian Baez,Ben Shelton,Sebastian Baez,1,0.16559076219797136,0,Ben Shelton
+2026-301-25,2026-01-16,Auckland,Hard,QF,Giovanni Mpetshi Perricard,Jakub Mensik,Jakub Mensik,0,0.2853725971281529,0,Jakub Mensik
+2026-301-26,2026-01-16,Auckland,Hard,QF,Fabian Marozsan,Eliot Spizzirri,Fabian Marozsan,1,0.6265703439712524,1,Fabian Marozsan
+2026-301-22,2026-01-16,Auckland,Hard,SF,Fabian Marozsan,Jakub Mensik,Jakub Mensik,0,0.28330818951129916,0,Jakub Mensik
+2026-301-23,2026-01-16,Auckland,Hard,SF,Marcos Giron,Sebastian Baez,Sebastian Baez,0,0.5138050997257233,1,Marcos Giron
+2026-8998-27,2026-01-17,Adelaide,Hard,F,Ugo Humbert,Tomas Machac,Tomas Machac,0,0.6760464262962342,1,Ugo Humbert
+2026-301-27,2026-01-17,Auckland,Hard,F,Sebastian Baez,Jakub Mensik,Jakub Mensik,0,0.18663157150149345,0,Jakub Mensik
+2026-580-1,2026-01-20,Australian Open,Hard,R128,Adam Walton,Carlos Alcaraz,Carlos Alcaraz,0,0.028048951178789142,0,Carlos Alcaraz
+2026-580-2,2026-01-20,Australian Open,Hard,R128,Yannick Hanfmann,Zachary Svajda,Yannick Hanfmann,1,0.7609628915786744,1,Yannick Hanfmann
+2026-580-3,2026-01-20,Australian Open,Hard,R128,Zhizhen Zhang,Sebastian Korda,Zhizhen Zhang,1,0.23620641827583314,0,Sebastian Korda
+2026-580-4,2026-01-20,Australian Open,Hard,R128,Corentin Moutet,Tristan Schoolkate,Corentin Moutet,1,0.6563562750816345,1,Corentin Moutet
+2026-580-5,2026-01-20,Australian Open,Hard,R128,Tommy Paul,Aleksandar Kovacevic,Tommy Paul,1,0.8009299516677857,1,Tommy Paul
+2026-580-6,2026-01-20,Australian Open,Hard,R128,Aleksandar Vukic,Thiago Tirante,Thiago Tirante,0,0.5723749995231628,1,Aleksandar Vukic
+2026-580-7,2026-01-20,Australian Open,Hard,R128,Reilly Opelka,Victor Lilov,Reilly Opelka,1,0.8361695408821106,1,Reilly Opelka
+2026-580-8,2026-01-20,Australian Open,Hard,R128,Alejandro Davidovich Fokina,Filip Misolic,Alejandro Davidovich Fokina,1,0.8456391692161561,1,Alejandro Davidovich Fokina
+2026-580-9,2026-01-20,Australian Open,Hard,R128,Alexander Bublik,Jenson Brooksby,Alexander Bublik,1,0.6767017483711243,1,Alexander Bublik
+2026-580-10,2026-01-20,Australian Open,Hard,R128,Marton Fucsovics,Federico Ugo Carabelli,Marton Fucsovics,1,0.6419560670852661,1,Marton Fucsovics
+2026-580-11,2026-01-20,Australian Open,Hard,R128,Tomas Martin Etcheverry,Miomir Kecmanovic,Tomas Martin Etcheverry,1,0.4984971165657044,0,Miomir Kecmanovic
+2026-580-12,2026-01-20,Australian Open,Hard,R128,Flavio Cobolli,Arthur Fery,Arthur Fery,0,0.7669591426849366,1,Flavio Cobolli
+2026-580-13,2026-01-20,Australian Open,Hard,R128,Jason Kubler,Frances Tiafoe,Frances Tiafoe,0,0.16963144540786745,0,Frances Tiafoe
+2026-580-14,2026-01-20,Australian Open,Hard,R128,Mackenzie Mcdonald,Alex De Minaur,Alex De Minaur,0,0.06169982478022576,0,Alex De Minaur
+2026-580-15,2026-01-20,Australian Open,Hard,R128,Alexander Zverev,Gabriel Diallo,Alexander Zverev,1,0.8462068438529968,1,Alexander Zverev
+2026-580-16,2026-01-20,Australian Open,Hard,R128,Alexei Popyrin,Arthur Muller,Arthur Muller,0,0.8376548647880555,1,Alexei Popyrin
+2026-580-17,2026-01-20,Australian Open,Hard,R128,Cameron Norrie,Benjamin Bonzi,Cameron Norrie,1,0.6269990801811218,1,Cameron Norrie
+2026-580-18,2026-01-20,Australian Open,Hard,R128,Zhizhen Zhang,Francisco Cerundolo,Francisco Cerundolo,0,0.2687269926071167,0,Francisco Cerundolo
+2026-580-19,2026-01-20,Australian Open,Hard,R128,Damir Dzumhur,Liam Draxl,Damir Dzumhur,1,0.7731061697006226,1,Damir Dzumhur
+2026-580-20,2026-01-20,Australian Open,Hard,R128,Jaime Faria,Aleksandar Blockx,Jaime Faria,1,0.41969176530838015,0,Aleksandar Blockx
+2026-580-21,2026-01-20,Australian Open,Hard,R128,Andrey Rublev,Matteo Arnaldi,Andrey Rublev,1,0.6943924307823182,1,Andrey Rublev
+2026-580-22,2026-01-20,Australian Open,Hard,R128,Daniil Medvedev,Jesper de Jong,Daniil Medvedev,1,0.920619285106659,1,Daniil Medvedev
+2026-580-23,2026-01-20,Australian Open,Hard,R128,Quentin Halys,Alejandro Tabilo,Quentin Halys,1,0.3956227898597718,0,Alejandro Tabilo
+2026-580-24,2026-01-20,Australian Open,Hard,R128,Kamil Majchrzak,Jacob Fearnley,Kamil Majchrzak,1,0.7874084830284119,1,Kamil Majchrzak
+2026-580-25,2026-01-20,Australian Open,Hard,R128,Arthur Rinderknech,Fabian Marozsan,Fabian Marozsan,0,0.4507277667522431,0,Fabian Marozsan
+2026-580-26,2026-01-20,Australian Open,Hard,R128,Marcos Giron,Learner Tien,Learner Tien,0,0.5026134431362153,1,Marcos Giron
+2026-580-27,2026-01-20,Australian Open,Hard,R128,Elias Ymer,Aleksandr Shevchenko,Aleksandr Shevchenko,0,0.42567830085754393,0,Aleksandr Shevchenko
+2026-580-28,2026-01-20,Australian Open,Hard,R128,Jordan Thompson,Juan Manuel Cerundolo,Jordan Thompson,1,0.7025016307830811,1,Jordan Thompson
+2026-580-29,2026-01-20,Australian Open,Hard,R128,Nuno Borges,Felix Auger Aliassime,Nuno Borges,1,0.24068177938461305,0,Felix Auger Aliassime
+2026-580-30,2026-01-20,Australian Open,Hard,R128,Lorenzo Musetti,Arthur Collignon,Lorenzo Musetti,1,0.7223557829856873,1,Lorenzo Musetti
+2026-580-31,2026-01-20,Australian Open,Hard,R128,Carlos Taberner,Lorenzo Sonego,Lorenzo Sonego,0,0.177710622549057,0,Lorenzo Sonego
+2026-580-32,2026-01-20,Australian Open,Hard,R128,Grigor Dimitrov,Tomas Machac,Tomas Machac,0,0.5109443545341492,1,Grigor Dimitrov
+2026-580-33,2026-01-20,Australian Open,Hard,R128,Stefanos Tsitsipas,Shintaro Mochizuki,Stefanos Tsitsipas,1,0.8170313715934754,1,Stefanos Tsitsipas
+2026-580-34,2026-01-20,Australian Open,Hard,R128,Jiri Lehecka,Rodrigo Gea,Rodrigo Gea,0,0.909052062034607,1,Jiri Lehecka
+2026-580-35,2026-01-20,Australian Open,Hard,R128,Stan Wawrinka,Laslo Djere,Stan Wawrinka,1,0.7345746874809265,1,Stan Wawrinka
+2026-580-36,2026-01-20,Australian Open,Hard,R128,Jan Lennard Struff,Vit Kopriva,Vit Kopriva,0,0.6982311606407167,1,Jan Lennard Struff
+2026-580-37,2026-01-20,Australian Open,Hard,R128,Taylor Fritz,Valentin Royer,Taylor Fritz,1,0.926150929927826,1,Taylor Fritz
+2026-580-38,2026-01-20,Australian Open,Hard,R128,Pablo Carreno Busta,Jakub Mensik,Jakub Mensik,0,0.3178699553012848,0,Jakub Mensik
+2026-580-39,2026-01-20,Australian Open,Hard,R128,Rei Sakamoto,Rodrigo Jodar,Rodrigo Jodar,0,0.6865965485572815,1,Rei Sakamoto
+2026-580-40,2026-01-20,Australian Open,Hard,R128,Hubert Hurkacz,Zizou Bergs,Hubert Hurkacz,1,0.6693813085556031,1,Hubert Hurkacz
+2026-580-41,2026-01-20,Australian Open,Hard,R128,Tallon Griekspoor,Patrick Quinn,Patrick Quinn,0,0.6641918420791626,1,Tallon Griekspoor
+2026-580-42,2026-01-20,Australian Open,Hard,R128,Botic Van De Zandschulp,Brandon Nakashima,Botic Van De Zandschulp,1,0.37542333602905276,0,Brandon Nakashima
+2026-580-43,2026-01-20,Australian Open,Hard,R128,Roberto Bautista Agut,Juncheng Shang,Juncheng Shang,0,0.37548695802688603,0,Juncheng Shang
+2026-580-44,2026-01-20,Australian Open,Hard,R128,Francesco Maestrelli,Terence Atmane,Francesco Maestrelli,1,0.28176422119140626,0,Terence Atmane
+2026-580-45,2026-01-20,Australian Open,Hard,R128,Novak Djokovic,Pedro Martinez,Novak Djokovic,1,0.97214914560318,1,Novak Djokovic
+2026-580-46,2026-01-20,Australian Open,Hard,R128,Dane Sweeny,Ben Shelton,Ben Shelton,0,0.10253343135118485,0,Ben Shelton
+2026-580-47,2026-01-20,Australian Open,Hard,R128,Martin Damm,Elliot Vacherot,Elliot Vacherot,0,0.34223228693008423,0,Elliot Vacherot
+2026-580-48,2026-01-20,Australian Open,Hard,R128,Adrian Mannarino,Rinky Hijikata,Rinky Hijikata,0,0.52162184715271,1,Adrian Mannarino
+2026-580-49,2026-01-20,Australian Open,Hard,R128,Denis Shapovalov,Bu Yunchaokete,Denis Shapovalov,1,0.5713140845298768,1,Denis Shapovalov
+2026-580-50,2026-01-20,Australian Open,Hard,R128,Marin Cilic,Daniel Altmaier,Marin Cilic,1,0.7600399017333984,1,Marin Cilic
+2026-580-51,2026-01-20,Australian Open,Hard,R128,Jaume Munar,Jakub Svrcina,Jaume Munar,1,0.7284074306488038,1,Jaume Munar
+2026-580-52,2026-01-20,Australian Open,Hard,R128,Casper Ruud,Mattia Bellucci,Casper Ruud,1,0.8318867564201355,1,Casper Ruud
+2026-580-53,2026-01-20,Australian Open,Hard,R128,Karen Khachanov,Alex Michelsen,Karen Khachanov,1,0.588431978225708,1,Karen Khachanov
+2026-580-54,2026-01-20,Australian Open,Hard,R128,Christopher Oconnell,Sumit Basavareddy,Sumit Basavareddy,0,0.5655847668647767,1,Christopher Oconnell
+2026-580-55,2026-01-20,Australian Open,Hard,R128,Sebastian Baez,Giovanni Mpetshi Perricard,Sebastian Baez,1,0.5058816313743592,1,Sebastian Baez
+2026-580-56,2026-01-20,Australian Open,Hard,R128,Cristian Garin,Luciano Darderi,Luciano Darderi,0,0.5677583813667297,1,Cristian Garin
+2026-580-57,2026-01-20,Australian Open,Hard,R128,Yibing Wu,Edoardo Spizzirri,Edoardo Spizzirri,0,0.3971700251102448,0,Edoardo Spizzirri
+2026-580-58,2026-01-20,Australian Open,Hard,R128,Mariano Navone,Hamad Medjedovic,Hamad Medjedovic,0,0.34481847286224365,0,Hamad Medjedovic
+2026-580-59,2026-01-20,Australian Open,Hard,R128,Hugo Gaston,Jannik Sinner,Jannik Sinner,0,0.030389277264475826,0,Jannik Sinner
+2026-580-60,2026-01-20,Australian Open,Hard,R128,James Duckworth,Maximilian Marterer,James Duckworth,1,0.6462914824485779,1,James Duckworth
+2026-580-61,2026-01-20,Australian Open,Hard,R64,Yannick Hanfmann,Carlos Alcaraz,Carlos Alcaraz,0,0.05226019024848938,0,Carlos Alcaraz
+2026-580-62,2026-01-20,Australian Open,Hard,R64,Zhizhen Zhang,Corentin Moutet,Corentin Moutet,0,0.3553528606891633,0,Corentin Moutet
+2026-580-63,2026-01-20,Australian Open,Hard,R64,Reilly Opelka,Tommy Paul,Tommy Paul,0,0.27336964607238773,0,Tommy Paul
+2026-580-64,2026-01-20,Australian Open,Hard,R64,Alejandro Davidovich Fokina,Thiago Tirante,Alejandro Davidovich Fokina,1,0.821737813949585,1,Alejandro Davidovich Fokina
+2026-580-65,2026-01-20,Australian Open,Hard,R64,Marton Fucsovics,Alexander Bublik,Alexander Bublik,0,0.2572734296321869,0,Alexander Bublik
+2026-580-66,2026-01-20,Australian Open,Hard,R64,Tomas Martin Etcheverry,Arthur Fery,Tomas Martin Etcheverry,1,0.7515637159347535,1,Tomas Martin Etcheverry
+2026-580-67,2026-01-20,Australian Open,Hard,R64,Jason Kubler,Frances Tiafoe,Frances Tiafoe,0,0.2237525463104248,0,Frances Tiafoe
+2026-580-68,2026-01-20,Australian Open,Hard,R64,Alex De Minaur,Hamad Medjedovic,Alex De Minaur,1,0.8406819820404052,1,Alex De Minaur
+2026-580-69,2026-01-20,Australian Open,Hard,R64,Alexander Zverev,Arthur Muller,Alexander Zverev,1,0.9770685911178589,1,Alexander Zverev
+2026-580-70,2026-01-20,Australian Open,Hard,R64,Cameron Norrie,Benjamin Bonzi,Cameron Norrie,1,0.5709511876106262,1,Cameron Norrie
+2026-580-71,2026-01-20,Australian Open,Hard,R64,Damir Dzumhur,Francisco Cerundolo,Francisco Cerundolo,0,0.2084073543548584,0,Francisco Cerundolo
+2026-580-72,2026-01-20,Australian Open,Hard,R64,Andrey Rublev,Jaime Faria,Andrey Rublev,1,0.8791669726371766,1,Andrey Rublev
+2026-580-73,2026-01-20,Australian Open,Hard,R64,Daniil Medvedev,Quentin Halys,Daniil Medvedev,1,0.9055850148200989,1,Daniil Medvedev
+2026-580-74,2026-01-20,Australian Open,Hard,R64,Kamil Majchrzak,Fabian Marozsan,Fabian Marozsan,0,0.3430571675300598,0,Fabian Marozsan
+2026-580-75,2026-01-20,Australian Open,Hard,R64,Aleksandr Shevchenko,Learner Tien,Learner Tien,0,0.2506394386291504,0,Learner Tien
+2026-580-76,2026-01-20,Australian Open,Hard,R64,Jordan Thompson,Nuno Borges,Nuno Borges,0,0.37045173645019536,0,Nuno Borges
+2026-580-77,2026-01-20,Australian Open,Hard,R64,Lorenzo Sonego,Lorenzo Musetti,Lorenzo Musetti,0,0.29478148818016053,0,Lorenzo Musetti
+2026-580-78,2026-01-20,Australian Open,Hard,R64,Stefanos Tsitsipas,Tomas Machac,Tomas Machac,0,0.4409295618534088,0,Tomas Machac
+2026-580-79,2026-01-20,Australian Open,Hard,R64,Stan Wawrinka,Rodrigo Gea,Rodrigo Gea,0,0.6057204127311706,1,Stan Wawrinka
+2026-580-80,2026-01-20,Australian Open,Hard,R64,Taylor Fritz,Vit Kopriva,Taylor Fritz,1,0.8733751893043519,1,Taylor Fritz
+2026-580-81,2026-01-20,Australian Open,Hard,R64,Jakub Mensik,Rodrigo Jodar,Jakub Mensik,1,0.963432812690735,1,Jakub Mensik
+2026-580-82,2026-01-20,Australian Open,Hard,R64,Hubert Hurkacz,Patrick Quinn,Hubert Hurkacz,1,0.885344135761261,1,Hubert Hurkacz
+2026-580-83,2026-01-20,Australian Open,Hard,R64,Botic Van De Zandschulp,Juncheng Shang,Botic Van De Zandschulp,1,0.4325205564498901,0,Juncheng Shang
+2026-580-84,2026-01-20,Australian Open,Hard,R64,Novak Djokovic,Francesco Maestrelli,Novak Djokovic,1,0.9595654129981994,1,Novak Djokovic
+2026-580-85,2026-01-20,Australian Open,Hard,R64,Dane Sweeny,Ben Shelton,Ben Shelton,0,0.09664910286664963,0,Ben Shelton
+2026-580-86,2026-01-20,Australian Open,Hard,R64,Elliot Vacherot,Rinky Hijikata,Elliot Vacherot,1,0.6890395879745483,1,Elliot Vacherot
+2026-580-87,2026-01-20,Australian Open,Hard,R64,Denis Shapovalov,Bu Yunchaokete,Denis Shapovalov,1,0.5393089652061462,1,Denis Shapovalov
+2026-580-88,2026-01-20,Australian Open,Hard,R64,Marin Cilic,Jaume Munar,Marin Cilic,1,0.46138747930526736,0,Jaume Munar
+2026-580-89,2026-01-20,Australian Open,Hard,R64,Casper Ruud,Mattia Bellucci,Casper Ruud,1,0.8417329072952271,1,Casper Ruud
+2026-580-90,2026-01-20,Australian Open,Hard,R64,Karen Khachanov,Sumit Basavareddy,Karen Khachanov,1,0.7569883227348329,1,Karen Khachanov
+2026-580-91,2026-01-20,Australian Open,Hard,R64,Sebastian Baez,Luciano Darderi,Luciano Darderi,0,0.6826131343841553,1,Sebastian Baez
+2026-580-92,2026-01-20,Australian Open,Hard,R64,James Duckworth,Edoardo Spizzirri,Edoardo Spizzirri,0,0.47567708492279054,0,Edoardo Spizzirri
+2026-580-130,2026-01-20,Australian Open,Hard,R64,James Duckworth,Jannik Sinner,Jannik Sinner,0,0.047759136557579046,0,Jannik Sinner
+2026-580-93,2026-01-20,Australian Open,Hard,R32,Corentin Moutet,Carlos Alcaraz,Carlos Alcaraz,0,0.05271574184298516,0,Carlos Alcaraz
+2026-580-94,2026-01-20,Australian Open,Hard,R32,Tommy Paul,Alejandro Davidovich Fokina,Tommy Paul,1,0.6007378578186036,1,Tommy Paul
+2026-580-95,2026-01-20,Australian Open,Hard,R32,Alexander Bublik,Tomas Martin Etcheverry,Alexander Bublik,1,0.693139624595642,1,Alexander Bublik
+2026-580-96,2026-01-20,Australian Open,Hard,R32,Frances Tiafoe,Alex De Minaur,Alex De Minaur,0,0.18367806971073153,0,Alex De Minaur
+2026-580-97,2026-01-20,Australian Open,Hard,R32,Alexander Zverev,Cameron Norrie,Alexander Zverev,1,0.824021327495575,1,Alexander Zverev
+2026-580-98,2026-01-20,Australian Open,Hard,R32,Andrey Rublev,Francisco Cerundolo,Francisco Cerundolo,0,0.6118275642395019,1,Andrey Rublev
+2026-580-99,2026-01-20,Australian Open,Hard,R32,Daniil Medvedev,Fabian Marozsan,Daniil Medvedev,1,0.8412691473960877,1,Daniil Medvedev
+2026-580-100,2026-01-20,Australian Open,Hard,R32,Nuno Borges,Learner Tien,Learner Tien,0,0.4391228020191193,0,Learner Tien
+2026-580-101,2026-01-20,Australian Open,Hard,R32,Lorenzo Musetti,Tomas Machac,Lorenzo Musetti,1,0.4702400326728821,0,Tomas Machac
+2026-580-102,2026-01-20,Australian Open,Hard,R32,Stan Wawrinka,Taylor Fritz,Stan Wawrinka,1,0.3258520722389221,0,Taylor Fritz
+2026-580-103,2026-01-20,Australian Open,Hard,R32,Jakub Mensik,Patrick Quinn,Jakub Mensik,1,0.8106224060058594,1,Jakub Mensik
+2026-580-104,2026-01-20,Australian Open,Hard,R32,Novak Djokovic,Botic Van De Zandschulp,Novak Djokovic,1,0.9296979427337647,1,Novak Djokovic
+2026-580-105,2026-01-20,Australian Open,Hard,R32,Elliot Vacherot,Ben Shelton,Ben Shelton,0,0.4513778984546662,0,Ben Shelton
+2026-580-106,2026-01-20,Australian Open,Hard,R32,Marin Cilic,Casper Ruud,Casper Ruud,0,0.39670521616935733,0,Casper Ruud
+2026-580-107,2026-01-20,Australian Open,Hard,R32,Karen Khachanov,Sebastian Baez,Karen Khachanov,1,0.604899561405182,1,Karen Khachanov
+2026-580-108,2026-01-20,Australian Open,Hard,R32,Edoardo Spizzirri,Luciano Darderi,Luciano Darderi,0,0.6028708338737488,1,Edoardo Spizzirri
+2026-580-116,2026-01-20,Australian Open,Hard,R32,Karen Khachanov,Luciano Darderi,Luciano Darderi,0,0.7482531189918519,1,Karen Khachanov
+2026-580-131,2026-01-20,Australian Open,Hard,R32,Martin Damm,Jannik Sinner,Jannik Sinner,0,0.07167065143585205,0,Jannik Sinner
+2026-580-109,2026-01-20,Australian Open,Hard,R16,Tommy Paul,Carlos Alcaraz,Carlos Alcaraz,0,0.12500788718461991,0,Carlos Alcaraz
+2026-580-110,2026-01-20,Australian Open,Hard,R16,Alexander Bublik,Alex De Minaur,Alex De Minaur,0,0.47388493418693545,0,Alex De Minaur
+2026-580-111,2026-01-20,Australian Open,Hard,R16,Alexander Zverev,Francisco Cerundolo,Alexander Zverev,1,0.7917436480522155,1,Alexander Zverev
+2026-580-112,2026-01-20,Australian Open,Hard,R16,Daniil Medvedev,Learner Tien,Learner Tien,0,0.7511475086212158,1,Daniil Medvedev
+2026-580-113,2026-01-20,Australian Open,Hard,R16,Stan Wawrinka,Lorenzo Musetti,Lorenzo Musetti,0,0.26705420613288877,0,Lorenzo Musetti
+2026-580-114,2026-01-20,Australian Open,Hard,R16,Novak Djokovic,Jakub Mensik,Novak Djokovic,1,0.7900430798530579,1,Novak Djokovic
+2026-580-115,2026-01-20,Australian Open,Hard,R16,Casper Ruud,Ben Shelton,Ben Shelton,0,0.5233662068843842,1,Casper Ruud
+2026-580-132,2026-01-20,Australian Open,Hard,R16,Jannik Sinner,Luciano Darderi,Jannik Sinner,1,0.9787740826606751,1,Jannik Sinner
+2026-580-117,2026-01-20,Australian Open,Hard,QF,Alex De Minaur,Carlos Alcaraz,Carlos Alcaraz,0,0.12303331941366195,0,Carlos Alcaraz
+2026-580-118,2026-01-20,Australian Open,Hard,QF,Alexander Zverev,Learner Tien,Alexander Zverev,1,0.7404361248016358,1,Alexander Zverev
+2026-580-119,2026-01-20,Australian Open,Hard,QF,Taylor Fritz,Lorenzo Musetti,Lorenzo Musetti,0,0.4342769026756287,0,Lorenzo Musetti
+2026-580-120,2026-01-20,Australian Open,Hard,QF,Novak Djokovic,Ben Shelton,Novak Djokovic,1,0.8487008690834046,1,Novak Djokovic
+2026-580-133,2026-01-20,Australian Open,Hard,QF,Jannik Sinner,Ben Shelton,Jannik Sinner,1,0.9265130281448365,1,Jannik Sinner
+2026-580-121,2026-01-20,Australian Open,Hard,SF,Alexander Zverev,Carlos Alcaraz,Carlos Alcaraz,0,0.19535267353057864,0,Carlos Alcaraz
+2026-580-122,2026-01-20,Australian Open,Hard,SF,Novak Djokovic,Jannik Sinner,Novak Djokovic,1,0.25220268964767456,0,Jannik Sinner
+2026-580-123,2026-01-20,Australian Open,Hard,F,Novak Djokovic,Carlos Alcaraz,Carlos Alcaraz,0,0.5036045670509339,1,Novak Djokovic
+2026-375-1,2026-02-03,Montpellier,Hard,R16,Stan Wawrinka,Felix Auger Aliassime,Felix Auger Aliassime,0,0.2087505902349949,0,Felix Auger Aliassime
+2026-375-2,2026-02-03,Montpellier,Hard,R16,Marton Fucsovics,Hugo Gaston,Hugo Gaston,0,0.7076557803153991,1,Marton Fucsovics
+2026-375-3,2026-02-03,Montpellier,Hard,R16,Valentin Royer,Arthur Fils,Arthur Fils,0,0.2967823824286461,0,Arthur Fils
+2026-375-4,2026-02-03,Montpellier,Hard,R16,Botic Van De Zandschulp,Ugo Humbert,Ugo Humbert,0,0.15553107313811781,0,Ugo Humbert
+2026-375-5,2026-02-03,Montpellier,Hard,R16,Andrea Vavassori,Ugo Blanchet,Ugo Blanchet,0,0.6780555462837219,1,Andrea Vavassori
+2026-375-6,2026-02-03,Montpellier,Hard,R16,Adrian Mannarino,Ugo Humbert,Adrian Mannarino,1,0.2024815845489502,0,Ugo Humbert
+2026-375-7,2026-02-03,Montpellier,Hard,R16,Jan Choinski,Timothee Droguet,Timothee Droguet,0,0.4830142772197724,0,Timothee Droguet
+2026-375-8,2026-02-03,Montpellier,Hard,R16,Martin Damm,Hubert Hurkacz,Martin Damm,1,0.34823632240295416,0,Hubert Hurkacz
+2026-375-9,2026-02-03,Montpellier,Hard,R16,Pablo Carreno Busta,Miomir Kecmanovic,Pablo Carreno Busta,1,0.5302772879600526,1,Pablo Carreno Busta
+2026-375-10,2026-02-03,Montpellier,Hard,R16,Nikoloz Basilashvili,Luca Nardi,Luca Nardi,0,0.5374811017513276,1,Nikoloz Basilashvili
+2026-375-11,2026-02-03,Montpellier,Hard,R16,Aleksandar Kovacevic,Maxime Kouame,Aleksandar Kovacevic,1,0.7300197124481203,1,Aleksandar Kovacevic
+2026-375-12,2026-02-03,Montpellier,Hard,R16,Tomas Machac,Rodrigo Gea,Rodrigo Gea,0,0.8172625136375429,1,Tomas Machac
+2026-375-13,2026-02-03,Montpellier,Hard,QF,Felix Auger Aliassime,Arthur Fils,Felix Auger Aliassime,1,0.5988465309143067,1,Felix Auger Aliassime
+2026-375-14,2026-02-03,Montpellier,Hard,QF,Flavio Cobolli,Luca Nardi,Luca Nardi,0,0.6025888514518739,1,Flavio Cobolli
+2026-375-15,2026-02-03,Montpellier,Hard,QF,Pablo Carreno Busta,Tallon Griekspoor,Tallon Griekspoor,0,0.4927541875839233,0,Tallon Griekspoor
+2026-375-16,2026-02-03,Montpellier,Hard,QF,Aleksandar Kovacevic,Timothee Droguet,Timothee Droguet,0,0.5805892860889436,1,Aleksandar Kovacevic
+2026-375-17,2026-02-03,Montpellier,Hard,SF,Stan Wawrinka,Felix Auger Aliassime,Felix Auger Aliassime,0,0.2030514843761921,0,Felix Auger Aliassime
+2026-375-18,2026-02-03,Montpellier,Hard,SF,Adrian Mannarino,Marton Fucsovics,Adrian Mannarino,1,0.4620566761493683,0,Marton Fucsovics
+2026-375-19,2026-02-03,Montpellier,Hard,F,Adrian Mannarino,Felix Auger Aliassime,Felix Auger Aliassime,0,0.2778571154177189,0,Felix Auger Aliassime
+2026-506-1,2026-02-10,Buenos Aires,Clay,R16,Hugo Dellien,Francisco Cerundolo,Francisco Cerundolo,0,0.12102066725492477,0,Francisco Cerundolo
+2026-506-2,2026-02-10,Buenos Aires,Clay,R16,Matteo Berrettini,Vit Kopriva,Vit Kopriva,0,0.7396444439888,1,Matteo Berrettini
+2026-506-3,2026-02-10,Buenos Aires,Clay,R16,Alejandro Tabilo,Joao Fonseca,Alejandro Tabilo,1,0.5235754299163818,1,Alejandro Tabilo
+2026-506-4,2026-02-10,Buenos Aires,Clay,R16,Tomas Martin Etcheverry,Renzo Burruchaga,Tomas Martin Etcheverry,1,0.660536173582077,1,Tomas Martin Etcheverry
+2026-506-5,2026-02-10,Buenos Aires,Clay,R16,Federico Ugo Carabelli,Mariano Navone,Federico Ugo Carabelli,1,0.3569113102555275,0,Mariano Navone
+2026-506-6,2026-02-10,Buenos Aires,Clay,R16,Sebastian Baez,Ignacio Buse,Sebastian Baez,1,0.6307492983341217,1,Sebastian Baez
+2026-506-7,2026-02-10,Buenos Aires,Clay,R16,Pedro Martinez,Juan Manuel Cerundolo,Pedro Martinez,1,0.5682195293903352,1,Pedro Martinez
+2026-506-8,2026-02-10,Buenos Aires,Clay,R16,Tomas Barrios Vera,Luciano Darderi,Luciano Darderi,0,0.22543891876935962,0,Luciano Darderi
+2026-506-9,2026-02-10,Buenos Aires,Clay,QF,Vit Kopriva,Francisco Cerundolo,Francisco Cerundolo,0,0.15727685615420342,0,Francisco Cerundolo
+2026-506-10,2026-02-10,Buenos Aires,Clay,QF,Alejandro Tabilo,Tomas Martin Etcheverry,Tomas Martin Etcheverry,0,0.3569129714369774,0,Tomas Martin Etcheverry
+2026-506-11,2026-02-10,Buenos Aires,Clay,QF,Federico Ugo Carabelli,Sebastian Baez,Sebastian Baez,0,0.23905881337821486,0,Sebastian Baez
+2026-506-12,2026-02-10,Buenos Aires,Clay,QF,Pedro Martinez,Luciano Darderi,Luciano Darderi,0,0.34690552681684494,0,Luciano Darderi
+2026-506-13,2026-02-10,Buenos Aires,Clay,SF,Tomas Martin Etcheverry,Francisco Cerundolo,Francisco Cerundolo,0,0.28733934015035634,0,Francisco Cerundolo
+2026-506-14,2026-02-10,Buenos Aires,Clay,SF,Sebastian Baez,Luciano Darderi,Luciano Darderi,0,0.4208429026603699,0,Luciano Darderi
+2026-506-15,2026-02-10,Buenos Aires,Clay,F,Francisco Cerundolo,Luciano Darderi,Francisco Cerundolo,1,0.6125755560398101,1,Francisco Cerundolo
+2026-424-1,2026-02-10,Dallas,Hard,R32,Marcos Giron,Taylor Fritz,Taylor Fritz,0,0.41350805759429937,0,Taylor Fritz
+2026-424-2,2026-02-10,Dallas,Hard,R32,Adrian Mannarino,Adam Walton,Adrian Mannarino,1,0.5729006886482239,1,Adrian Mannarino
+2026-424-3,2026-02-10,Dallas,Hard,R32,Alejandro Davidovich Fokina,Alex Michelsen,Alejandro Davidovich Fokina,1,0.5875661849975586,1,Alejandro Davidovich Fokina
+2026-424-4,2026-02-10,Dallas,Hard,R32,James Duckworth,Edoardo Spizzirri,Edoardo Spizzirri,0,0.43762837052345277,0,Edoardo Spizzirri
+2026-424-5,2026-02-10,Dallas,Hard,R32,Tommy Paul,Jenson Brooksby,Tommy Paul,1,0.6995623230934144,1,Tommy Paul
+2026-424-6,2026-02-10,Dallas,Hard,R32,Zachary Svajda,Patrick Quinn,Patrick Quinn,0,0.48974066972732544,0,Patrick Quinn
+2026-424-7,2026-02-10,Dallas,Hard,R32,Denis Shapovalov,Rodrigo Jodar,Denis Shapovalov,1,0.8212490320205689,1,Denis Shapovalov
+2026-424-8,2026-02-10,Dallas,Hard,R32,Patrick Kypson,Aleksandar Kovacevic,Aleksandar Kovacevic,0,0.3405982077121735,0,Aleksandar Kovacevic
+2026-424-9,2026-02-10,Dallas,Hard,R32,Brandon Nakashima,Mattia Bellucci,Brandon Nakashima,1,0.5978708505630493,1,Brandon Nakashima
+2026-424-10,2026-02-10,Dallas,Hard,R32,Frances Tiafoe,Jack Pinnington Jones,Frances Tiafoe,1,0.855965292453766,1,Frances Tiafoe
+2026-424-11,2026-02-10,Dallas,Hard,R32,Marin Cilic,Sebastian Korda,Sebastian Korda,0,0.41161464452743535,0,Sebastian Korda
+2026-424-12,2026-02-10,Dallas,Hard,R32,Corentin Moutet,Ben Shelton,Ben Shelton,0,0.3175096154212952,0,Ben Shelton
+2026-424-13,2026-02-10,Dallas,Hard,R32,Reilly Opelka,Miomir Kecmanovic,Miomir Kecmanovic,0,0.4809587717056275,0,Miomir Kecmanovic
+2026-424-14,2026-02-10,Dallas,Hard,R32,Flavio Cobolli,Jack Pinnington Jones,Jack Pinnington Jones,0,0.7497081875801087,1,Flavio Cobolli
+2026-424-15,2026-02-10,Dallas,Hard,R32,Marin Cilic,Patrick Quinn,Marin Cilic,1,0.749164628982544,1,Marin Cilic
+2026-424-16,2026-02-10,Dallas,Hard,R32,Daniel Altmaier,Zachary Svajda,Zachary Svajda,0,0.4847450137138367,0,Zachary Svajda
+2026-424-17,2026-02-10,Dallas,Hard,R16,Taylor Fritz,Brandon Nakashima,Taylor Fritz,1,0.5811196327209474,1,Taylor Fritz
+2026-424-18,2026-02-10,Dallas,Hard,R16,Frances Tiafoe,Sebastian Korda,Sebastian Korda,0,0.32578377723693847,0,Sebastian Korda
+2026-424-19,2026-02-10,Dallas,Hard,R16,Flavio Cobolli,Jack Pinnington Jones,Jack Pinnington Jones,0,0.6154313802719116,1,Flavio Cobolli
+2026-424-20,2026-02-10,Dallas,Hard,R16,Marin Cilic,Patrick Quinn,Marin Cilic,1,0.7600294589996338,1,Marin Cilic
+2026-424-21,2026-02-10,Dallas,Hard,R16,Denis Shapovalov,Aleksandar Kovacevic,Denis Shapovalov,1,0.6120810627937318,1,Denis Shapovalov
+2026-424-22,2026-02-10,Dallas,Hard,R16,Alejandro Davidovich Fokina,Alex Michelsen,Alejandro Davidovich Fokina,1,0.6444136857986451,1,Alejandro Davidovich Fokina
+2026-424-23,2026-02-10,Dallas,Hard,R16,Tommy Paul,Miomir Kecmanovic,Miomir Kecmanovic,0,0.7429751634597779,1,Tommy Paul
+2026-424-24,2026-02-10,Dallas,Hard,R16,Adrian Mannarino,Ben Shelton,Ben Shelton,0,0.38841665983200074,0,Ben Shelton
+2026-424-25,2026-02-10,Dallas,Hard,QF,Taylor Fritz,Sebastian Korda,Taylor Fritz,1,0.4417836129665375,0,Sebastian Korda
+2026-424-26,2026-02-10,Dallas,Hard,QF,Marin Cilic,Jack Pinnington Jones,Marin Cilic,1,0.827690863609314,1,Marin Cilic
+2026-424-27,2026-02-10,Dallas,Hard,QF,Denis Shapovalov,Alejandro Davidovich Fokina,Denis Shapovalov,1,0.4086885690689087,0,Alejandro Davidovich Fokina
+2026-424-28,2026-02-10,Dallas,Hard,QF,Miomir Kecmanovic,Ben Shelton,Ben Shelton,0,0.33674561977386475,0,Ben Shelton
+2026-424-29,2026-02-10,Dallas,Hard,SF,Marin Cilic,Taylor Fritz,Taylor Fritz,0,0.3710161685943604,0,Taylor Fritz
+2026-424-30,2026-02-10,Dallas,Hard,SF,Denis Shapovalov,Ben Shelton,Ben Shelton,0,0.35949059128761296,0,Ben Shelton
+2026-424-31,2026-02-10,Dallas,Hard,F,Taylor Fritz,Ben Shelton,Ben Shelton,0,0.5170321583747864,1,Taylor Fritz
+2026-407-1,2026-02-10,Rotterdam,Hard,R32,Alex De Minaur,Arthur Fils,Alex De Minaur,1,0.6017285168170929,1,Alex De Minaur
+2026-407-2,2026-02-10,Rotterdam,Hard,R32,Stan Wawrinka,Tom Boogaard,Stan Wawrinka,1,0.83594970703125,1,Stan Wawrinka
+2026-407-3,2026-02-10,Rotterdam,Hard,R32,Botic Van De Zandschulp,Luka Pavlovic,Botic Van De Zandschulp,1,0.8204719543457032,1,Botic Van De Zandschulp
+2026-407-4,2026-02-10,Rotterdam,Hard,R32,Arthur Rinderknech,Stefanos Tsitsipas,Stefanos Tsitsipas,0,0.3820553421974182,0,Stefanos Tsitsipas
+2026-407-5,2026-02-10,Rotterdam,Hard,R32,Daniil Medvedev,Ugo Humbert,Ugo Humbert,0,0.547937023639679,1,Daniil Medvedev
+2026-407-6,2026-02-10,Rotterdam,Hard,R32,Marton Fucsovics,Gijs den Ouden,Gijs den Ouden,0,0.8210032582283021,1,Marton Fucsovics
+2026-407-7,2026-02-10,Rotterdam,Hard,R32,Christopher Oconnell,Valentin Royer,Christopher Oconnell,1,0.5866161108016968,1,Christopher Oconnell
+2026-407-8,2026-02-10,Rotterdam,Hard,R32,Roberto Bautista Agut,Cameron Norrie,Cameron Norrie,0,0.2876122653484345,0,Cameron Norrie
+2026-407-9,2026-02-10,Rotterdam,Hard,R32,Karen Khachanov,Jesper de Jong,Karen Khachanov,1,0.6465951442718506,1,Karen Khachanov
+2026-407-10,2026-02-10,Rotterdam,Hard,R32,Jaume Munar,Victor Lilov,Jaume Munar,1,0.7943712830543518,1,Jaume Munar
+2026-407-11,2026-02-10,Rotterdam,Hard,R32,Jan Lennard Struff,Hugo Grenier,Jan Lennard Struff,1,0.621221160888672,1,Jan Lennard Struff
+2026-407-12,2026-02-10,Rotterdam,Hard,R32,Alexander Bublik,Hubert Hurkacz,Alexander Bublik,1,0.4873236417770386,0,Hubert Hurkacz
+2026-407-13,2026-02-10,Rotterdam,Hard,R32,Tallon Griekspoor,Giovanni Mpetshi Perricard,Tallon Griekspoor,1,0.4237239956855774,0,Giovanni Mpetshi Perricard
+2026-407-14,2026-02-10,Rotterdam,Hard,R32,Quentin Halys,Mart Rottgering,Quentin Halys,1,0.7315461039543152,1,Quentin Halys
+2026-407-15,2026-02-10,Rotterdam,Hard,R32,Zizou Bergs,Hamad Medjedovic,Hamad Medjedovic,0,0.6111432909965515,1,Zizou Bergs
+2026-407-16,2026-02-10,Rotterdam,Hard,R32,Felix Auger Aliassime,Alexei Popyrin,Felix Auger Aliassime,1,0.6842764139175415,1,Felix Auger Aliassime
+2026-407-17,2026-02-10,Rotterdam,Hard,R16,Stan Wawrinka,Alex De Minaur,Alex De Minaur,0,0.21001722514629365,0,Alex De Minaur
+2026-407-18,2026-02-10,Rotterdam,Hard,R16,Botic Van De Zandschulp,Stefanos Tsitsipas,Botic Van De Zandschulp,1,0.24427117705345155,0,Stefanos Tsitsipas
+2026-407-19,2026-02-10,Rotterdam,Hard,R16,Ugo Humbert,Gijs den Ouden,Ugo Humbert,1,0.880776083469391,1,Ugo Humbert
+2026-407-20,2026-02-10,Rotterdam,Hard,R16,Christopher Oconnell,Cameron Norrie,Christopher Oconnell,1,0.3534852981567383,0,Cameron Norrie
+2026-407-21,2026-02-10,Rotterdam,Hard,R16,Karen Khachanov,Jaume Munar,Jaume Munar,0,0.4260756611824036,0,Jaume Munar
+2026-407-22,2026-02-10,Rotterdam,Hard,R16,Jan Lennard Struff,Alexander Bublik,Alexander Bublik,0,0.25756595730781556,0,Alexander Bublik
+2026-407-23,2026-02-10,Rotterdam,Hard,R16,Quentin Halys,Tallon Griekspoor,Tallon Griekspoor,0,0.39125173091888427,0,Tallon Griekspoor
+2026-407-24,2026-02-10,Rotterdam,Hard,R16,Felix Auger Aliassime,Hamad Medjedovic,Felix Auger Aliassime,1,0.7515671849250795,1,Felix Auger Aliassime
+2026-407-25,2026-02-10,Rotterdam,Hard,QF,Botic Van De Zandschulp,Alex De Minaur,Alex De Minaur,0,0.206972074508667,0,Alex De Minaur
+2026-407-26,2026-02-10,Rotterdam,Hard,QF,Christopher Oconnell,Ugo Humbert,Ugo Humbert,0,0.3157051861286163,0,Ugo Humbert
+2026-407-27,2026-02-10,Rotterdam,Hard,QF,Alexander Bublik,Jaume Munar,Alexander Bublik,1,0.5920775532722473,1,Alexander Bublik
+2026-407-28,2026-02-10,Rotterdam,Hard,QF,Tallon Griekspoor,Felix Auger Aliassime,Felix Auger Aliassime,0,0.2495479226112366,0,Felix Auger Aliassime
+2026-407-29,2026-02-10,Rotterdam,Hard,SF,Ugo Humbert,Alex De Minaur,Alex De Minaur,0,0.4246134996414185,0,Alex De Minaur
+2026-407-30,2026-02-10,Rotterdam,Hard,SF,Alexander Bublik,Felix Auger Aliassime,Felix Auger Aliassime,0,0.5546463012695313,1,Alexander Bublik
+2026-407-31,2026-02-10,Rotterdam,Hard,F,Felix Auger Aliassime,Alex De Minaur,Alex De Minaur,0,0.32664451301097874,0,Alex De Minaur
+2026-499-1,2026-02-17,Delray Beach,Hard,R16,Taylor Fritz,Rodrigo Jodar,Taylor Fritz,1,0.8566754126548768,1,Taylor Fritz
+2026-499-2,2026-02-17,Delray Beach,Hard,R16,Tommy Paul,Adam Walton,Tommy Paul,1,0.7791334831714631,1,Tommy Paul
+2026-499-3,2026-02-17,Delray Beach,Hard,R16,Frances Tiafoe,Zachary Svajda,Frances Tiafoe,1,0.5793397277593613,1,Frances Tiafoe
+2026-499-4,2026-02-17,Delray Beach,Hard,R16,Miomir Kecmanovic,Learner Tien,Learner Tien,0,0.44817856967449193,0,Learner Tien
+2026-499-5,2026-02-17,Delray Beach,Hard,R16,Marcos Giron,Casper Ruud,Casper Ruud,0,0.327665628194809,0,Casper Ruud
+2026-499-6,2026-02-17,Delray Beach,Hard,R16,Sebastian Korda,Alex Michelsen,Sebastian Korda,1,0.6269091284275056,1,Sebastian Korda
+2026-499-7,2026-02-17,Delray Beach,Hard,R16,Brandon Nakashima,Coleman Wong,Coleman Wong,0,0.721932942867279,1,Brandon Nakashima
+2026-499-8,2026-02-17,Delray Beach,Hard,R16,Flavio Cobolli,Terence Atmane,Flavio Cobolli,1,0.5024422305822372,1,Flavio Cobolli
+2026-499-9,2026-02-17,Delray Beach,Hard,QF,Taylor Fritz,Tommy Paul,Tommy Paul,0,0.5282024657726287,1,Taylor Fritz
+2026-499-10,2026-02-17,Delray Beach,Hard,QF,Frances Tiafoe,Learner Tien,Learner Tien,0,0.408646856546402,0,Learner Tien
+2026-499-11,2026-02-17,Delray Beach,Hard,QF,Casper Ruud,Sebastian Korda,Sebastian Korda,0,0.43846106529235845,0,Sebastian Korda
+2026-499-12,2026-02-17,Delray Beach,Hard,QF,Flavio Cobolli,Coleman Wong,Flavio Cobolli,1,0.5471662837266922,1,Flavio Cobolli
+2026-499-13,2026-02-17,Delray Beach,Hard,SF,Tommy Paul,Learner Tien,Tommy Paul,1,0.6096033483743668,1,Tommy Paul
+2026-499-14,2026-02-17,Delray Beach,Hard,SF,Sebastian Korda,Flavio Cobolli,Sebastian Korda,1,0.6209890925884247,1,Sebastian Korda
+2026-499-15,2026-02-17,Delray Beach,Hard,F,Tommy Paul,Sebastian Korda,Sebastian Korda,0,0.45984281301498414,0,Sebastian Korda
+2026-451-1,2026-02-17,Doha,Hard,R32,Arthur Rinderknech,Carlos Alcaraz,Carlos Alcaraz,0,0.07520310878753664,0,Carlos Alcaraz
+2026-451-2,2026-02-17,Doha,Hard,R32,Andrey Rublev,Jesper de Jong,Andrey Rublev,1,0.7206903219223022,1,Andrey Rublev
+2026-451-3,2026-02-17,Doha,Hard,R32,Jannik Sinner,Tomas Machac,Jannik Sinner,1,0.9309571504592896,1,Jannik Sinner
+2026-451-4,2026-02-17,Doha,Hard,R32,Kamil Majchrzak,Arthur Fils,Arthur Fils,0,0.27835139632225037,0,Arthur Fils
+2026-451-5,2026-02-17,Doha,Hard,R32,Jan Choinski,Jakub Mensik,Jakub Mensik,0,0.12397086471319199,0,Jakub Mensik
+2026-451-6,2026-02-17,Doha,Hard,R32,Mousa Zayid,Alexei Popyrin,Alexei Popyrin,0,0.12904610484838486,0,Alexei Popyrin
+2026-451-7,2026-02-17,Doha,Hard,R32,Pierre Hugues Herbert,Valentin Royer,Valentin Royer,0,0.5391529858112335,1,Pierre Hugues Herbert
+2026-451-8,2026-02-17,Doha,Hard,R32,Zizou Bergs,Giovanni Mpetshi Perricard,Zizou Bergs,1,0.5776598691940308,1,Zizou Bergs
+2026-451-9,2026-02-17,Doha,Hard,R32,Ugo Humbert,Fabian Marozsan,Fabian Marozsan,0,0.6527347445487977,1,Ugo Humbert
+2026-451-10,2026-02-17,Doha,Hard,R32,Roberto Carballes Baena,Zhizhen Zhang,Zhizhen Zhang,0,0.4105667531490326,0,Zhizhen Zhang
+2026-451-11,2026-02-17,Doha,Hard,R32,Karen Khachanov,Shintaro Mochizuki,Karen Khachanov,1,0.7575546503067017,1,Karen Khachanov
+2026-451-12,2026-02-17,Doha,Hard,R32,Jenson Brooksby,Jiri Lehecka,Jiri Lehecka,0,0.3529020965099335,0,Jiri Lehecka
+2026-451-13,2026-02-17,Doha,Hard,R32,Pablo Carreno Busta,Quentin Halys,Quentin Halys,0,0.4994302034378052,0,Quentin Halys
+2026-451-14,2026-02-17,Doha,Hard,R32,Marton Fucsovics,Hady Habib,Marton Fucsovics,1,0.7032648801803589,1,Marton Fucsovics
+2026-451-15,2026-02-17,Doha,Hard,R32,Mohamed Echargui,Stefanos Tsitsipas,Stefanos Tsitsipas,0,0.1360665261745453,0,Stefanos Tsitsipas
+2026-451-16,2026-02-17,Doha,Hard,R32,Daniil Medvedev,Juncheng Shang,Daniil Medvedev,1,0.7746977448463441,1,Daniil Medvedev
+2026-451-17,2026-02-17,Doha,Hard,R16,Carlos Alcaraz,Valentin Royer,Carlos Alcaraz,1,0.9406877636909485,1,Carlos Alcaraz
+2026-451-18,2026-02-17,Doha,Hard,R16,Alexei Popyrin,Jannik Sinner,Jannik Sinner,0,0.13064831495285034,0,Jannik Sinner
+2026-451-19,2026-02-17,Doha,Hard,R16,Zhizhen Zhang,Jakub Mensik,Jakub Mensik,0,0.27796700596809387,0,Jakub Mensik
+2026-451-20,2026-02-17,Doha,Hard,R16,Andrey Rublev,Fabian Marozsan,Andrey Rublev,1,0.5989814281463623,1,Andrey Rublev
+2026-451-21,2026-02-17,Doha,Hard,R16,Daniil Medvedev,Stefanos Tsitsipas,Stefanos Tsitsipas,0,0.6568877935409546,1,Daniil Medvedev
+2026-451-22,2026-02-17,Doha,Hard,R16,Zizou Bergs,Jiri Lehecka,Jiri Lehecka,0,0.4024843811988831,0,Jiri Lehecka
+2026-451-23,2026-02-17,Doha,Hard,R16,Quentin Halys,Arthur Fils,Arthur Fils,0,0.28519198298454285,0,Arthur Fils
+2026-451-24,2026-02-17,Doha,Hard,R16,Marton Fucsovics,Karen Khachanov,Karen Khachanov,0,0.3099055886268616,0,Karen Khachanov
+2026-451-25,2026-02-17,Doha,Hard,QF,Karen Khachanov,Carlos Alcaraz,Carlos Alcaraz,0,0.11145313382148743,0,Carlos Alcaraz
+2026-451-26,2026-02-17,Doha,Hard,QF,Jannik Sinner,Jakub Mensik,Jannik Sinner,1,0.8932220816612244,1,Jannik Sinner
+2026-451-27,2026-02-17,Doha,Hard,QF,Andrey Rublev,Stefanos Tsitsipas,Andrey Rublev,1,0.5095104932785035,1,Andrey Rublev
+2026-451-28,2026-02-17,Doha,Hard,QF,Jiri Lehecka,Arthur Fils,Arthur Fils,0,0.447631961107254,0,Arthur Fils
+2026-451-29,2026-02-17,Doha,Hard,SF,Andrey Rublev,Carlos Alcaraz,Carlos Alcaraz,0,0.12074963748455048,0,Carlos Alcaraz
+2026-451-30,2026-02-17,Doha,Hard,SF,Arthur Fils,Jakub Mensik,Arthur Fils,1,0.4025854527950287,0,Jakub Mensik
+2026-451-31,2026-02-17,Doha,Hard,F,Carlos Alcaraz,Arthur Fils,Carlos Alcaraz,1,0.8790093302726746,1,Carlos Alcaraz
+2026-6932-1,2026-02-17,Rio de Janeiro,Clay,R32,Francisco Cerundolo,Mariano Navone,Francisco Cerundolo,1,0.6917335391044618,1,Francisco Cerundolo
+2026-6932-2,2026-02-17,Rio de Janeiro,Clay,R32,Cristian Garin,Thiago Tirante,Thiago Tirante,0,0.545193874835968,1,Cristian Garin
+2026-6932-3,2026-02-17,Rio de Janeiro,Clay,R32,Alejandro Tabilo,Marcos Nava,Alejandro Tabilo,1,0.6454813718795778,1,Alejandro Tabilo
+2026-6932-4,2026-02-17,Rio de Janeiro,Clay,R32,Federico Passaro,Duje Prizmic,Federico Passaro,1,0.37659513354301455,0,Duje Prizmic
+2026-6932-5,2026-02-17,Rio de Janeiro,Clay,R32,Thiago Monteiro,Joao Fonseca,Joao Fonseca,0,0.4011972188949585,0,Joao Fonseca
+2026-6932-6,2026-02-17,Rio de Janeiro,Clay,R32,Ivan Marcondes,Ignacio Buse,Ignacio Buse,0,0.49240117073059086,0,Ignacio Buse
+2026-6932-7,2026-02-17,Rio de Janeiro,Clay,R32,Matteo Berrettini,Tomas Barrios Vera,Matteo Berrettini,1,0.8309423089027406,1,Matteo Berrettini
+2026-6932-8,2026-02-17,Rio de Janeiro,Clay,R32,Dusan Lajovic,Daniel Altmaier,Dusan Lajovic,1,0.3907432675361634,0,Daniel Altmaier
+2026-6932-9,2026-02-17,Rio de Janeiro,Clay,R32,Tomas Martin Etcheverry,Pedro Comesana,Tomas Martin Etcheverry,1,0.610530960559845,1,Tomas Martin Etcheverry
+2026-6932-10,2026-02-17,Rio de Janeiro,Clay,R32,Vitalii Gaubas,Thiago Agustin Queiroz Miguel,Vitalii Gaubas,1,0.7561834573745728,1,Vitalii Gaubas
+2026-6932-11,2026-02-17,Rio de Janeiro,Clay,R32,Damir Dzumhur,Pedro Martinez,Damir Dzumhur,1,0.3980603694915772,0,Pedro Martinez
+2026-6932-12,2026-02-17,Rio de Janeiro,Clay,R32,Sebastian Baez,Jaime Faria,Jaime Faria,0,0.7687053680419923,1,Sebastian Baez
+2026-6932-13,2026-02-17,Rio de Janeiro,Clay,R32,Federico Ugo Carabelli,Renzo Burruchaga,Renzo Burruchaga,0,0.3932531476020813,0,Renzo Burruchaga
+2026-6932-14,2026-02-17,Rio de Janeiro,Clay,R32,Vit Kopriva,Gustavo Heide,Vit Kopriva,1,0.598268473148346,1,Vit Kopriva
+2026-6932-15,2026-02-17,Rio de Janeiro,Clay,R32,Yannick Hanfmann,Gustavo Reis Da Silva,Yannick Hanfmann,1,0.8313532948493958,1,Yannick Hanfmann
+2026-6932-16,2026-02-17,Rio de Janeiro,Clay,R32,Juan Manuel Cerundolo,Luciano Darderi,Juan Manuel Cerundolo,1,0.25903640389442445,0,Luciano Darderi
+2026-6932-17,2026-02-17,Rio de Janeiro,Clay,R16,Thiago Tirante,Francisco Cerundolo,Francisco Cerundolo,0,0.18264982998371126,0,Francisco Cerundolo
+2026-6932-18,2026-02-17,Rio de Janeiro,Clay,R16,Alejandro Tabilo,Federico Passaro,Alejandro Tabilo,1,0.6297358393669128,1,Alejandro Tabilo
+2026-6932-19,2026-02-17,Rio de Janeiro,Clay,R16,Ignacio Buse,Joao Fonseca,Ignacio Buse,1,0.2515338122844696,0,Joao Fonseca
+2026-6932-20,2026-02-17,Rio de Janeiro,Clay,R16,Dusan Lajovic,Matteo Berrettini,Matteo Berrettini,0,0.15666380226612092,0,Matteo Berrettini
+2026-6932-21,2026-02-17,Rio de Janeiro,Clay,R16,Tomas Martin Etcheverry,Vitalii Gaubas,Tomas Martin Etcheverry,1,0.7795457482337953,1,Tomas Martin Etcheverry
+2026-6932-22,2026-02-17,Rio de Janeiro,Clay,R16,Damir Dzumhur,Jaime Faria,Jaime Faria,0,0.6437785625457764,1,Damir Dzumhur
+2026-6932-23,2026-02-17,Rio de Janeiro,Clay,R16,Vit Kopriva,Renzo Burruchaga,Vit Kopriva,1,0.3994454145431519,0,Renzo Burruchaga
+2026-6932-24,2026-02-17,Rio de Janeiro,Clay,R16,Yannick Hanfmann,Juan Manuel Cerundolo,Juan Manuel Cerundolo,0,0.6263545989990235,1,Yannick Hanfmann
+2026-6932-25,2026-02-17,Rio de Janeiro,Clay,QF,Alejandro Tabilo,Thiago Tirante,Alejandro Tabilo,1,0.563662850856781,1,Alejandro Tabilo
+2026-6932-26,2026-02-17,Rio de Janeiro,Clay,QF,Matteo Berrettini,Ignacio Buse,Ignacio Buse,0,0.7564248919487,1,Matteo Berrettini
+2026-6932-27,2026-02-17,Rio de Janeiro,Clay,QF,Tomas Martin Etcheverry,Jaime Faria,Tomas Martin Etcheverry,1,0.740638542175293,1,Tomas Martin Etcheverry
+2026-6932-28,2026-02-17,Rio de Janeiro,Clay,QF,Vit Kopriva,Juan Manuel Cerundolo,Vit Kopriva,1,0.45885540843009953,0,Juan Manuel Cerundolo
+2026-6932-29,2026-02-17,Rio de Janeiro,Clay,SF,Alejandro Tabilo,Ignacio Buse,Alejandro Tabilo,1,0.5779111564159394,1,Alejandro Tabilo
+2026-6932-30,2026-02-17,Rio de Janeiro,Clay,SF,Tomas Martin Etcheverry,Vit Kopriva,Tomas Martin Etcheverry,1,0.649954617023468,1,Tomas Martin Etcheverry
+2026-6932-31,2026-02-17,Rio de Janeiro,Clay,F,Alejandro Tabilo,Tomas Martin Etcheverry,Tomas Martin Etcheverry,0,0.43219881057739257,0,Tomas Martin Etcheverry
+2026-807-1,2026-02-24,Acapulco,Hard,R32,Alexander Zverev,Corentin Moutet,Alexander Zverev,1,0.7946052908897401,1,Alexander Zverev
+2026-807-2,2026-02-24,Acapulco,Hard,R32,Miomir Kecmanovic,Tristan Schoolkate,Miomir Kecmanovic,1,0.5797306776046753,1,Miomir Kecmanovic
+2026-807-3,2026-02-24,Acapulco,Hard,R32,Grigor Dimitrov,Terence Atmane,Terence Atmane,0,0.7490423679351806,1,Grigor Dimitrov
+2026-807-4,2026-02-24,Acapulco,Hard,R32,Cameron Norrie,Rodrigo Jodar,Rodrigo Jodar,0,0.7786850929260255,1,Cameron Norrie
+2026-807-5,2026-02-24,Acapulco,Hard,R32,Casper Ruud,Yibing Wu,Yibing Wu,0,0.7127529621124268,1,Casper Ruud
+2026-807-6,2026-02-24,Acapulco,Hard,R32,Adrian Mannarino,Rei Shimabukuro,Rei Shimabukuro,0,0.7396901011466981,1,Adrian Mannarino
+2026-807-7,2026-02-24,Acapulco,Hard,R32,James Duckworth,Jakub Svrcina,Jakub Svrcina,0,0.6444790244102478,1,James Duckworth
+2026-807-8,2026-02-24,Acapulco,Hard,R32,Flavio Cobolli,Rodrigo Pacheco Mendez,Flavio Cobolli,1,0.7130618810653687,1,Flavio Cobolli
+2026-807-9,2026-02-24,Acapulco,Hard,R32,Frances Tiafoe,Nuno Borges,Frances Tiafoe,1,0.5907850742340088,1,Frances Tiafoe
+2026-807-10,2026-02-24,Acapulco,Hard,R32,Adam Walton,Aleksandar Kovacevic,Aleksandar Kovacevic,0,0.46852257251739504,0,Aleksandar Kovacevic
+2026-807-11,2026-02-24,Acapulco,Hard,R32,Rinky Hijikata,Mattia Bellucci,Mattia Bellucci,0,0.5007009506225586,1,Rinky Hijikata
+2026-807-12,2026-02-24,Acapulco,Hard,R32,Daniel Altmaier,Alejandro Davidovich Fokina,Alejandro Davidovich Fokina,0,0.19615201056003573,0,Alejandro Davidovich Fokina
+2026-807-13,2026-02-24,Acapulco,Hard,R32,Elliot Vacherot,Coleman Wong,Elliot Vacherot,1,0.5740543365478515,1,Elliot Vacherot
+2026-807-14,2026-02-24,Acapulco,Hard,R32,Gael Monfils,Damir Dzumhur,Gael Monfils,1,0.7097017288208008,1,Gael Monfils
+2026-807-15,2026-02-24,Acapulco,Hard,R32,Elias Ymer,Brandon Nakashima,Brandon Nakashima,0,0.3066787600517273,0,Brandon Nakashima
+2026-807-16,2026-02-24,Acapulco,Hard,R32,Alex De Minaur,Patrick Kypson,Patrick Kypson,0,0.9157592773437501,1,Alex De Minaur
+2026-807-17,2026-02-24,Acapulco,Hard,R16,Alexander Zverev,Miomir Kecmanovic,Miomir Kecmanovic,0,0.8061766505241394,1,Alexander Zverev
+2026-807-18,2026-02-24,Acapulco,Hard,R16,Terence Atmane,Rodrigo Jodar,Terence Atmane,1,0.6284061908721924,1,Terence Atmane
+2026-807-19,2026-02-24,Acapulco,Hard,R16,Yibing Wu,Rei Shimabukuro,Yibing Wu,1,0.6126957058906556,1,Yibing Wu
+2026-807-20,2026-02-24,Acapulco,Hard,R16,Jakub Svrcina,Flavio Cobolli,Flavio Cobolli,0,0.2978711068630219,0,Flavio Cobolli
+2026-807-21,2026-02-24,Acapulco,Hard,R16,Frances Tiafoe,Aleksandar Kovacevic,Frances Tiafoe,1,0.6805296182632448,1,Frances Tiafoe
+2026-807-22,2026-02-24,Acapulco,Hard,R16,Alejandro Davidovich Fokina,Mattia Bellucci,Mattia Bellucci,0,0.7809228062629701,1,Alejandro Davidovich Fokina
+2026-807-23,2026-02-24,Acapulco,Hard,R16,Gael Monfils,Elliot Vacherot,Elliot Vacherot,0,0.4501299142837525,0,Elliot Vacherot
+2026-807-24,2026-02-24,Acapulco,Hard,R16,Patrick Kypson,Brandon Nakashima,Brandon Nakashima,0,0.2659591794013977,0,Brandon Nakashima
+2026-807-25,2026-02-24,Acapulco,Hard,QF,Miomir Kecmanovic,Terence Atmane,Miomir Kecmanovic,1,0.59318608045578,1,Miomir Kecmanovic
+2026-807-26,2026-02-24,Acapulco,Hard,QF,Yibing Wu,Flavio Cobolli,Flavio Cobolli,0,0.41560197472572324,0,Flavio Cobolli
+2026-807-27,2026-02-24,Acapulco,Hard,QF,Frances Tiafoe,Mattia Bellucci,Frances Tiafoe,1,0.5549396276473999,1,Frances Tiafoe
+2026-807-28,2026-02-24,Acapulco,Hard,QF,Elliot Vacherot,Brandon Nakashima,Brandon Nakashima,0,0.4268482267856598,0,Brandon Nakashima
+2026-807-29,2026-02-24,Acapulco,Hard,SF,Miomir Kecmanovic,Flavio Cobolli,Flavio Cobolli,0,0.5472467422485352,1,Miomir Kecmanovic
+2026-807-30,2026-02-24,Acapulco,Hard,SF,Frances Tiafoe,Brandon Nakashima,Frances Tiafoe,1,0.5209755897521973,1,Frances Tiafoe
+2026-807-31,2026-02-24,Acapulco,Hard,F,Frances Tiafoe,Flavio Cobolli,Flavio Cobolli,0,0.548707926273346,1,Frances Tiafoe
+2026-495-1,2026-02-24,Dubai,Hard,R32,Zhizhen Zhang,Felix Auger Aliassime,Felix Auger Aliassime,0,0.16987134814262392,0,Felix Auger Aliassime
+2026-495-2,2026-02-24,Dubai,Hard,R32,Stan Wawrinka,Benjamin Hassan,Stan Wawrinka,1,0.741939127445221,1,Stan Wawrinka
+2026-495-3,2026-02-24,Dubai,Hard,R32,Maxime Echargui,Giovanni Mpetshi Perricard,Giovanni Mpetshi Perricard,0,0.1864739537239075,0,Giovanni Mpetshi Perricard
+2026-495-4,2026-02-24,Dubai,Hard,R32,Pablo Carreno Busta,Denis Shapovalov,Pablo Carreno Busta,1,0.3496424794197083,0,Denis Shapovalov
+2026-495-5,2026-02-24,Dubai,Hard,R32,Zizou Bergs,Jenson Brooksby,Jenson Brooksby,0,0.5360684216022492,1,Zizou Bergs
+2026-495-6,2026-02-24,Dubai,Hard,R32,Daniil Medvedev,Juncheng Shang,Daniil Medvedev,1,0.7623602032661438,1,Daniil Medvedev
+2026-495-7,2026-02-24,Dubai,Hard,R32,Karen Khachanov,Aleksandr Shevchenko,Karen Khachanov,1,0.764001190662384,1,Karen Khachanov
+2026-495-8,2026-02-24,Dubai,Hard,R32,Arthur Rinderknech,Fabian Marozsan,Arthur Rinderknech,1,0.4428784787654877,0,Fabian Marozsan
+2026-495-9,2026-02-24,Dubai,Hard,R32,Jan Lennard Struff,Alexander Bublik,Alexander Bublik,0,0.2983262360095978,0,Alexander Bublik
+2026-495-10,2026-02-24,Dubai,Hard,R32,Tallon Griekspoor,Otto Virtanen,Tallon Griekspoor,1,0.7281998753547668,1,Tallon Griekspoor
+2026-495-11,2026-02-24,Dubai,Hard,R32,Jiri Lehecka,Luca Nardi,Jiri Lehecka,1,0.6778831124305725,1,Jiri Lehecka
+2026-495-12,2026-02-24,Dubai,Hard,R32,Stefanos Tsitsipas,Ugo Humbert,Ugo Humbert,0,0.3864043533802033,0,Ugo Humbert
+2026-495-13,2026-02-24,Dubai,Hard,R32,Kamil Majchrzak,Alexei Popyrin,Alexei Popyrin,0,0.40942234992980964,0,Alexei Popyrin
+2026-495-14,2026-02-24,Dubai,Hard,R32,Hubert Hurkacz,Jakub Mensik,Jakub Mensik,0,0.5242721259593964,1,Hubert Hurkacz
+2026-495-15,2026-02-24,Dubai,Hard,R32,Quentin Halys,Jack Draper,Jack Draper,0,0.22780500352382663,0,Jack Draper
+2026-495-16,2026-02-24,Dubai,Hard,R32,Andrey Rublev,Valentin Royer,Andrey Rublev,1,0.7469017505645752,1,Andrey Rublev
+2026-495-17,2026-02-24,Dubai,Hard,R16,Felix Auger Aliassime,Giovanni Mpetshi Perricard,Felix Auger Aliassime,1,0.6837046504020691,1,Felix Auger Aliassime
+2026-495-18,2026-02-24,Dubai,Hard,R16,Pablo Carreno Busta,Jiri Lehecka,Jiri Lehecka,0,0.29185856580734254,0,Jiri Lehecka
+2026-495-19,2026-02-24,Dubai,Hard,R16,Stan Wawrinka,Daniil Medvedev,Daniil Medvedev,0,0.16078002750873566,0,Daniil Medvedev
+2026-495-20,2026-02-24,Dubai,Hard,R16,Karen Khachanov,Jenson Brooksby,Jenson Brooksby,0,0.5441749632358551,1,Karen Khachanov
+2026-495-21,2026-02-24,Dubai,Hard,R16,Andrey Rublev,Ugo Humbert,Andrey Rublev,1,0.48513343334198,0,Ugo Humbert
+2026-495-22,2026-02-24,Dubai,Hard,R16,Arthur Rinderknech,Jack Draper,Arthur Rinderknech,1,0.2312213629484177,0,Jack Draper
+2026-495-23,2026-02-24,Dubai,Hard,R16,Alexei Popyrin,Jakub Mensik,Jakub Mensik,0,0.3566822826862336,0,Jakub Mensik
+2026-495-24,2026-02-24,Dubai,Hard,R16,Alexander Bublik,Tallon Griekspoor,Tallon Griekspoor,0,0.6760963678359986,1,Alexander Bublik
+2026-495-25,2026-02-24,Dubai,Hard,QF,Felix Auger Aliassime,Jiri Lehecka,Felix Auger Aliassime,1,0.5927343010902405,1,Felix Auger Aliassime
+2026-495-26,2026-02-24,Dubai,Hard,QF,Daniil Medvedev,Jenson Brooksby,Daniil Medvedev,1,0.6842351198196411,1,Daniil Medvedev
+2026-495-27,2026-02-24,Dubai,Hard,QF,Andrey Rublev,Arthur Rinderknech,Andrey Rublev,1,0.5782976388931275,1,Andrey Rublev
+2026-495-28,2026-02-24,Dubai,Hard,QF,Tallon Griekspoor,Jakub Mensik,Tallon Griekspoor,1,0.38004665374755864,0,Jakub Mensik
+2026-495-29,2026-02-24,Dubai,Hard,SF,Daniil Medvedev,Felix Auger Aliassime,Daniil Medvedev,1,0.5876319527626037,1,Daniil Medvedev
+2026-495-30,2026-02-24,Dubai,Hard,SF,Andrey Rublev,Tallon Griekspoor,Tallon Griekspoor,0,0.645422899723053,1,Andrey Rublev
+2026-495-31,2026-02-24,Dubai,Hard,F,Daniil Medvedev,Tallon Griekspoor,Daniil Medvedev,1,0.727759850025177,1,Daniil Medvedev
+2026-8996-1,2026-02-24,Santiago,Clay,R16,Dusan Lajovic,Yannick Hanfmann,Yannick Hanfmann,0,0.3319759798049927,0,Yannick Hanfmann
+2026-8996-2,2026-02-24,Santiago,Clay,R16,Vitalii Gaubas,Marcelo Soto,Vitalii Gaubas,1,0.7515639340877533,1,Vitalii Gaubas
+2026-8996-3,2026-02-24,Santiago,Clay,R16,Nicolas Jarry,Duje Prizmic,Duje Prizmic,0,0.5516075146198274,1,Nicolas Jarry
+2026-8996-4,2026-02-24,Santiago,Clay,R16,Andrea Pellegrino,Alejandro Barrena,Andrea Pellegrino,1,0.6783428716659546,1,Andrea Pellegrino
+2026-8996-5,2026-02-24,Santiago,Clay,R16,Pedro Martinez,Pedro Comesana,Pedro Comesana,0,0.3908062142133713,0,Pedro Comesana
+2026-8996-6,2026-02-24,Santiago,Clay,R16,Matteo Berrettini,Marcos Nava,Marcos Nava,0,0.7297757875919343,1,Matteo Berrettini
+2026-8996-7,2026-02-24,Santiago,Clay,R16,Renzo Burruchaga,Erik Moller,Erik Moller,0,0.7972299623489381,1,Renzo Burruchaga
+2026-8996-8,2026-02-24,Santiago,Clay,R16,Federico Passaro,Agustin Vallejo,Agustin Vallejo,0,0.7735023450851441,1,Federico Passaro
+2026-8996-9,2026-02-24,Santiago,Clay,R16,Cristian Garin,Juan Manuel Cerundolo,Cristian Garin,1,0.5278286188840866,1,Cristian Garin
+2026-8996-10,2026-02-24,Santiago,Clay,R16,Thiago Tirante,Ignacio Buse,Thiago Tirante,1,0.5061708682775499,1,Thiago Tirante
+2026-8996-11,2026-02-24,Santiago,Clay,R16,Vit Kopriva,Mariano Navone,Mariano Navone,0,0.3868899455666542,0,Mariano Navone
+2026-8996-12,2026-02-24,Santiago,Clay,R16,Alejandro Tabilo,Tomas Barrios Vera,Alejandro Tabilo,1,0.8390079700946808,1,Alejandro Tabilo
+2026-8996-13,2026-02-24,Santiago,Clay,QF,Francisco Cerundolo,Erik Moller,Francisco Cerundolo,1,0.9711075115203858,1,Francisco Cerundolo
+2026-8996-14,2026-02-24,Santiago,Clay,QF,Cristian Garin,Sebastian Baez,Sebastian Baez,0,0.40266627430915836,0,Sebastian Baez
+2026-8996-15,2026-02-24,Santiago,Clay,QF,Mariano Navone,Luciano Darderi,Luciano Darderi,0,0.33141145169734954,0,Luciano Darderi
+2026-8996-16,2026-02-24,Santiago,Clay,QF,Yannick Hanfmann,Vitalii Gaubas,Yannick Hanfmann,1,0.7974662828445436,1,Yannick Hanfmann
+2026-8996-17,2026-02-24,Santiago,Clay,SF,Sebastian Baez,Luciano Darderi,Luciano Darderi,0,0.3684896916151047,0,Luciano Darderi
+2026-8996-18,2026-02-24,Santiago,Clay,SF,Yannick Hanfmann,Francisco Cerundolo,Yannick Hanfmann,1,0.33689787685871125,0,Francisco Cerundolo
+2026-8996-19,2026-02-24,Santiago,Clay,F,Yannick Hanfmann,Luciano Darderi,Luciano Darderi,0,0.5097063404321671,1,Yannick Hanfmann
+2026-0404-62,2026-03-04,Indian Wells Masters,Hard,R128,Stefanos Tsitsipas,Denis Shapovalov,Denis Shapovalov,0,0.5924123227596283,1,Stefanos Tsitsipas
+2026-0404-63,2026-03-04,Indian Wells Masters,Hard,R128,Marcos Giron,Tomas Martin Etcheverry,Marcos Giron,1,0.5820788741111755,1,Marcos Giron
+2026-0404-64,2026-03-04,Indian Wells Masters,Hard,R128,Quentin Halys,Adam Walton,Adam Walton,0,0.5703819036483765,1,Quentin Halys
+2026-0404-65,2026-03-04,Indian Wells Masters,Hard,R128,Martin Damm,Federico Ugo Carabelli,Federico Ugo Carabelli,0,0.6396721243858338,1,Martin Damm
+2026-0404-66,2026-03-04,Indian Wells Masters,Hard,R128,Daniel Altmaier,Miomir Kecmanovic,Miomir Kecmanovic,0,0.2586289465427399,0,Miomir Kecmanovic
+2026-0404-67,2026-03-04,Indian Wells Masters,Hard,R128,Jan Lennard Struff,Zizou Bergs,Zizou Bergs,0,0.35655843615531924,0,Zizou Bergs
+2026-0404-68,2026-03-04,Indian Wells Masters,Hard,R128,Reilly Opelka,Patrick Quinn,Reilly Opelka,1,0.6666508316993713,1,Reilly Opelka
+2026-0404-69,2026-03-04,Indian Wells Masters,Hard,R128,Mattia Bellucci,Gabriel Diallo,Gabriel Diallo,0,0.33702078461647034,0,Gabriel Diallo
+2026-0404-70,2026-03-04,Indian Wells Masters,Hard,R128,James Duckworth,Jakub Svrcina,Jakub Svrcina,0,0.6392299771308899,1,James Duckworth
+2026-0404-71,2026-03-04,Indian Wells Masters,Hard,R128,Marton Fucsovics,Christopher Oconnell,Marton Fucsovics,1,0.42608897686004643,0,Christopher Oconnell
+2026-0404-72,2026-03-04,Indian Wells Masters,Hard,R128,Adrian Mannarino,Matteo Berrettini,Matteo Berrettini,0,0.39373757839202883,0,Matteo Berrettini
+2026-0404-73,2026-03-04,Indian Wells Masters,Hard,R128,Tristan Schoolkate,Duje Prizmic,Duje Prizmic,0,0.4957817077636719,0,Duje Prizmic
+2026-0404-74,2026-03-04,Indian Wells Masters,Hard,R128,Alexei Popyrin,Jenson Brooksby,Jenson Brooksby,0,0.4827760577201844,0,Jenson Brooksby
+2026-0404-75,2026-03-04,Indian Wells Masters,Hard,R128,Gael Monfils,Alexis Galarneau,Gael Monfils,1,0.6940158128738404,1,Gael Monfils
+2026-0404-76,2026-03-04,Indian Wells Masters,Hard,R128,Marin Cilic,Zachary Svajda,Zachary Svajda,0,0.6954819202423096,1,Marin Cilic
+2026-0404-78,2026-03-04,Indian Wells Masters,Hard,R128,Daniel Merida Aguilar,Alex Michelsen,Alex Michelsen,0,0.29519235491752627,0,Alex Michelsen
+2026-0404-80,2026-03-04,Indian Wells Masters,Hard,R128,Roberto Bautista Agut,Fabian Marozsan,Roberto Bautista Agut,1,0.3769542574882508,0,Fabian Marozsan
+2026-0404-81,2026-03-04,Indian Wells Masters,Hard,R128,Kamil Majchrzak,Giovanni Mpetshi Perricard,Kamil Majchrzak,1,0.4755546450614929,0,Giovanni Mpetshi Perricard
+2026-0404-82,2026-03-04,Indian Wells Masters,Hard,R128,Hubert Hurkacz,Aleksandar Kovacevic,Aleksandar Kovacevic,0,0.7459678292274475,1,Hubert Hurkacz
+2026-0404-83,2026-03-04,Indian Wells Masters,Hard,R128,Damir Dzumhur,Jacob Fearnley,Jacob Fearnley,0,0.5131650924682618,1,Damir Dzumhur
+2026-0404-84,2026-03-04,Indian Wells Masters,Hard,R128,Sebastian Baez,Chun Hsin Tseng,Sebastian Baez,1,0.7212854385375977,1,Sebastian Baez
+2026-0404-85,2026-03-04,Indian Wells Masters,Hard,R128,Alejandro Tabilo,Rodrigo Jodar,Alejandro Tabilo,1,0.6639976978302002,1,Alejandro Tabilo
+2026-0404-86,2026-03-04,Indian Wells Masters,Hard,R128,Sebastian Korda,Pedro Comesana,Sebastian Korda,1,0.7303089022636413,1,Sebastian Korda
+2026-0404-87,2026-03-04,Indian Wells Masters,Hard,R128,Mackenzie Mcdonald,Matteo Arnaldi,Mackenzie Mcdonald,1,0.45728156566619876,0,Matteo Arnaldi
+2026-0404-88,2026-03-04,Indian Wells Masters,Hard,R128,Rinky Hijikata,Francesco Maestrelli,Rinky Hijikata,1,0.5281729757785797,1,Rinky Hijikata
+2026-0404-90,2026-03-04,Indian Wells Masters,Hard,R128,Rei Shimabukuro,Aleksandr Shevchenko,Aleksandr Shevchenko,0,0.44879839420318607,0,Aleksandr Shevchenko
+2026-0404-92,2026-03-04,Indian Wells Masters,Hard,R128,Botic Van De Zandschulp,Francisco Cerundolo,Francisco Cerundolo,0,0.3889815390110016,0,Francisco Cerundolo
+2026-0404-93,2026-03-04,Indian Wells Masters,Hard,R128,Grigor Dimitrov,Terence Atmane,Grigor Dimitrov,1,0.7735209703445436,1,Grigor Dimitrov
+2026-0404-31,2026-03-04,Indian Wells Masters,Hard,R64,Marcos Giron,Jakub Mensik,Jakub Mensik,0,0.39253594875335696,0,Jakub Mensik
+2026-0404-32,2026-03-04,Indian Wells Masters,Hard,R64,Jannik Sinner,Jakub Svrcina,Jannik Sinner,1,0.9494951725006103,1,Jannik Sinner
+2026-0404-33,2026-03-04,Indian Wells Masters,Hard,R64,Alejandro Davidovich Fokina,Zachary Svajda,Alejandro Davidovich Fokina,1,0.6822604656219483,1,Alejandro Davidovich Fokina
+2026-0404-34,2026-03-04,Indian Wells Masters,Hard,R64,Denis Shapovalov,Tomas Martin Etcheverry,Denis Shapovalov,1,0.5597829699516297,1,Denis Shapovalov
+2026-0404-35,2026-03-04,Indian Wells Masters,Hard,R64,Tommy Paul,Zizou Bergs,Tommy Paul,1,0.6225154280662537,1,Tommy Paul
+2026-0404-36,2026-03-04,Indian Wells Masters,Hard,R64,Karen Khachanov,Joao Fonseca,Joao Fonseca,0,0.572129499912262,1,Karen Khachanov
+2026-0404-37,2026-03-04,Indian Wells Masters,Hard,R64,Ugo Humbert,Alex Michelsen,Alex Michelsen,0,0.593717634677887,1,Ugo Humbert
+2026-0404-38,2026-03-04,Indian Wells Masters,Hard,R64,Federico Ugo Carabelli,Brandon Nakashima,Brandon Nakashima,0,0.25173890590667725,0,Brandon Nakashima
+2026-0404-39,2026-03-04,Indian Wells Masters,Hard,R64,Adam Walton,Learner Tien,Learner Tien,0,0.28589688539505004,0,Learner Tien
+2026-0404-40,2026-03-04,Indian Wells Masters,Hard,R64,Alexander Zverev,Matteo Berrettini,Alexander Zverev,1,0.6746202707290649,1,Alexander Zverev
+2026-0404-41,2026-03-04,Indian Wells Masters,Hard,R64,Reilly Opelka,Ben Shelton,Ben Shelton,0,0.3659336805343628,0,Ben Shelton
+2026-0404-42,2026-03-04,Indian Wells Masters,Hard,R64,Arthur Fils,Duje Prizmic,Arthur Fils,1,0.8328333258628846,1,Arthur Fils
+2026-0404-43,2026-03-04,Indian Wells Masters,Hard,R64,Frances Tiafoe,Jenson Brooksby,Frances Tiafoe,1,0.4769461035728455,0,Jenson Brooksby
+2026-0404-44,2026-03-04,Indian Wells Masters,Hard,R64,Miomir Kecmanovic,Flavio Cobolli,Flavio Cobolli,0,0.5445854663848877,1,Miomir Kecmanovic
+2026-0404-45,2026-03-04,Indian Wells Masters,Hard,R64,Gael Monfils,Felix Auger Aliassime,Felix Auger Aliassime,0,0.383249980211258,0,Felix Auger Aliassime
+2026-0404-46,2026-03-04,Indian Wells Masters,Hard,R64,Andrey Rublev,Gabriel Diallo,Gabriel Diallo,0,0.6399402260780335,1,Andrey Rublev
+2026-0404-47,2026-03-04,Indian Wells Masters,Hard,R64,Marton Fucsovics,Lorenzo Musetti,Marton Fucsovics,1,0.2803754508495331,0,Lorenzo Musetti
+2026-0404-48,2026-03-04,Indian Wells Masters,Hard,R64,Taylor Fritz,Jacob Fearnley,Taylor Fritz,1,0.7936215281486512,1,Taylor Fritz
+2026-0404-49,2026-03-04,Indian Wells Masters,Hard,R64,Sebastian Baez,Jiri Lehecka,Sebastian Baez,1,0.2982859969139099,0,Jiri Lehecka
+2026-0404-50,2026-03-04,Indian Wells Masters,Hard,R64,Daniil Medvedev,Alejandro Tabilo,Daniil Medvedev,1,0.7838189721107484,1,Daniil Medvedev
+2026-0404-51,2026-03-04,Indian Wells Masters,Hard,R64,Roberto Bautista Agut,Jack Draper,Jack Draper,0,0.20335297286510468,0,Jack Draper
+2026-0404-52,2026-03-04,Indian Wells Masters,Hard,R64,Corentin Moutet,Aleksandar Kovacevic,Aleksandar Kovacevic,0,0.5836175322532654,1,Corentin Moutet
+2026-0404-53,2026-03-04,Indian Wells Masters,Hard,R64,Novak Djokovic,Kamil Majchrzak,Novak Djokovic,1,0.9192243933677674,1,Novak Djokovic
+2026-0404-54,2026-03-04,Indian Wells Masters,Hard,R64,Alex De Minaur,Sebastian Korda,Alex De Minaur,1,0.660200333595276,1,Alex De Minaur
+2026-0404-55,2026-03-04,Indian Wells Masters,Hard,R64,Mackenzie Mcdonald,Cameron Norrie,Cameron Norrie,0,0.32801396846771247,0,Cameron Norrie
+2026-0404-56,2026-03-04,Indian Wells Masters,Hard,R64,Rinky Hijikata,Luciano Darderi,Rinky Hijikata,1,0.5660090804100036,1,Rinky Hijikata
+2026-0404-57,2026-03-04,Indian Wells Masters,Hard,R64,Alexander Bublik,Vit Kopriva,Alexander Bublik,1,0.7754855155944825,1,Alexander Bublik
+2026-0404-58,2026-03-04,Indian Wells Masters,Hard,R64,Casper Ruud,Aleksandr Shevchenko,Casper Ruud,1,0.7149667263031005,1,Casper Ruud
+2026-0404-59,2026-03-04,Indian Wells Masters,Hard,R64,Arthur Rinderknech,Elliot Vacherot,Arthur Rinderknech,1,0.591889226436615,1,Arthur Rinderknech
+2026-0404-60,2026-03-04,Indian Wells Masters,Hard,R64,Nuno Borges,Francisco Cerundolo,Francisco Cerundolo,0,0.3131830453872681,0,Francisco Cerundolo
+2026-0404-61,2026-03-04,Indian Wells Masters,Hard,R64,Grigor Dimitrov,Carlos Alcaraz,Carlos Alcaraz,0,0.15545613467693328,0,Carlos Alcaraz
+2026-0404-15,2026-03-04,Indian Wells Masters,Hard,R32,Jannik Sinner,Brandon Nakashima,Jannik Sinner,1,0.9358166098594666,1,Jannik Sinner
+2026-0404-16,2026-03-04,Indian Wells Masters,Hard,R32,Tommy Paul,Denis Shapovalov,Tommy Paul,1,0.6191491425037385,1,Tommy Paul
+2026-0404-17,2026-03-04,Indian Wells Masters,Hard,R32,Jakub Mensik,Joao Fonseca,Jakub Mensik,1,0.6483850479125977,1,Jakub Mensik
+2026-0404-18,2026-03-04,Indian Wells Masters,Hard,R32,Alejandro Davidovich Fokina,Learner Tien,Learner Tien,0,0.5661052107810974,1,Alejandro Davidovich Fokina
+2026-0404-19,2026-03-04,Indian Wells Masters,Hard,R32,Alexander Zverev,Ben Shelton,Alexander Zverev,1,0.6816452860832215,1,Alexander Zverev
+2026-0404-20,2026-03-04,Indian Wells Masters,Hard,R32,Frances Tiafoe,Flavio Cobolli,Flavio Cobolli,0,0.5896364450454712,1,Frances Tiafoe
+2026-0404-21,2026-03-04,Indian Wells Masters,Hard,R32,Felix Auger Aliassime,Gabriel Diallo,Gabriel Diallo,0,0.705009377002716,1,Felix Auger Aliassime
+2026-0404-22,2026-03-04,Indian Wells Masters,Hard,R32,Marton Fucsovics,Arthur Fils,Arthur Fils,0,0.2727585196495056,0,Arthur Fils
+2026-0404-23,2026-03-04,Indian Wells Masters,Hard,R32,Taylor Fritz,Alex Michelsen,Alex Michelsen,0,0.72728670835495,1,Taylor Fritz
+2026-0404-24,2026-03-04,Indian Wells Masters,Hard,R32,Daniil Medvedev,Sebastian Baez,Daniil Medvedev,1,0.8683380722999574,1,Daniil Medvedev
+2026-0404-25,2026-03-04,Indian Wells Masters,Hard,R32,Francisco Cerundolo,Jack Draper,Francisco Cerundolo,1,0.27359871864318847,0,Jack Draper
+2026-0404-26,2026-03-04,Indian Wells Masters,Hard,R32,Novak Djokovic,Aleksandar Kovacevic,Novak Djokovic,1,0.9308425426483156,1,Novak Djokovic
+2026-0404-27,2026-03-04,Indian Wells Masters,Hard,R32,Cameron Norrie,Alex De Minaur,Cameron Norrie,1,0.2572741597890854,0,Alex De Minaur
+2026-0404-28,2026-03-04,Indian Wells Masters,Hard,R32,Alexander Bublik,Rinky Hijikata,Alexander Bublik,1,0.7858610391616823,1,Alexander Bublik
+2026-0404-29,2026-03-04,Indian Wells Masters,Hard,R32,Casper Ruud,Elliot Vacherot,Elliot Vacherot,0,0.5377455472946167,1,Casper Ruud
+2026-0404-30,2026-03-04,Indian Wells Masters,Hard,R32,Arthur Rinderknech,Carlos Alcaraz,Carlos Alcaraz,0,0.08207485526800157,0,Carlos Alcaraz
+2026-0404-7,2026-03-04,Indian Wells Masters,Hard,R16,Jannik Sinner,Joao Fonseca,Jannik Sinner,1,0.8913130879402161,1,Jannik Sinner
+2026-0404-8,2026-03-04,Indian Wells Masters,Hard,R16,Alejandro Davidovich Fokina,Learner Tien,Learner Tien,0,0.5160214185714722,1,Alejandro Davidovich Fokina
+2026-0404-9,2026-03-04,Indian Wells Masters,Hard,R16,Alexander Zverev,Frances Tiafoe,Alexander Zverev,1,0.7710272908210755,1,Alexander Zverev
+2026-0404-10,2026-03-04,Indian Wells Masters,Hard,R16,Felix Auger Aliassime,Arthur Fils,Arthur Fils,0,0.5567938566207886,1,Felix Auger Aliassime
+2026-0404-11,2026-03-04,Indian Wells Masters,Hard,R16,Daniil Medvedev,Alex Michelsen,Daniil Medvedev,1,0.8595653653144837,1,Daniil Medvedev
+2026-0404-12,2026-03-04,Indian Wells Masters,Hard,R16,Novak Djokovic,Jack Draper,Novak Djokovic,1,0.6451918363571167,1,Novak Djokovic
+2026-0404-13,2026-03-04,Indian Wells Masters,Hard,R16,Cameron Norrie,Rinky Hijikata,Rinky Hijikata,0,0.7180216908454895,1,Cameron Norrie
+2026-0404-14,2026-03-04,Indian Wells Masters,Hard,R16,Casper Ruud,Carlos Alcaraz,Carlos Alcaraz,0,0.1102836698293686,0,Carlos Alcaraz
+2026-0404-3,2026-03-04,Indian Wells Masters,Hard,QF,Jannik Sinner,Learner Tien,Jannik Sinner,1,0.9341607809066773,1,Jannik Sinner
+2026-0404-4,2026-03-04,Indian Wells Masters,Hard,QF,Alexander Zverev,Arthur Fils,Arthur Fils,0,0.6150275230407716,1,Alexander Zverev
+2026-0404-5,2026-03-04,Indian Wells Masters,Hard,QF,Novak Djokovic,Daniil Medvedev,Daniil Medvedev,0,0.6714215397834777,1,Novak Djokovic
+2026-0404-6,2026-03-04,Indian Wells Masters,Hard,QF,Carlos Alcaraz,Rinky Hijikata,Carlos Alcaraz,1,0.9593231081962587,1,Carlos Alcaraz
+2026-0404-1,2026-03-04,Indian Wells Masters,Hard,SF,Jannik Sinner,Arthur Fils,Jannik Sinner,1,0.9150388360023499,1,Jannik Sinner
+2026-0404-2,2026-03-04,Indian Wells Masters,Hard,SF,Daniil Medvedev,Carlos Alcaraz,Carlos Alcaraz,0,0.28275145888328557,0,Carlos Alcaraz

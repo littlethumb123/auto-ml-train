@@ -1,0 +1,189 @@
+# Feature Engineering Pipeline Configuration
+# Version: 1.0.0
+
+# GCP and Environment Configuration
+gcp:
+  project: "anbc-dev-hcm-cm-de"
+  gcp_project: "anbc-hcb-dev"  # For BigQuery queries
+  gcp_db: "cm_medicaid_hcb_dev"
+  prefix: "a974930_sahil_test"
+  default_exp: "INTERVAL 2 DAY"
+  sdoh_year: "2023"
+  location: "US"  # BigQuery location
+  bucket_name: "hcm-cm-de-code-hcb-dev"
+  gcs_destination_path: "vertex-test/codecode"
+
+# Vertex AI Pipeline Configuration
+vertex_ai:
+  location: "us-east4"  # Vertex AI region
+  cmek_key: "projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4"
+  service_account: "gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com"
+  docker_uri: "us-docker.pkg.dev/vertex-ai/training/xgboost-cpu.2-1:latest"  # or xgboost-gpu.2-1:latest for GPU
+  pipeline_root: "gs://hcm-cm-de-code-hcb-dev/vertex-test"
+  # Machine and Accelerator Configuration
+  machine_type: "n1-standard-16"  # Machine type (e.g., n1-standard-4, n1-standard-8, n1-standard-16)
+  accelerator_type: None  # GPU accelerator type (e.g., NVIDIA_TESLA_T4, NVIDIA_TESLA_V100, NVIDIA_TESLA_P100, NVIDIA_TESLA_K80) - leave empty for CPU
+  accelerator_count: 1  # Number of accelerators (only used if accelerator_type is set)
+
+# BigQuery Labels and Metadata
+bigquery_labels:
+  owner: "sahil_gadge_aetna_com"
+  costcenter: "13070"
+  unique_id: "hcm-cm-gen-me-prod"
+  pipeline_type: "feature_engineering"
+  lob: "hcb"
+  expiration_days: 7
+
+# SQL Queries Configuration
+sql_queries:
+  training_query: |
+    SELECT
+      -- a.mom_key AS asdb_member_key,
+      a.index_date,
+      a.gest_age,
+      a.pre_term as pre_term_max,
+      p.* EXCEPT(
+        asdb_member_key,
+        index_date,
+        baby_dob,
+        nicu_lvl,
+        pre_term_labor_clm,
+        pre_term_delivery_clm,
+        nicu_flag,
+        pre_term_max,
+        -- post_mnths,
+        agenbr,
+        ethnicity_desc,
+        ethnicity_code,
+        primarylanguage_desc,
+        first_prv_dt,
+        last_prv_dt,
+        index_dt
+      )
+    FROM `{GCP_PROJECT}.{GCP_DB}.a534354_mlops_demo_longitudinal` AS a
+    JOIN `{GCP_PROJECT}.{GCP_DB}.a534354_mlops_demo_all_predictors` AS p
+      ON p.asdb_member_key = a.mom_key
+     AND p.index_date = a.index_date
+    WHERE a.mom_key IN (
+      SELECT mom_key
+      FROM `{GCP_PROJECT}.{GCP_DB}.a534354_mlops_demo_training_ids`
+    )
+    AND a.pre_term_at_index = 0 LIMIT 10000;
+  
+  test_query: |
+    SELECT
+      -- a.mom_key AS asdb_member_key,
+      a.index_date,
+      a.gest_age,
+      a.pre_term as pre_term_max,
+      p.* EXCEPT(
+        asdb_member_key,
+        index_date,
+        baby_dob,
+        nicu_lvl,
+        pre_term_labor_clm,
+        pre_term_delivery_clm,
+        nicu_flag,
+        pre_term_max,
+        -- post_mnths,
+        agenbr,
+        ethnicity_desc,
+        ethnicity_code,
+        primarylanguage_desc,
+        first_prv_dt,
+        last_prv_dt,
+        index_dt
+      )
+    FROM `{GCP_PROJECT}.{GCP_DB}.a534354_mlops_demo_longitudinal` AS a
+    JOIN `{GCP_PROJECT}.{GCP_DB}.a534354_mlops_demo_all_predictors` AS p
+      ON p.asdb_member_key = a.mom_key
+     AND p.index_date = a.index_date
+    WHERE a.mom_key IN (
+      SELECT mom_key
+      FROM `{GCP_PROJECT}.{GCP_DB}.a534354_mlops_demo_testing_ids`
+    )
+    AND a.pre_term_at_index = 0;
+
+# Data Processing Configuration
+data_processing:
+  random_seed: 35
+  numpy_seed: 35
+  embedding_pattern: "emb[0-255]+"
+  variance_threshold: 0.001
+  target_column: "pre_term_max"
+  exclude_for_variance:
+    - "pre_term_max"
+  exclude_for_classification: []
+
+# Feature Classification Configuration
+feature_classification:
+  unique_threshold_binary: 2
+  unique_threshold_categorical: 5
+  sample_size: 100000
+  verbose: true
+  manual_overrides:
+    gender: 0  # Force categorical
+    PUD: 2     # Force binary
+    # Add more manual overrides as needed
+
+# One-Hot Encoding Configuration
+one_hot_encoding:
+  min_occurrence: 2000
+
+# Model Configuration
+model:
+  # Initial XGBoost model (for baseline)
+  initial_model:
+    verbosity: 0
+  
+  # XGBoost for undersampling experiments
+  undersampling_model:
+    seed: 53
+    n_jobs: 15
+    verbosity: 0
+    enable_categorical: true
+  
+  # XGBoost for RFECV
+  rfecv_model:
+    random_state: 53
+    n_jobs: -1
+    verbosity: 0
+    use_label_encoder: false
+    tree_method: "hist"
+    device: "cuda"  # Change to "cpu" if no GPU available
+
+# Undersampling Configuration
+undersampling:
+  ratios: [0.2, 0.3, 0.4, 0.5]
+  seeds: [53]
+  test_percentile: 0.35  # For lift calculation
+
+# RFECV Configuration
+rfecv:
+  step: 10
+  cv_folds: 3
+  scoring: "roc_auc"
+  min_features_to_select: 1
+  n_jobs: -1
+
+# Metrics Configuration
+metrics:
+  percentiles: [0.01, 0.10, 0.35]
+
+# Output Configuration
+output:
+  features_file_prefix: "gdm_selected_features_update_"
+  results_file: "lift_results.csv"
+  plot_title: "1% Lift Across Different Ratios and Seeds"
+
+# BigQuery Query Configuration
+bigquery_query:
+  use_bqstorage_api: true
+  progress_bar_type: "tqdm"  # Type of progress bar: "tqdm" or None
+  progress_bar_enabled: false  # Set to true to show progress bar, false to disable (reduces log noise)
+  use_query_cache: false
+  use_legacy_sql: false
+  dialect: "standard"
+  auth_local_webserver: false
+
+

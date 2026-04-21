@@ -1,0 +1,122 @@
+name: Docker Image Promotion - Multi Environment
+on:
+  workflow_dispatch:
+    inputs:
+      dev-image:
+        description: 'Source Docker image in dev GAR (e.g., us-central1-docker.pkg.dev/dev-project/dev-repo/image:tag)'
+        required: true
+        type: string
+      prod-image:
+        description: 'Target Docker image in prod GAR (e.g., us-central1-docker.pkg.dev/prod-project/prod-repo/image:tag)'
+        required: true
+        type: string
+      dev-region:
+        description: 'Dev GAR region (e.g., us-central1)'
+        required: true
+        type: string
+        default: us-east4
+      prod-region:
+        description: 'Prod GAR region (e.g., us-central1)'
+        required: true
+        type: string
+        default: us-east4
+      runs-on-group:
+        description: 'The runner group to use'
+        required: true
+        type: string
+        default: cvs-linux-self-hosted
+
+jobs:
+  promote-image:
+    runs-on: self-hosted
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set environment variables
+      run: |
+        # Set WIF and SA for dev/prod
+        echo "DEV_WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+        echo "DEV_WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+        echo "DEV_TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+        echo "PROD_WIF_PROVIDER=projects/46504011566/locations/global/workloadIdentityPools/wif-pool-github-prod/providers/wif-pool-github-prod" >> $GITHUB_ENV
+        echo "PROD_WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+        echo "PROD_TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-onppp@anbc-prod-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+    # Authenticate to Dev GAR using WIF
+    - name: Authenticate to Google Cloud (Dev)
+      id: auth-dev
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ env.DEV_WIF_PROVIDER }}
+        service_account: ${{ env.DEV_WIF_SERVICE_ACCOUNT }}
+
+    - name: Set up dev impersonation for Artifact Registry
+      run: |
+        gcloud config set auth/impersonate_service_account ${{ env.DEV_TARGET_SERVICE_ACCOUNT }}
+
+    - name: Configure Docker for Dev GAR
+      run: |
+        gcloud auth configure-docker ${{ inputs.dev-region }}-docker.pkg.dev
+
+    - name: Pull Docker image from Dev GAR
+      run: |
+        docker pull ${{ inputs.dev-image }}
+
+    # Authenticate to Prod GAR using WIF
+    - name: Authenticate to Google Cloud (Prod)
+      id: auth-prod
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ env.PROD_WIF_PROVIDER }}
+        service_account: ${{ env.PROD_WIF_SERVICE_ACCOUNT }}
+
+    - name: Set up prod impersonation for Artifact Registry
+      run: |
+        gcloud config set auth/impersonate_service_account ${{ env.PROD_TARGET_SERVICE_ACCOUNT }}
+
+    - name: Ensure Prod Artifact Registry Repo Exists
+      run: |
+        PROD_IMAGE="${{ inputs.prod-image }}"
+        # Example: us-east4-docker.pkg.dev/anbc-prod-hcm-cm-de/hcm-cm-de-docker/ai-pipelines-regression:latest
+
+        # Parse region, project, and repo from the image URI
+        REGION=$(echo "$PROD_IMAGE" | cut -d'-' -f1,2)
+        PROJECT=$(echo "$PROD_IMAGE" | cut -d'/' -f2)
+        REPO=$(echo "$PROD_IMAGE" | cut -d'/' -f3)
+        KMS_KEY="projects/cvs-key-vault-prod/locations/us-east4/keyRings/gkr-prod-us-east4/cryptoKeys/gk-anbc-prod-hcm-cm-de-us-east4"
+
+        echo "Checking if Artifact Registry repo '$REPO' exists in region '$REGION' for project '$PROJECT'..."
+
+        if ! gcloud artifacts repositories describe "$REPO" --location="$REGION" --project="$PROJECT" >/dev/null 2>&1; then
+          echo "Repository '$REPO' not found. Creating..."
+          gcloud artifacts repositories create "$REPO" \
+            --repository-format=docker \
+            --location="$REGION" \
+            --project="$PROJECT" \
+            --kms-key="$KMS_KEY" \
+            --description="Docker repo for $REPO"
+        else
+          echo "Repository '$REPO' already exists."
+        fi
+
+    - name: Configure Docker for Prod GAR
+      run: |
+        gcloud auth configure-docker ${{ inputs.prod-region }}-docker.pkg.dev
+
+    - name: Tag Docker image for Prod GAR
+      run: |
+        docker tag ${{ inputs.dev-image }} ${{ inputs.prod-image }}
+
+    - name: Push Docker image to Prod GAR
+      run: |
+        docker push ${{ inputs.prod-image }}
+
+    - name: Cleanup local Docker images
+      if: always()
+      run: |
+        docker rmi ${{ inputs.dev-image }} || true
+        docker rmi ${{ inputs.prod-image }} || true

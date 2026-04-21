@@ -1,0 +1,5 @@
+{
+  "name": "Sequential SQL Pipeline",
+  "description": "Extracted SQL queries from bash scripts for sequential execution",
+  "queries": []
+}

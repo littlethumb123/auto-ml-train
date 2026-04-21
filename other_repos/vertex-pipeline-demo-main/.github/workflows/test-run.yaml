@@ -1,0 +1,80 @@
+name: Pipeline Run - Test
+on:
+  workflow_dispatch:
+    inputs:
+      runs-on-group:
+        description: 'The runner group to use'
+        required: true
+        type: string
+        default: cvs-linux-self-hosted
+      gcp-wif-provider:
+        description: 'The GCP Workload Identity Federation provider'
+        required: true
+        type: string
+        default: projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod
+      gcp-service-account:
+        description: 'The GCP service account to impersonate'
+        required: true
+        type: string
+        default: gchcb-hcm-cm-de-onppq@anbc-test-hcm-cm-de.iam.gserviceaccount.com
+      gcp-bucketname:
+        description: 'The GCP bucket name to access'
+        required: true
+        type: string
+        default: 'hcm-cm-de-data-hcb-test'
+jobs:
+  deploy:
+    runs-on: self-hosted
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ inputs.gcp-wif-provider }}
+        service_account: hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com
+
+    - name: 'Setup Cloud SDK'
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+
+    - name: Set up impersonation and get access token
+      id: impersonate
+      run: |-
+        gcloud config set auth/impersonate_service_account ${{ inputs.gcp-service-account }}
+        ACCESS_TOKEN=$(gcloud auth print-access-token)
+        echo "::add-mask::$ACCESS_TOKEN"
+        echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
+
+    - name: Detect Python interpreter
+      run: |-
+        set -e
+        if command -v python3 >/dev/null 2>&1; then
+          PY=python3
+        elif command -v python >/dev/null 2>&1; then
+          PY=python
+        else
+          echo "Python not found on runner" >&2
+          exit 1
+        fi
+        echo "Using Python interpreter: $PY"
+        $PY --version
+        echo "PYTHON_INTERPRETER=$PY" >> "$GITHUB_ENV"
+
+    - name: Install Python dependencies
+      run: |-
+        "$PYTHON_INTERPRETER" -m pip install --upgrade pip
+        "$PYTHON_INTERPRETER" -m pip install google-cloud-aiplatform kfp google-auth
+
+    - name: Submit Vertex AI Pipeline via Python SDK
+      env:
+        GOOGLE_CLOUD_PROJECT: anbc-test-hcm-cm-de
+        IMPERSONATED_SERVICE_ACCOUNT: ${{ inputs.gcp-service-account }}
+        ACCESS_TOKEN: ${{ steps.impersonate.outputs.access_token }}
+      run: |-
+        "$PYTHON_INTERPRETER" run_pipeline_test.py

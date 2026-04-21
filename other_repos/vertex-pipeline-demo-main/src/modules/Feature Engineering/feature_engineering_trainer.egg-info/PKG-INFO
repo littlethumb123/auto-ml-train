@@ -1,0 +1,28 @@
+Metadata-Version: 2.4
+Name: feature-engineering-trainer
+Version: 0.1.0
+Summary: Feature engineering pipeline for Vertex AI custom training
+Author: Your Name
+Requires-Python: >=3.8
+Requires-Dist: google-cloud-bigquery
+Requires-Dist: google-cloud-bigquery-storage
+Requires-Dist: google-cloud-aiplatform
+Requires-Dist: pandas
+Requires-Dist: numpy==1.26.4
+Requires-Dist: xgboost==2.1.4
+Requires-Dist: scikit-learn==1.5.2
+Requires-Dist: scipy==1.15.3
+Requires-Dist: joblib==1.4.2
+Requires-Dist: shap==0.44.1
+Requires-Dist: imbalanced-learn
+Requires-Dist: optuna
+Requires-Dist: cytoolz
+Requires-Dist: db-dtypes
+Requires-Dist: matplotlib
+Requires-Dist: seaborn
+Requires-Dist: tqdm
+Requires-Dist: pandas_gbq
+Dynamic: author
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

@@ -1,0 +1,18 @@
+{
+  "summary": {
+    "tour": "wta",
+    "cutoff_date": "2025-09-30",
+    "test_event": "Australian Open",
+    "test_year": 2024,
+    "test_mode": "date",
+    "train_rows": 112064,
+    "test_rows": 614,
+    "test_tournaments": 16
+  },
+  "scores": {
+    "accuracy": 0.6661237785016286,
+    "roc_auc": 0.725838285229202,
+    "brier_score": 0.21334074760650074,
+    "log_loss": 0.6155394379119334
+  }
+}

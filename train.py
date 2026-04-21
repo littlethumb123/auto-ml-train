@@ -26,16 +26,9 @@ from prepare import (
     print_summary,
 )
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, average_precision_score
 
-# ---------------------------------------------------------------------------
-# Time budget enforcement (hard kill if exceeded)
-# ---------------------------------------------------------------------------
-
-HARD_TIMEOUT = TIME_BUDGET + 30  # 90s hard limit (60s budget + 30s for eval/overhead)
+HARD_TIMEOUT = TIME_BUDGET + 30
 
 def _timeout_handler(signum, frame):
     print(f"FAIL: hard timeout at {HARD_TIMEOUT}s")
@@ -45,64 +38,92 @@ if hasattr(signal, "SIGALRM"):
     signal.signal(signal.SIGALRM, _timeout_handler)
     signal.alarm(HARD_TIMEOUT)
 
-# ---------------------------------------------------------------------------
-# Configuration (edit freely)
-# ---------------------------------------------------------------------------
+DESCRIPTION = "A_restart: LightGBM Optuna 50-trial with searchable scale_pos_weight"
 
-DESCRIPTION = "baseline: LogisticRegression + StandardScaler + balanced weights"
+def engineer_features(X):
+    X = X.copy()
+    X["log_amount"] = np.log1p(X["Amount"])
+    X["Amt_V1"] = X["Amount"] * X["V1"]
+    X["Amt_V2"] = X["Amount"] * X["V2"]
+    return X
 
-# ---------------------------------------------------------------------------
-# Pipeline
-# ---------------------------------------------------------------------------
-
-def build_pipeline():
-    """Build and return the ML pipeline.
-
-    The agent can replace this entire function with any sklearn-compatible
-    pipeline, ensemble, or custom model. The only requirement is that the
-    returned object supports .fit(X, y) and .predict_proba(X) or
-    .decision_function(X).
-    """
-    pipeline = Pipeline([
-        ("scaler", StandardScaler()),
-        ("model", LogisticRegression(
-            random_state=RANDOM_SEED,
-            max_iter=1000,
-            class_weight="balanced",
-        )),
-    ])
-    return pipeline
-
-# ---------------------------------------------------------------------------
-# Main execution
-# ---------------------------------------------------------------------------
+import lightgbm as lgb
+import optuna
 
 t_start = time.time()
 
-# Load data (from frozen prepare.py)
 X_train, X_val, X_test, y_train, y_val, y_test = get_splits()
+
+X_train = engineer_features(X_train)
+X_val = engineer_features(X_val)
+X_test = engineer_features(X_test)
 
 print(f"Dataset: {X_train.shape[0]:,} train, {X_val.shape[0]:,} val, {X_test.shape[0]:,} test")
 print(f"Features: {X_train.shape[1]}")
 print(f"Fraud rate (train): {y_train.mean():.4%}")
 print(f"Time budget: {TIME_BUDGET}s (hard limit: {HARD_TIMEOUT}s)")
 
-# Build pipeline
-pipeline = build_pipeline()
+# Optuna LightGBM search with scale_pos_weight as searchable param
+n_neg = (y_train == 0).sum()
+n_pos = (y_train == 1).sum()
 
-# Train
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+sampler = optuna.samplers.TPESampler(seed=13)
+
+def objective(trial):
+    params = {
+        "num_leaves": trial.suggest_int("num_leaves", 15, 127),
+        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+        "min_child_samples": trial.suggest_int("min_child_samples", 5, 50),
+        "subsample": trial.suggest_float("subsample", 0.5, 1.0),
+        "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
+        "reg_alpha": trial.suggest_float("reg_alpha", 1e-3, 10.0, log=True),
+        "reg_lambda": trial.suggest_float("reg_lambda", 1e-3, 10.0, log=True),
+        "scale_pos_weight": trial.suggest_float("scale_pos_weight", 10.0, 800.0, log=True),
+    }
+    model = lgb.LGBMClassifier(
+        n_estimators=200,
+        boosting_type="gbdt",
+        verbose=-1,
+        n_jobs=-1,
+        random_state=RANDOM_SEED,
+        **params,
+    )
+    model.fit(X_train, y_train)
+    y_prob = model.predict_proba(X_val)[:, 1]
+    return average_precision_score(y_val, y_prob)
+
+study = optuna.create_study(direction="maximize", sampler=sampler)
+study.optimize(objective, n_trials=50, timeout=25)
+
+best = study.best_params
+print(f"Optuna best (200-tree proxy): pr_auc={study.best_value:.6f}")
+print(f"  params: {best}")
+
+# Promote best config to full fidelity
+pipeline = lgb.LGBMClassifier(
+    n_estimators=1500,
+    boosting_type="gbdt",
+    num_leaves=best["num_leaves"],
+    learning_rate=best["learning_rate"],
+    min_child_samples=best["min_child_samples"],
+    subsample=best["subsample"],
+    colsample_bytree=best["colsample_bytree"],
+    reg_alpha=best["reg_alpha"],
+    reg_lambda=best["reg_lambda"],
+    scale_pos_weight=best["scale_pos_weight"],
+    subsample_freq=1,
+    verbose=-1,
+    n_jobs=-1,
+    random_state=RANDOM_SEED,
+)
+
 t_train_start = time.time()
 pipeline.fit(X_train, y_train)
 training_time = time.time() - t_train_start
 
-# Soft check: warn if training alone exceeded budget
-if training_time > TIME_BUDGET:
-    print(f"WARNING: training took {training_time:.1f}s (budget: {TIME_BUDGET}s)")
-
-# Evaluate on validation set (this is what determines keep/discard)
 metrics = evaluate(pipeline, X_val, y_val)
 
-# Additional metrics for ABES multi-objective tracking (prepare.py is frozen, computed here)
 if hasattr(pipeline, "predict_proba"):
     y_prob_val = pipeline.predict_proba(X_val)[:, 1]
 elif hasattr(pipeline, "decision_function"):
@@ -118,6 +139,4 @@ print(f"lift_at_10:       {lift_at_10:.2f}")
 print(f"macro_f1:         {macro_f1:.6f}")
 
 total_time = time.time() - t_start
-
-# Print structured summary (agent parses this via grep)
 print_summary(metrics, training_time, total_time, X_train.shape[1], DESCRIPTION)

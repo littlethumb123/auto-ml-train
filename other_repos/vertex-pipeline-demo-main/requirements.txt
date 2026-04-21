@@ -1,0 +1,17 @@
+google-cloud-aiplatform
+kfp
+google-auth
+cytoolz
+numpy<2.0.0
+ipynb-py-convert
+cloudml-hypertune
+matplotlib
+seaborn
+git+https://github.aetna.com/analytics-org/castle_data_gcp.git
+git+https://github.aetna.com/mleng-platform/festa.git
+xgboost
+imbalanced-learn
+catboost
+optuna
+pyspark
+pillow>=12.1.1 # not directly required, pinned by Snyk to avoid a vulnerability

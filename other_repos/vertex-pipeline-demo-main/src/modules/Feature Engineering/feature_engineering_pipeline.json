@@ -1,0 +1,674 @@
+{
+  "components": {
+    "comp-custom-training-job": {
+      "executorLabel": "exec-custom-training-job",
+      "inputDefinitions": {
+        "parameters": {
+          "base_output_directory": {
+            "defaultValue": "",
+            "description": "The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. See [more information ](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/GcsDestination).",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "display_name": {
+            "description": "The name of the CustomJob.",
+            "parameterType": "STRING"
+          },
+          "enable_web_access": {
+            "defaultValue": false,
+            "description": "Whether you want Vertex AI to enable [interactive shell access ](https://cloud.google.com/vertex-ai/docs/training/monitor-debug-interactive-shell) to training containers. If `True`, you can access interactive shells at the URIs given by [CustomJob.web_access_uris][].",
+            "isOptional": true,
+            "parameterType": "BOOLEAN"
+          },
+          "encryption_spec_key_name": {
+            "defaultValue": "",
+            "description": "Customer-managed encryption key options for the CustomJob. If this is set, then all resources created by the CustomJob will be encrypted with the provided encryption key.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "labels": {
+            "defaultValue": {},
+            "description": "The labels with user-defined metadata to organize the CustomJob. See [more information](https://goo.gl/xmQnxf).",
+            "isOptional": true,
+            "parameterType": "STRUCT"
+          },
+          "location": {
+            "defaultValue": "{{$.pipeline_google_cloud_location}}",
+            "description": "Location for creating the custom training job. If not set, default to the location where the PipelineJob is run.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "max_wait_duration": {
+            "defaultValue": "86400s",
+            "description": "The maximum time to wait for the custom training job to be scheduled only if the scheduling strategy is set to FLEX_START. If set to 0, the job will wait indefinitely. The default is 24 hours. See [more information](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#Strategy).",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "network": {
+            "defaultValue": "",
+            "description": "The full name of the Compute Engine network to which the job should be peered. For example, `projects/12345/global/networks/myVPC`. Format is of the form `projects/{project}/global/networks/{network}`. Where `{project}` is a project number, as in `12345`, and `{network}` is a network name. Private services access must already be configured for the network. If left unspecified, the job is not peered with any network.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "persistent_resource_id": {
+            "defaultValue": "{{$.pipeline_persistent_resource_id}}",
+            "description": "The ID of the PersistentResource in the same Project and Location which to run. The default value is a placeholder that will be resolved to the PipelineJob [RuntimeConfig](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/projects.locations.pipelineJobs#PipelineJob.RuntimeConfig)'s persistent resource id at runtime. However, if the PipelineJob doesn't set Persistent Resource as the job level runtime, the placedholder will be resolved to an empty string and the custom job will be run on demand. If the value is set explicitly, the custom job will runs in the specified persistent resource, in this case, please note the network and CMEK configs on the job should be consistent with those on the PersistentResource, otherwise, the job will be rejected.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "project": {
+            "defaultValue": "{{$.pipeline_google_cloud_project_id}}",
+            "description": "Project to create the custom training job in. Defaults to the project in which the PipelineJob is run.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "psc_interface_config": {
+            "defaultValue": {},
+            "description": "Configuration CustomJob with PSC-I. See [more information](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#PscInterfaceConfig).",
+            "isOptional": true,
+            "parameterType": "STRUCT"
+          },
+          "reserved_ip_ranges": {
+            "defaultValue": [],
+            "description": "A list of names for the reserved IP ranges under the VPC network that can be used for this job. If set, we will deploy the job within the provided IP ranges. Otherwise, the job will be deployed to any IP ranges under the provided VPC network.",
+            "isOptional": true,
+            "parameterType": "LIST"
+          },
+          "restart_job_on_worker_restart": {
+            "defaultValue": false,
+            "description": "Restarts the entire CustomJob if a worker gets restarted. This feature can be used by distributed training jobs that are not resilient to workers leaving and joining a job.",
+            "isOptional": true,
+            "parameterType": "BOOLEAN"
+          },
+          "service_account": {
+            "defaultValue": "",
+            "description": "Sets the default service account for workload run-as account. The [service account ](https://cloud.google.com/vertex-ai/docs/pipelines/configure-project#service-account) running the pipeline submitting jobs must have act-as permission on this run-as account. If unspecified, the Vertex AI Custom Code [Service Agent ](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) for the CustomJob's project.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "strategy": {
+            "defaultValue": "STANDARD",
+            "description": "The strategy to use for the custom training job. The default is 'STANDARD'. See [more information](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#Strategy).",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "tensorboard": {
+            "defaultValue": "",
+            "description": "The name of a Vertex AI TensorBoard resource to which this CustomJob will upload TensorBoard logs.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "timeout": {
+            "defaultValue": "604800s",
+            "description": "The maximum job running time. The default is 7 days. A duration in seconds with up to nine fractional digits, terminated by 's', for example: \"3.5s\".",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "worker_pool_specs": {
+            "defaultValue": [],
+            "description": "Serialized json spec of the worker pools including machine type and Docker image. All worker pools except the first one are optional and can be skipped by providing an empty value. See [more information](https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#WorkerPoolSpec).",
+            "isOptional": true,
+            "parameterType": "LIST"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "gcp_resources": {
+            "description": "Serialized JSON of `gcp_resources` [proto](https://github.com/kubeflow/pipelines/tree/master/components/google-cloud/google_cloud_pipeline_components/proto) which tracks the CustomJob.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    }
+  },
+  "deploymentSpec": {
+    "executors": {
+      "exec-custom-training-job": {
+        "container": {
+          "args": [
+            "--type",
+            "CustomJob",
+            "--payload",
+            "{\"display_name\": \"{{$.inputs.parameters['display_name']}}\", \"job_spec\": {\"worker_pool_specs\": {{$.inputs.parameters['worker_pool_specs']}}, \"scheduling\": {\"timeout\": \"{{$.inputs.parameters['timeout']}}\", \"restart_job_on_worker_restart\": {{$.inputs.parameters['restart_job_on_worker_restart']}}, \"strategy\": \"{{$.inputs.parameters['strategy']}}\", \"max_wait_duration\": \"{{$.inputs.parameters['max_wait_duration']}}\"}, \"service_account\": \"{{$.inputs.parameters['service_account']}}\", \"tensorboard\": \"{{$.inputs.parameters['tensorboard']}}\", \"enable_web_access\": {{$.inputs.parameters['enable_web_access']}}, \"network\": \"{{$.inputs.parameters['network']}}\", \"reserved_ip_ranges\": {{$.inputs.parameters['reserved_ip_ranges']}}, \"base_output_directory\": {\"output_uri_prefix\": \"{{$.inputs.parameters['base_output_directory']}}\"}, \"persistent_resource_id\": \"{{$.inputs.parameters['persistent_resource_id']}}\", \"psc_interface_config\": {{$.inputs.parameters['psc_interface_config']}}}, \"labels\": {{$.inputs.parameters['labels']}}, \"encryption_spec\": {\"kms_key_name\": \"{{$.inputs.parameters['encryption_spec_key_name']}}\"}}",
+            "--project",
+            "{{$.inputs.parameters['project']}}",
+            "--location",
+            "{{$.inputs.parameters['location']}}",
+            "--gcp_resources",
+            "{{$.outputs.parameters['gcp_resources'].output_file}}"
+          ],
+          "command": [
+            "python3",
+            "-u",
+            "-m",
+            "google_cloud_pipeline_components.container.v1.custom_job.launcher"
+          ],
+          "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:2.22.0"
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "description": "Pipeline to run feature engineering using custom training package. All config values are passed as arguments.",
+    "name": "feature-engineering-pipeline"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "custom-training-job": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-custom-training-job"
+          },
+          "inputs": {
+            "parameters": {
+              "base_output_directory": {
+                "componentInputParameter": "pipeline_root"
+              },
+              "display_name": {
+                "runtimeValue": {
+                  "constant": "feature-engineering-training"
+                }
+              },
+              "encryption_spec_key_name": {
+                "componentInputParameter": "cmek_key"
+              },
+              "labels": {
+                "runtimeValue": {
+                  "constant": {
+                    "costcenter": "{{$.inputs.parameters['pipelinechannel--costcenter']}}",
+                    "lob": "{{$.inputs.parameters['pipelinechannel--lob']}}",
+                    "owner": "{{$.inputs.parameters['pipelinechannel--owner']}}",
+                    "pipeline_type": "{{$.inputs.parameters['pipelinechannel--pipeline_type']}}",
+                    "self_serve": "true",
+                    "tenant": "hcm-cm-de"
+                  }
+                }
+              },
+              "location": {
+                "componentInputParameter": "region"
+              },
+              "pipelinechannel--bigquery_query_config": {
+                "componentInputParameter": "bigquery_query_config"
+              },
+              "pipelinechannel--bucket_name": {
+                "componentInputParameter": "bucket_name"
+              },
+              "pipelinechannel--costcenter": {
+                "componentInputParameter": "costcenter"
+              },
+              "pipelinechannel--default_exp": {
+                "componentInputParameter": "default_exp"
+              },
+              "pipelinechannel--docker_uri": {
+                "componentInputParameter": "docker_uri"
+              },
+              "pipelinechannel--embedding_pattern": {
+                "componentInputParameter": "embedding_pattern"
+              },
+              "pipelinechannel--exclude_for_classification": {
+                "componentInputParameter": "exclude_for_classification"
+              },
+              "pipelinechannel--exclude_for_variance": {
+                "componentInputParameter": "exclude_for_variance"
+              },
+              "pipelinechannel--expiration_days": {
+                "componentInputParameter": "expiration_days"
+              },
+              "pipelinechannel--feature_classification": {
+                "componentInputParameter": "feature_classification"
+              },
+              "pipelinechannel--gcp_db": {
+                "componentInputParameter": "gcp_db"
+              },
+              "pipelinechannel--gcp_gcp_project": {
+                "componentInputParameter": "gcp_gcp_project"
+              },
+              "pipelinechannel--gcs_destination_path": {
+                "componentInputParameter": "gcs_destination_path"
+              },
+              "pipelinechannel--lob": {
+                "componentInputParameter": "lob"
+              },
+              "pipelinechannel--location": {
+                "componentInputParameter": "location"
+              },
+              "pipelinechannel--machine_type_param": {
+                "componentInputParameter": "machine_type_param"
+              },
+              "pipelinechannel--metrics_config": {
+                "componentInputParameter": "metrics_config"
+              },
+              "pipelinechannel--min_occurrence": {
+                "componentInputParameter": "min_occurrence"
+              },
+              "pipelinechannel--model_config": {
+                "componentInputParameter": "model_config"
+              },
+              "pipelinechannel--numpy_seed": {
+                "componentInputParameter": "numpy_seed"
+              },
+              "pipelinechannel--output_config": {
+                "componentInputParameter": "output_config"
+              },
+              "pipelinechannel--owner": {
+                "componentInputParameter": "owner"
+              },
+              "pipelinechannel--package_uri": {
+                "componentInputParameter": "package_uri"
+              },
+              "pipelinechannel--pipeline_root": {
+                "componentInputParameter": "pipeline_root"
+              },
+              "pipelinechannel--pipeline_type": {
+                "componentInputParameter": "pipeline_type"
+              },
+              "pipelinechannel--prefix": {
+                "componentInputParameter": "prefix"
+              },
+              "pipelinechannel--project_id": {
+                "componentInputParameter": "project_id"
+              },
+              "pipelinechannel--python_module": {
+                "componentInputParameter": "python_module"
+              },
+              "pipelinechannel--random_seed": {
+                "componentInputParameter": "random_seed"
+              },
+              "pipelinechannel--rfecv_config": {
+                "componentInputParameter": "rfecv_config"
+              },
+              "pipelinechannel--sdoh_year": {
+                "componentInputParameter": "sdoh_year"
+              },
+              "pipelinechannel--shared_project": {
+                "componentInputParameter": "shared_project"
+              },
+              "pipelinechannel--sql_queries": {
+                "componentInputParameter": "sql_queries"
+              },
+              "pipelinechannel--target_column": {
+                "componentInputParameter": "target_column"
+              },
+              "pipelinechannel--undersampling_config": {
+                "componentInputParameter": "undersampling_config"
+              },
+              "pipelinechannel--unique_id": {
+                "componentInputParameter": "unique_id"
+              },
+              "pipelinechannel--variance_threshold": {
+                "componentInputParameter": "variance_threshold"
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "{{$.inputs.parameters['pipelinechannel--project_id']}}"
+                }
+              },
+              "service_account": {
+                "componentInputParameter": "service_account"
+              },
+              "worker_pool_specs": {
+                "runtimeValue": {
+                  "constant": [
+                    {
+                      "env": [
+                        {
+                          "name": "PYTHONPATH",
+                          "value": "$PYTHONPATH:/home/jupyter/my_repo/:/home/jupyter/builtin_scripts"
+                        },
+                        {
+                          "name": "LOB",
+                          "value": "{{$.inputs.parameters['pipelinechannel--lob']}}"
+                        },
+                        {
+                          "name": "PROJECT",
+                          "value": "{{$.inputs.parameters['pipelinechannel--project_id']}}"
+                        },
+                        {
+                          "name": "COMPUTE_PROJECT",
+                          "value": "{{$.inputs.parameters['pipelinechannel--project_id']}}"
+                        },
+                        {
+                          "name": "SHARED_PROJECT",
+                          "value": "{{$.inputs.parameters['pipelinechannel--shared_project']}}"
+                        },
+                        {
+                          "name": "AIP_DIR",
+                          "value": "{{$.inputs.parameters['pipelinechannel--pipeline_root']}}"
+                        },
+                        {
+                          "name": "OWNER",
+                          "value": "{{$.inputs.parameters['pipelinechannel--owner']}}"
+                        },
+                        {
+                          "name": "COSTCENTER",
+                          "value": "{{$.inputs.parameters['pipelinechannel--costcenter']}}"
+                        },
+                        {
+                          "name": "TENANT",
+                          "value": "hcm-cm-de"
+                        },
+                        {
+                          "name": "SELF_SERVE",
+                          "value": "true"
+                        },
+                        {
+                          "name": "PIPELINE_TYPE",
+                          "value": "{{$.inputs.parameters['pipelinechannel--pipeline_type']}}"
+                        },
+                        {
+                          "name": "GOOGLE_CLOUD_PROJECT",
+                          "value": "{{$.inputs.parameters['pipelinechannel--project_id']}}"
+                        },
+                        {
+                          "name": "GCP_PROJECT",
+                          "value": "{{$.inputs.parameters['pipelinechannel--project_id']}}"
+                        }
+                      ],
+                      "machineSpec": {
+                        "machineType": "{{$.inputs.parameters['pipelinechannel--machine_type_param']}}"
+                      },
+                      "pythonPackageSpec": {
+                        "args": [
+                          "--gcp-project",
+                          "{{$.inputs.parameters['pipelinechannel--project_id']}}",
+                          "--gcp-gcp-project",
+                          "{{$.inputs.parameters['pipelinechannel--gcp_gcp_project']}}",
+                          "--gcp-db",
+                          "{{$.inputs.parameters['pipelinechannel--gcp_db']}}",
+                          "--prefix",
+                          "{{$.inputs.parameters['pipelinechannel--prefix']}}",
+                          "--default-exp",
+                          "{{$.inputs.parameters['pipelinechannel--default_exp']}}",
+                          "--sdoh-year",
+                          "{{$.inputs.parameters['pipelinechannel--sdoh_year']}}",
+                          "--location",
+                          "{{$.inputs.parameters['pipelinechannel--location']}}",
+                          "--bucket-name",
+                          "{{$.inputs.parameters['pipelinechannel--bucket_name']}}",
+                          "--gcs-destination-path",
+                          "{{$.inputs.parameters['pipelinechannel--gcs_destination_path']}}",
+                          "--owner",
+                          "{{$.inputs.parameters['pipelinechannel--owner']}}",
+                          "--costcenter",
+                          "{{$.inputs.parameters['pipelinechannel--costcenter']}}",
+                          "--unique-id",
+                          "{{$.inputs.parameters['pipelinechannel--unique_id']}}",
+                          "--pipeline-type",
+                          "{{$.inputs.parameters['pipelinechannel--pipeline_type']}}",
+                          "--lob",
+                          "{{$.inputs.parameters['pipelinechannel--lob']}}",
+                          "--expiration-days",
+                          "{{$.inputs.parameters['pipelinechannel--expiration_days']}}",
+                          "--sql-queries",
+                          "{{$.inputs.parameters['pipelinechannel--sql_queries']}}",
+                          "--random-seed",
+                          "{{$.inputs.parameters['pipelinechannel--random_seed']}}",
+                          "--numpy-seed",
+                          "{{$.inputs.parameters['pipelinechannel--numpy_seed']}}",
+                          "--embedding-pattern",
+                          "{{$.inputs.parameters['pipelinechannel--embedding_pattern']}}",
+                          "--variance-threshold",
+                          "{{$.inputs.parameters['pipelinechannel--variance_threshold']}}",
+                          "--target-column",
+                          "{{$.inputs.parameters['pipelinechannel--target_column']}}",
+                          "--exclude-for-variance",
+                          "{{$.inputs.parameters['pipelinechannel--exclude_for_variance']}}",
+                          "--exclude-for-classification",
+                          "{{$.inputs.parameters['pipelinechannel--exclude_for_classification']}}",
+                          "--feature-classification",
+                          "{{$.inputs.parameters['pipelinechannel--feature_classification']}}",
+                          "--min-occurrence",
+                          "{{$.inputs.parameters['pipelinechannel--min_occurrence']}}",
+                          "--model-config",
+                          "{{$.inputs.parameters['pipelinechannel--model_config']}}",
+                          "--undersampling-config",
+                          "{{$.inputs.parameters['pipelinechannel--undersampling_config']}}",
+                          "--rfecv-config",
+                          "{{$.inputs.parameters['pipelinechannel--rfecv_config']}}",
+                          "--metrics-config",
+                          "{{$.inputs.parameters['pipelinechannel--metrics_config']}}",
+                          "--output-config",
+                          "{{$.inputs.parameters['pipelinechannel--output_config']}}",
+                          "--bigquery-query-config",
+                          "{{$.inputs.parameters['pipelinechannel--bigquery_query_config']}}"
+                        ],
+                        "executorImageUri": "{{$.inputs.parameters['pipelinechannel--docker_uri']}}",
+                        "packageUris": [
+                          "{{$.inputs.parameters['pipelinechannel--package_uri']}}"
+                        ],
+                        "pythonModule": "{{$.inputs.parameters['pipelinechannel--python_module']}}"
+                      },
+                      "replicaCount": "1"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "feature-engineering-training"
+          }
+        }
+      }
+    },
+    "inputDefinitions": {
+      "parameters": {
+        "accelerator_count": {
+          "defaultValue": 1.0,
+          "isOptional": true,
+          "parameterType": "NUMBER_INTEGER"
+        },
+        "accelerator_type": {
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "bigquery_query_config": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "bucket_name": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "cmek_key": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "costcenter": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "default_exp": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "docker_uri": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "embedding_pattern": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "exclude_for_classification": {
+          "defaultValue": "[]",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "exclude_for_variance": {
+          "defaultValue": "[]",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "expiration_days": {
+          "defaultValue": 7.0,
+          "isOptional": true,
+          "parameterType": "NUMBER_INTEGER"
+        },
+        "feature_classification": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "gcp_db": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "gcp_gcp_project": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "gcs_destination_path": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "lob": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "location": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "machine_type_param": {
+          "defaultValue": "n1-standard-4",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "metrics_config": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "min_occurrence": {
+          "defaultValue": 2000.0,
+          "isOptional": true,
+          "parameterType": "NUMBER_INTEGER"
+        },
+        "model_config": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "numpy_seed": {
+          "defaultValue": 35.0,
+          "isOptional": true,
+          "parameterType": "NUMBER_INTEGER"
+        },
+        "output_config": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "owner": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "package_uri": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "pipeline_root": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "pipeline_type": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "prefix": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "project_id": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "python_module": {
+          "defaultValue": "trainer.task",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "random_seed": {
+          "defaultValue": 35.0,
+          "isOptional": true,
+          "parameterType": "NUMBER_INTEGER"
+        },
+        "region": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "rfecv_config": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "sdoh_year": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "service_account": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "shared_project": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "sql_queries": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "target_column": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "undersampling_config": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "unique_id": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "variance_threshold": {
+          "defaultValue": 0.001,
+          "isOptional": true,
+          "parameterType": "NUMBER_DOUBLE"
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.13.0"
+}

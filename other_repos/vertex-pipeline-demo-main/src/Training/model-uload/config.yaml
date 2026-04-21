@@ -1,0 +1,43 @@
+runtime:
+  project: anbc-dev-hcm-cm-de
+  costcenter: '13070'
+  owner: sahilg_aetna_com
+  tenant: hcm-cm-de
+  pipeline_root: gs://hcm-cm-de-code-hcb-dev/vertex-test
+  location: us-east4
+  service_account: gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com
+  cmek_key: projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4
+  labels:
+    lob: hcb
+    project: anbc-dev-hcm-cm-de
+    compute_project: anbc-dev-hcm-cm-de
+    shared_project: anbc-hcb-dev
+
+model_upload:
+  model_gcs_location: gs://hcm-cm-de-code-hcb-dev/vertex-test/model_pre_term
+  serving_container_image_uri: us-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-6:latest
+  model_display_name: pre_term_maternity_model
+  upload_to_existing_model: true
+  existing_model_resource_name: "projects/anbc-dev-hcm-cm-de/locations/us-east4/models/1727284388724473856"
+  description: "Model uploaded via pipeline"
+
+batch_prediction:
+  # Model details - use the FULL resource name from model upload
+  # Format: projects/{project}/locations/{location}/models/{model_id} or models/{model_id}@version
+  model_resource_name: "projects/anbc-dev-hcm-cm-de/locations/us-east4/models/1727284388724473856@2"  # Replace with actual model resource name
+  # BigQuery specific
+  key_field: asdb_member_key  # Unique key field in input table
+  input_table: anbc-hcb-dev.cm_medicaid_hcb_dev.a974930_sahil_test_selected_features_test_01_23_2026_19_52_43  # project.dataset.table
+  output_table: anbc-hcb-dev.cm_medicaid_hcb_dev.a974930_sahil_test_selected_features_test_01_23_2026_19_52_43_prediction  # project.dataset.table (final output)
+  compute_dataset: hcm_cm_de_beam_dev_hcm_cm_de  # temp dataset in compute project
+  expiration_days: 2  # BQ table expiration in days
+  # Instance configuration - field filtering
+  excluded_fields:  # Fields to exclude from predictions (each item on separate line)
+    - pre_term_max  # target column if present
+  included_fields: []  # Empty list instead of null, or omit this line
+  # Machine configuration
+  machine_type:
+    machine_type: n1-standard-16
+  # Job configuration
+  starting_replica_count: 1
+  max_replica_count: 1

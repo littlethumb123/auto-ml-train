@@ -1,0 +1,318 @@
+# PIPELINE DEFINITION
+# Name: batch-prediction-pipeline
+# Description: Pipeline for Vertex AI batch prediction with BigQuery input/output
+# Inputs:
+#    batch_size: int
+#    cmek_key: str
+#    compute_dataset: str
+#    cost_center: str
+#    excluded_fields: list
+#    expiration_days: int [Default: 30.0]
+#    included_fields: list
+#    input_table: str
+#    key_field: str
+#    location: str
+#    machine_type: dict
+#    max_replica_count: int [Default: 1.0]
+#    model_resource_name: str
+#    output_table: str
+#    owner: str
+#    project: str
+#    service_account: str
+#    starting_replica_count: int [Default: 1.0]
+components:
+  comp-vertex-batch-predict-bigquery-component:
+    executorLabel: exec-vertex-batch-predict-bigquery-component
+    inputDefinitions:
+      parameters:
+        batch_size:
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        cmek_key:
+          parameterType: STRING
+        compute_dataset:
+          description: temp dataset in compute project
+          parameterType: STRING
+        cost_center:
+          parameterType: STRING
+        excluded_fields:
+          description: List of field names to exclude from predictions.
+          isOptional: true
+          parameterType: LIST
+        expiration_days:
+          defaultValue: 30.0
+          description: 'Days until output table expires (default: 30).'
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        included_fields:
+          description: List of field names to include (mutually exclusive with excluded_fields).
+          isOptional: true
+          parameterType: LIST
+        input_table:
+          description: Input data table (BigQuery table).
+          parameterType: STRING
+        key_field:
+          parameterType: STRING
+        location:
+          description: GCP region.
+          parameterType: STRING
+        machine_type:
+          defaultValue:
+            machine_type: n2-standard-64
+          description: Machine type for batch prediction.
+          isOptional: true
+          parameterType: STRUCT
+        max_replica_count:
+          defaultValue: 1.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        model_resource_name:
+          description: Full resource name of the registered model.
+          parameterType: STRING
+        output_table:
+          description: Output data table (BigQuery table).
+          parameterType: STRING
+        owner:
+          parameterType: STRING
+        project:
+          description: GCP project ID.
+          parameterType: STRING
+        service_account:
+          parameterType: STRING
+        starting_replica_count:
+          defaultValue: 1.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-vertex-batch-predict-bigquery-component:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - vertex_batch_predict_bigquery_component
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.13.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'google-cloud-aiplatform>=1.38.0'\
+          \ 'google-cloud-bigquery>=2.0.0' 'google-auth>=2.0.0' 'requests>=2.25.0'\
+          \ && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef vertex_batch_predict_bigquery_component(\n    project: str,\n\
+          \    location: str,\n    service_account: str,\n    cmek_key: str,\n   \
+          \ cost_center: str,\n    owner: str,\n    #Model details\n    model_resource_name:\
+          \ str,\n    # BigQuery specific\n    key_field: str,  # Unique key field\
+          \ in input table\n    input_table: str,  # project.dataset.table\n    output_table:\
+          \ str, # project.dataset.table (final output)\n    compute_dataset: str,\
+          \ #hcm_cm_de_dec_beam_{ENV}_hcm_cm_de\"\n    expiration_days: int = 30,\
+          \ # BQ table expiration in days\n    # Instance configuration - field filtering\n\
+          \    excluded_fields: list = None,  # Fields to exclude from predictions\n\
+          \    included_fields: list = None,  # Fields to include (if specified, only\
+          \ these will be sent)\n    # Machine configuration\n    machine_type: dict\
+          \ = {\"machine_type\": \"n2-standard-64\"},\n    # Job configuration\n \
+          \   starting_replica_count: int = 1,\n    max_replica_count: int = 1,\n\
+          \    batch_size: int = None,  # Auto-determined if None\n) -> str:\n   \
+          \ \"\"\"\n    Runs a Vertex AI batch prediction job with comprehensive parameter\
+          \ validation.\n\n    Copies input table from shared project to compute project\
+          \ temp dataset,\n    runs batch prediction to temp output table in compute\
+          \ project temp dataset, \n    then copies to final output table in shared\
+          \ project.\n\n    Args:\n        project: GCP project ID.\n        location:\
+          \ GCP region.\n        compute_dataset: temp dataset in compute project\n\
+          \        model_resource_name: Full resource name of the registered model.\n\
+          \        job_display_name: Display name for the batch prediction job.\n\
+          \        input_table: Input data table (BigQuery table).\n        output_table:\
+          \ Output data table (BigQuery table).\n        excluded_fields: List of\
+          \ field names to exclude from predictions.\n        included_fields: List\
+          \ of field names to include (mutually exclusive with excluded_fields).\n\
+          \        machine_type: Machine type for batch prediction.\n        expiration_days:\
+          \ Days until output table expires (default: 30).\n\n    Returns:\n     \
+          \   The resource name of the batch prediction job.\n    \"\"\"\n    from\
+          \ google.cloud import aiplatform\n    from google.cloud import bigquery\n\
+          \    import requests\n    import json\n    from google.auth import default\n\
+          \    from google.auth.transport.requests import Request\n    # Initialize\
+          \ clients\n    bq_client = bigquery.Client(project=project)\n\n    # Setup\
+          \ table names and labels\n    input_table_name = input_table.split(\".\"\
+          )[-1]\n    output_table_name = output_table.split(\".\")[-1]\n    labels\
+          \ = f\"\"\"labels=[(\"owner\",\"{owner}\"),(\"costcenter\",\"{cost_center}\"\
+          )]\"\"\"\n\n    # Copy input table to temp dataset\n    temp_input_table\
+          \ = f\"{project}.{compute_dataset}.{input_table_name}_tmp\"\n    query =\
+          \ f\"CREATE OR REPLACE TABLE {temp_input_table} OPTIONS({labels}, expiration_timestamp=TIMESTAMP_ADD(CURRENT_TIMESTAMP(),\
+          \ INTERVAL 5 DAY)) AS SELECT * FROM {input_table}\"\n    job = bq_client.query(query)\n\
+          \    job.result()\n\n    # Prepare temp output table\n    temp_output_table\
+          \ = f\"{project}.{compute_dataset}.{output_table_name}_tmp\"\n\n    # Create\
+          \ batch prediction job using REST API\n\n    # Get authentication credentials\n\
+          \    credentials, _ = default()\n    credentials.refresh(Request())\n  \
+          \  access_token = credentials.token\n\n    # Extract project, location,\
+          \ and model ID from model resource name\n    # Format: projects/{project}/locations/{location}/models/{model_id}\n\
+          \    model_parts = model_resource_name.split('/')\n    model_project = model_parts[1]\n\
+          \    model_location = model_parts[3]\n    model_id = model_parts[5]\n\n\
+          \    # Convert machine_type keys to camelCase for REST API\n    def to_camel_case(snake_str):\n\
+          \        \"\"\"Convert snake_case to camelCase\"\"\"\n        components\
+          \ = snake_str.split('_')\n        return components[0] + ''.join(word.capitalize()\
+          \ for word in components[1:])\n\n    machine_type = {k: to_camel_case(v)\
+          \ for k, v in machine_type.items() if v is not None}\n\n    # Build instance\
+          \ config if field filtering is specified\n    instance_config = {}\n   \
+          \ if excluded_fields:\n        instance_config[\"excludedFields\"] = excluded_fields\n\
+          \    elif included_fields:\n        instance_config[\"includedFields\"]\
+          \ = included_fields\n    job_display_name = f\"{model_id}_model_prediction\"\
+          \n    # Build the REST API request payload\n    batch_prediction_request\
+          \ = {\n        \"displayName\": job_display_name,\n        \"model\": model_resource_name,\n\
+          \        \"serviceAccount\": service_account,\n        \"inputConfig\":\
+          \ {\n            \"instancesFormat\": \"bigquery\",\n            \"bigquerySource\"\
+          : {\"inputUri\": f\"bq://{temp_input_table}\"}\n        },\n        \"outputConfig\"\
+          : {\n            \"predictionsFormat\": \"bigquery\",\n            \"bigqueryDestination\"\
+          : {\"outputUri\": f\"bq://{temp_output_table}\"}\n        },\n        \"\
+          dedicatedResources\": {\n            \"machineSpec\": machine_type,\n  \
+          \          \"startingReplicaCount\": starting_replica_count,\n         \
+          \   \"maxReplicaCount\": max_replica_count\n        },\n        \"encryptionSpec\"\
+          : {\n            \"kmsKeyName\": cmek_key\n        }\n    }\n\n    # Add\
+          \ optional parameters\n    if batch_size:\n        batch_prediction_request[\"\
+          manualBatchTuningParameters\"] = {\n            \"batchSize\": batch_size\n\
+          \        }\n    if instance_config:\n        batch_prediction_request[\"\
+          instanceConfig\"] = instance_config\n\n    print(json.dumps(batch_prediction_request,\
+          \ indent=2))\n    # Make the REST API call (using v1beta1 to match documentation)\n\
+          \    # https://cloud.google.com/vertex-ai/docs/reference/rpc/google.cloud.aiplatform.v1beta1#batchpredictionjob\n\
+          \    # https://cloud.google.com/python/docs/reference/aiplatform/latest/google.cloud.aiplatform.BatchPredictionJob\n\
+          \    url = f\"https://{model_location}-aiplatform.googleapis.com/v1beta1/projects/{model_project}/locations/{model_location}/batchPredictionJobs\"\
+          \n\n    headers = {\n        \"Authorization\": f\"Bearer {access_token}\"\
+          ,\n        \"Content-Type\": \"application/json\"\n    }\n\n    response\
+          \ = requests.post(url, headers=headers, json=batch_prediction_request)\n\
+          \n    if response.status_code != 200:\n        raise Exception(f\"Batch\
+          \ prediction job creation failed: {response.status_code} - {response.text}\"\
+          )\n\n    batch_job_response = response.json()\n    batch_predict_job_name\
+          \ = batch_job_response[\"name\"]\n\n    print(f\"Batch prediction job created:\
+          \ {batch_predict_job_name}\")\n\n    # use Python SDK for job waiting\n\
+          \    aiplatform.init(project=project, location=location, service_account=service_account)\n\
+          \    batch_job = aiplatform.BatchPredictionJob(batch_predict_job_name)\n\
+          \    batch_job.wait_for_completion()  # Built-in exponential backoff and\
+          \ error handling\n\n    print(f\"Batch prediction job completed with state:\
+          \ {batch_job.state}\")\n\n    # Copy prediction table to final output table\n\
+          \    if expiration_days:\n        options=f'{labels}, expiration_timestamp=TIMESTAMP_ADD(CURRENT_TIMESTAMP(),\
+          \ INTERVAL {expiration_days} DAY)'\n    else:\n        options=labels\n\
+          \    query = f\"CREATE OR REPLACE TABLE {output_table} OPTIONS({options})\
+          \ AS SELECT  {key_field}, prediction FROM `{temp_output_table}`\"\n    copy_pred_job\
+          \ = bq_client.query(query)\n    copy_pred_job.result()\n    #clean up temp\
+          \ tables\n    bq_client.delete_table(temp_input_table, not_found_ok=True)\n\
+          \    bq_client.delete_table(temp_output_table, not_found_ok=True)\n\n  \
+          \  return batch_predict_job_name\n\n"
+        image: python:3.9
+pipelineInfo:
+  description: Pipeline for Vertex AI batch prediction with BigQuery input/output
+  name: batch-prediction-pipeline
+root:
+  dag:
+    tasks:
+      vertex-batch-predict-bigquery-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-vertex-batch-predict-bigquery-component
+        inputs:
+          parameters:
+            batch_size:
+              componentInputParameter: batch_size
+            cmek_key:
+              componentInputParameter: cmek_key
+            compute_dataset:
+              componentInputParameter: compute_dataset
+            cost_center:
+              componentInputParameter: cost_center
+            excluded_fields:
+              componentInputParameter: excluded_fields
+            expiration_days:
+              componentInputParameter: expiration_days
+            included_fields:
+              componentInputParameter: included_fields
+            input_table:
+              componentInputParameter: input_table
+            key_field:
+              componentInputParameter: key_field
+            location:
+              componentInputParameter: location
+            machine_type:
+              componentInputParameter: machine_type
+            max_replica_count:
+              componentInputParameter: max_replica_count
+            model_resource_name:
+              componentInputParameter: model_resource_name
+            output_table:
+              componentInputParameter: output_table
+            owner:
+              componentInputParameter: owner
+            project:
+              componentInputParameter: project
+            service_account:
+              componentInputParameter: service_account
+            starting_replica_count:
+              componentInputParameter: starting_replica_count
+        taskInfo:
+          name: vertex-batch-predict-bigquery-component
+  inputDefinitions:
+    parameters:
+      batch_size:
+        isOptional: true
+        parameterType: NUMBER_INTEGER
+      cmek_key:
+        parameterType: STRING
+      compute_dataset:
+        parameterType: STRING
+      cost_center:
+        parameterType: STRING
+      excluded_fields:
+        isOptional: true
+        parameterType: LIST
+      expiration_days:
+        defaultValue: 30.0
+        isOptional: true
+        parameterType: NUMBER_INTEGER
+      included_fields:
+        isOptional: true
+        parameterType: LIST
+      input_table:
+        parameterType: STRING
+      key_field:
+        parameterType: STRING
+      location:
+        parameterType: STRING
+      machine_type:
+        isOptional: true
+        parameterType: STRUCT
+      max_replica_count:
+        defaultValue: 1.0
+        isOptional: true
+        parameterType: NUMBER_INTEGER
+      model_resource_name:
+        parameterType: STRING
+      output_table:
+        parameterType: STRING
+      owner:
+        parameterType: STRING
+      project:
+        parameterType: STRING
+      service_account:
+        parameterType: STRING
+      starting_replica_count:
+        defaultValue: 1.0
+        isOptional: true
+        parameterType: NUMBER_INTEGER
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.13.0
