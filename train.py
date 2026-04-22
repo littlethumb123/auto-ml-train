@@ -39,7 +39,7 @@ if hasattr(signal, "SIGALRM"):
     signal.signal(signal.SIGALRM, _timeout_handler)
     signal.alarm(HARD_TIMEOUT)
 
-DESCRIPTION = "A_restart: LightGBM Optuna 50-trial with searchable scale_pos_weight"
+DESCRIPTION = "A_hp: LightGBM with higher-fidelity Optuna proxy"
 
 def engineer_features(X):
     X = X.copy()
@@ -83,7 +83,7 @@ def objective(trial):
         "scale_pos_weight": trial.suggest_float("scale_pos_weight", 10.0, 800.0, log=True),
     }
     model = lgb.LGBMClassifier(
-        n_estimators=200,
+        n_estimators=300,
         boosting_type="gbdt",
         verbose=-1,
         n_jobs=-1,
