@@ -13,6 +13,7 @@ import os
 import signal
 import time
 import warnings
+import json
 import numpy as np
 import pandas as pd
 
@@ -131,6 +132,7 @@ elif hasattr(pipeline, "decision_function"):
 else:
     y_prob_val = np.zeros(len(y_val))
 y_pred_val = pipeline.predict(X_val)
+print("val_scores_json:   " + json.dumps(np.asarray(y_prob_val, dtype=float).round(8).tolist(), separators=(",", ":")))
 top_k = int(len(y_val) * 0.10)
 sorted_idx = np.argsort(y_prob_val)[::-1][:top_k]
 lift_at_10 = float(y_val.iloc[sorted_idx].mean() / y_val.mean()) if y_val.mean() > 0 else 0.0
