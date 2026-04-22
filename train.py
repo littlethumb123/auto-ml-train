@@ -39,7 +39,7 @@ if hasattr(signal, "SIGALRM"):
     signal.signal(signal.SIGALRM, _timeout_handler)
     signal.alarm(HARD_TIMEOUT)
 
-DESCRIPTION = "A_hp: LightGBM with higher-fidelity Optuna proxy"
+DESCRIPTION = "A_model: XGBoost hist search in canonical depth band"
 
 def engineer_features(X):
     X = X.copy()
@@ -48,8 +48,8 @@ def engineer_features(X):
     X["Amt_V2"] = X["Amount"] * X["V2"]
     return X
 
-import lightgbm as lgb
 import optuna
+import xgboost as xgb
 
 t_start = time.time()
 
@@ -64,7 +64,7 @@ print(f"Features: {X_train.shape[1]}")
 print(f"Fraud rate (train): {y_train.mean():.4%}")
 print(f"Time budget: {TIME_BUDGET}s (hard limit: {HARD_TIMEOUT}s)")
 
-# Optuna LightGBM search with scale_pos_weight as searchable param
+# Optuna XGBoost search in the canonical depth band
 n_neg = (y_train == 0).sum()
 n_pos = (y_train == 1).sum()
 
@@ -73,19 +73,21 @@ sampler = optuna.samplers.TPESampler(seed=13)
 
 def objective(trial):
     params = {
-        "num_leaves": trial.suggest_int("num_leaves", 15, 127),
-        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
-        "min_child_samples": trial.suggest_int("min_child_samples", 5, 50),
-        "subsample": trial.suggest_float("subsample", 0.5, 1.0),
+        "max_depth": trial.suggest_int("max_depth", 4, 6),
+        "learning_rate": trial.suggest_float("learning_rate", 0.03, 0.2, log=True),
+        "min_child_weight": trial.suggest_float("min_child_weight", 1.0, 20.0, log=True),
+        "subsample": trial.suggest_float("subsample", 0.6, 1.0),
         "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
         "reg_alpha": trial.suggest_float("reg_alpha", 1e-3, 10.0, log=True),
         "reg_lambda": trial.suggest_float("reg_lambda", 1e-3, 10.0, log=True),
+        "gamma": trial.suggest_float("gamma", 1e-3, 5.0, log=True),
         "scale_pos_weight": trial.suggest_float("scale_pos_weight", 10.0, 800.0, log=True),
     }
-    model = lgb.LGBMClassifier(
-        n_estimators=300,
-        boosting_type="gbdt",
-        verbose=-1,
+    model = xgb.XGBClassifier(
+        n_estimators=250,
+        tree_method="hist",
+        objective="binary:logistic",
+        eval_metric="logloss",
         n_jobs=-1,
         random_state=RANDOM_SEED,
         **params,
@@ -98,23 +100,24 @@ study = optuna.create_study(direction="maximize", sampler=sampler)
 study.optimize(objective, n_trials=50, timeout=25)
 
 best = study.best_params
-print(f"Optuna best (200-tree proxy): pr_auc={study.best_value:.6f}")
+print(f"Optuna best (250-tree proxy): pr_auc={study.best_value:.6f}")
 print(f"  params: {best}")
 
 # Promote best config to full fidelity
-pipeline = lgb.LGBMClassifier(
-    n_estimators=1500,
-    boosting_type="gbdt",
-    num_leaves=best["num_leaves"],
+pipeline = xgb.XGBClassifier(
+    n_estimators=800,
+    tree_method="hist",
+    objective="binary:logistic",
+    eval_metric="logloss",
+    max_depth=best["max_depth"],
     learning_rate=best["learning_rate"],
-    min_child_samples=best["min_child_samples"],
+    min_child_weight=best["min_child_weight"],
     subsample=best["subsample"],
     colsample_bytree=best["colsample_bytree"],
     reg_alpha=best["reg_alpha"],
     reg_lambda=best["reg_lambda"],
+    gamma=best["gamma"],
     scale_pos_weight=best["scale_pos_weight"],
-    subsample_freq=1,
-    verbose=-1,
     n_jobs=-1,
     random_state=RANDOM_SEED,
 )
