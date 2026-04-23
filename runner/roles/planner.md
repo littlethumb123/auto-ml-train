@@ -39,6 +39,10 @@ You NEVER write code, edit `train.py`, or run experiments. You write a plan; the
 - `runner/state/NEXT_EXPERIMENT.md` — MUST contain every required section (see schema).
 
 ## 5. Escalation protocol
+- After the operator runs `./runner/run_round.sh resolve-c2`, the driver sets
+  `c2_pending_diagnose` in `CAMPAIGN_STATE.json`. Your **next** `NEXT_EXPERIMENT.md`
+  MUST use `action_type: A_diagnose` (with `escalation: null`) — `plan-check` rejects
+  any other action until that round is reviewed. Then you may plan structural moves.
 - If N≥3 consecutive discards: the default next action is **A_diagnose** (per
   `STRATEGY_GUIDE.md §3.7`), not A_ensemble or A_model. Only emit a **C2** block if
   A_diagnose has already been run this plateau and the diagnosis did not identify a

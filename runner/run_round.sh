@@ -40,6 +40,9 @@ elif stage == "execute-finalize":
 elif stage == "review-finalize":
     metrics = json.loads(args["metrics_json"])
     tools_ran = json.loads(args["tools_ran"]) if "tools_ran" in args else None
+    bootstrap_se = None
+    if "bootstrap_se" in args and str(args.get("bootstrap_se", "")).strip():
+        bootstrap_se = float(args["bootstrap_se"])
     res = runner_driver.review_finalize(
         verdict=args["verdict"],
         commit=args["commit"],
@@ -51,6 +54,7 @@ elif stage == "review-finalize":
         n_features=int(args["n_features"]),
         campaign_dir=args.get("campaign_dir", "runner/"),
         tools_ran=tools_ran,
+        bootstrap_se=bootstrap_se,
     )
     print(json.dumps(res))
 elif stage == "resolve-c2":
