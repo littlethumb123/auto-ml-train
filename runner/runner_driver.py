@@ -112,6 +112,7 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
         "last_verdict": None,
         "best_so_far": {"commit": None, "primary_metric": None},
         "consecutive_discards": 0,
+        "c2_pending_diagnose": False,
         "budget_used": 0,
         "budget_total": int(budgets.get("max_experiments", 100)),
         "created_at": now,
@@ -142,16 +143,26 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
 
     state = json.loads((camp / "state" / "CAMPAIGN_STATE.json").read_text())
     trigger = int((eval_fm.get("plateau_trigger") or {}).get("consecutive_discards", 3))
+    fm_plan: dict[str, Any] | None = None
+    escalation = None
     try:
-        fm, _ = parse_frontmatter(plan_path)
-        escalation = fm.get("escalation")
+        fm_plan, _ = parse_frontmatter(plan_path)
+        escalation = fm_plan.get("escalation")
     except FrontmatterError:
-        escalation = None
+        pass
     if state.get("consecutive_discards", 0) >= trigger and escalation != "C2":
         errors.append(
             f"consecutive_discards={state['consecutive_discards']} >= trigger={trigger} "
             f"but escalation!=C2 (required per spec §8.3 item 5)"
         )
+
+    if state.get("c2_pending_diagnose") and escalation is None:
+        plan_action = fm_plan.get("action_type") if fm_plan else None
+        if plan_action != "A_diagnose":
+            errors.append(
+                "c2_pending_diagnose is active — next plan must be A_diagnose "
+                f"(STRATEGY_GUIDE §3.7), got {plan_action!r}"
+            )
 
     if errors:
         return {"status": "malformed", "errors": errors}
@@ -199,8 +210,9 @@ def resolve_c2(
 
     prior_discards = state["consecutive_discards"]
     state["consecutive_discards"] = 0
+    state["c2_pending_diagnose"] = True
     state["updated_at"] = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    state_path.write_text(json.dumps(state, indent=2) + "\n")
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
 
     # Append resolution to NOTEBOOK.md for audit trail
     notebook_path = camp / "state" / "NOTEBOOK.md"
@@ -326,6 +338,10 @@ def review_finalize(
         direction=direction,
     )
     state_after = json.loads(state_path.read_text())
+
+    if action_type == "A_diagnose" and state_after.get("c2_pending_diagnose"):
+        state_after["c2_pending_diagnose"] = False
+        state_path.write_text(json.dumps(state_after, indent=2, sort_keys=True) + "\n")
 
     should_rollback = verdict in {"discard", "crash", "malformed"}
     pause_loop = verdict == "anomaly"
