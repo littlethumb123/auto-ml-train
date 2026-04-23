@@ -1,0 +1,167 @@
+name: Batch Prediction - Multi Environment
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run in'
+        required: true
+        type: choice
+        options: [dev, test, prod]
+        default: dev
+      model-resource-name:
+        description: 'Vertex Model resource (projects/{p}/locations/{l}/models/{id})'
+        required: true
+        type: string
+      input-table:
+        description: 'Input BigQuery table (project.dataset.table)'
+        required: true
+        type: string
+      output-table:
+        description: 'Final Output BigQuery table (project.dataset.table)'
+        required: true
+        type: string
+      service-account:
+        description: 'Service account to run batch job'
+        required: true
+        type: string
+      excluded-fields:
+        description: 'Comma-separated excluded fields'
+        required: false
+        type: string
+        default: ''
+      included-fields:
+        description: 'Comma-separated included fields'
+        required: false
+        type: string
+        default: ''
+      machine-type:
+        description: 'Machine type for batch prediction (e.g., n1-standard-4)'
+        required: false
+        type: string
+        default: 'n1-standard-4'
+      starting-replica-count:
+        description: 'Starting replicas'
+        required: false
+        type: string
+        default: '1'
+      max-replica-count:
+        description: 'Max replicas'
+        required: false
+        type: string
+        default: '1'
+      cmek-key:
+        description: 'CMEK key for Vertex job'
+        required: true
+        type: string
+      compute-dataset:
+        description: 'Dataset for temp tables'
+        required: true
+        type: string
+      owner:
+        description: 'Label owner'
+        required: true
+        type: string
+      cost-center:
+        description: 'Label cost center'
+        required: true
+        type: string
+      expiration-days:
+        description: 'Output table TTL in days (optional)'
+        required: false
+        type: string
+        default: ''
+jobs:
+  batch-prediction:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set environment-specific vars
+      run: |
+        if [ "${{ inputs.environment }}" == "prod" ]; then
+          echo "PROJECT_ID=anbc-prod-hcm-cm-de" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/46504011566/locations/global/workloadIdentityPools/wif-pool-github-prod/providers/wif-pool-github-prod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=${{ inputs.service-account }}" >> $GITHUB_ENV
+          echo "REGION=us-east4" >> $GITHUB_ENV
+        elif [ "${{ inputs.environment }}" == "test" ]; then
+          echo "PROJECT_ID=anbc-test-hcm-cm-de" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/995383034658/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=${{ inputs.service-account }}" >> $GITHUB_ENV
+          echo "REGION=us-east4" >> $GITHUB_ENV
+        else
+          echo "PROJECT_ID=anbc-dev-hcm-cm-de" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=${{ inputs.service-account }}" >> $GITHUB_ENV
+          echo "REGION=us-east4" >> $GITHUB_ENV
+        fi
+
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+      with:
+        version: latest
+
+    - name: Authenticate via WIF and impersonate target SA
+      uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+        # If you want gcloud-level impersonation, set config below
+      # set gcloud impersonation for downstream gcloud/print-access-token
+    - name: Set gcloud impersonation
+      run: |
+        gcloud config set auth/impersonate_service_account ${{ env.TARGET_SERVICE_ACCOUNT }}
+        ACCESS_TOKEN=$(gcloud auth print-access-token)
+        echo "::add-mask::$ACCESS_TOKEN"
+        echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+    - name: Detect Python
+      run: |
+        if command -v python3 >/dev/null 2>&1; then
+          echo "PY=python3" >> $GITHUB_ENV
+        else
+          echo "PY=python" >> $GITHUB_ENV
+        fi
+
+    - name: Cache pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-batch-pred-${{ hashFiles('**/requirements.txt', '**/setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-batch-pred-
+          ${{ runner.os }}-pip-
+
+    - name: Install deps
+      run: |
+        ${{ env.PY }} -m pip install --upgrade pip
+        ${{ env.PY }} -m pip install google-cloud-aiplatform google-cloud-bigquery google-auth requests
+
+    - name: Run batch prediction
+      env:
+        PROJECT: ${{ env.PROJECT_ID }}
+        LOCATION: ${{ env.REGION }}
+        MODEL_RESOURCE_NAME: ${{ inputs.model-resource-name }}
+        INPUT_TABLE: ${{ inputs.input-table }}
+        OUTPUT_TABLE: ${{ inputs.output-table }}
+        SERVICE_ACCOUNT: ${{ env.TARGET_SERVICE_ACCOUNT }}
+        EXCLUDED_FIELDS: ${{ inputs.excluded-fields }}
+        INCLUDED_FIELDS: ${{ inputs.included-fields }}
+        MACHINE_TYPE: ${{ inputs.machine-type }}
+        STARTING_REPLICA_COUNT: ${{ inputs.starting-replica-count }}
+        MAX_REPLICA_COUNT: ${{ inputs.max-replica-count }}
+        CMEK_KEY: ${{ inputs.cmek-key }}
+        COMPUTE_DATASET: ${{ inputs.compute-dataset }}
+        OWNER: ${{ inputs.owner }}
+        COST_CENTER: ${{ inputs.cost-center }}
+        EXPIRATION_DAYS: ${{ inputs.expiration-days }}
+        ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+      run: |
+        ${{ env.PY }} run_batch_prediction.py

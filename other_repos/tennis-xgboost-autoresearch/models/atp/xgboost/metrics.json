@@ -1,0 +1,18 @@
+{
+  "summary": {
+    "tour": "atp",
+    "cutoff_date": "2025-12-31",
+    "test_event": "Australian Open",
+    "test_year": 2024,
+    "test_mode": "date",
+    "train_rows": 132503,
+    "test_rows": 607,
+    "test_tournaments": 17
+  },
+  "scores": {
+    "accuracy": 0.685337726523888,
+    "roc_auc": 0.7611147327249022,
+    "brier_score": 0.20006699181357265,
+    "log_loss": 0.5820518384790198
+  }
+}

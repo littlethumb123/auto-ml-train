@@ -1,0 +1,80 @@
+name: Reusable GCP Agent Deployment
+
+on:
+  workflow_call:
+    inputs:
+      project_id:
+        description: 'GCP Project ID'
+        required: true
+        type: string
+      location:
+        description: 'GCP Region'
+        required: false
+        type: string
+        default: 'us-east4'
+      agent_type:
+        description: 'Agent type to deploy'
+        required: false
+        type: string
+        default: 'custom'
+      deployment_script:
+        description: 'Path to deployment script'
+        required: false
+        type: string
+        default: 'scripts/deploy_agent.py'
+      staging_bucket:
+        description: 'GCS staging bucket'
+        required: false
+        type: string
+        default: 'gs://cdr-de-ent-code-dev'
+      service_account:
+        description: 'Service account to impersonate'
+        required: false
+        type: string
+        default: 'gcent-cdr-de-ontpd@anbc-dev-cdr-de.iam.gserviceaccount.com'
+      python_version:
+        description: 'Python version'
+        required: false
+        type: string
+        default: '3.12'
+      working_directory:
+        description: 'Working directory'
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  deploy:
+    name: Deploy Agent to Vertex AI
+    runs-on: self-hosted
+    
+    # Required for WIF
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout Calling Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+          cache: 'pip'
+
+      - name: Install Dependencies
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "Warning: No requirements.txt found"
+          fi
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193
+        with:
+          workload_identity_provider: 'projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod'
+          service_account: 'cdrii-github-wif-automation@css-dev-iam.iam.gserviceaccount.com'

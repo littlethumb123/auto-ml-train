@@ -1,6 +1,7 @@
 # Auto-train experiment artifacts
 run.log
 results.tsv
+abes_state.json
 progress.png
 __pycache__/
 *.pyc
@@ -11,7 +12,7 @@ data/
 
 # Reference implementation (read-only copy)
 autoresearch-master/
-
+other_repos/
 # IDE
 .vscode/
 .idea/

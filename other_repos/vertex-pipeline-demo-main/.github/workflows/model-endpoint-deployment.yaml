@@ -1,0 +1,290 @@
+# This workflow deploys ML models using the simplified CLI interface
+# It only requires env, model_name, and model_version as inputs
+# Model configuration is automatically derived from metadata.json
+
+name: Model Endpoint Deployment
+on:
+  workflow_dispatch:
+    inputs:
+      env: # Environment to deploy to (dev, test, prod)
+        description: 'Environment to deploy to (dev, test, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - test
+      model_name:
+        description: 'Model name (must exist in models/{model_name}/{model_version}/)'
+        required: true
+        default: 'snf-model'
+      model_version:
+        description: 'Model version'
+        required: true
+        default: 'v1'
+
+env:
+  TENANT: "hcm-cm-de"
+  COST_CENTER: "13070"
+  USER: "jawahara@aetna.com"
+  REGION: "us-east4"
+
+jobs:
+  compile-and-deploy-model:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate timestamp for prod deployment
+        id: timestamp
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          echo "timestamp=$TIMESTAMP" >> "$GITHUB_OUTPUT"
+          echo "Generated timestamp: $TIMESTAMP"
+      
+      - name: Check prod deployment authorization
+        if: inputs.env == 'prod'
+        run: |
+          # Define authorized users for prod deployments
+          AUTHORIZED_USERS=(
+            "jawahara_aetna_com"
+            # Add more authorized GitHub usernames here
+          )
+          
+          CURRENT_USER="${{ github.actor }}"
+          echo "Deployment triggered by: $CURRENT_USER"
+          echo "Environment: ${{ inputs.env }}"
+          
+          # Check if current user is in authorized list
+          USER_AUTHORIZED=false
+          for user in "${AUTHORIZED_USERS[@]}"; do
+            if [ "$user" = "$CURRENT_USER" ]; then
+              USER_AUTHORIZED=true
+              break
+            fi
+          done
+          
+          if [ "$USER_AUTHORIZED" = "false" ]; then
+            echo "❌ ERROR: User '$CURRENT_USER' is not authorized to deploy to production environment."
+            echo "Authorized users for prod deployments:"
+            printf ' - %s\n' "${AUTHORIZED_USERS[@]}"
+            echo ""
+            echo "Please contact your team lead or DevOps team to get authorization for prod deployments."
+            exit 1
+          else
+            echo "✅ User '$CURRENT_USER' is authorized for prod deployments."
+          fi
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e "."
+      
+      - name: Verify installation
+        run: |
+          echo "Python version: $(python --version)"
+          echo "Pip list:"
+          pip list | grep -E "(kfp|google-cloud|vertex)"
+          echo "Testing CLI installation:"
+          umendpoint --help
+      
+      - name: Validate model exists
+        run: |
+          echo "Validating model: ${{ inputs.model_name }} version ${{ inputs.model_version }}"
+          if [ ! -d "models/${{ inputs.model_name }}/${{ inputs.model_version }}" ]; then
+            echo "❌ Model directory not found: models/${{ inputs.model_name }}/${{ inputs.model_version }}"
+            echo "Available models:"
+            find models -type d -maxdepth 2 -name "v*" | sort
+            exit 1
+          fi
+          
+          if [ ! -f "models/${{ inputs.model_name }}/${{ inputs.model_version }}/metadata.json" ]; then
+            echo "❌ Model metadata.json not found: models/${{ inputs.model_name }}/${{ inputs.model_version }}/metadata.json"
+            exit 1
+          fi
+          
+          echo "✅ Model validation passed"
+          echo "📁 Model directory: models/${{ inputs.model_name }}/${{ inputs.model_version }}/"
+          echo "📄 Model metadata:"
+          cat "models/${{ inputs.model_name }}/${{ inputs.model_version }}/metadata.json"
+
+      - name: Configure environment variables
+        run: |
+          echo "Setting up environment variables for: ${{ inputs.env }}"
+          
+          # Set base variables
+          echo "ENV=${{ inputs.env }}" >> $GITHUB_ENV
+          echo "TENANT=${{ env.TENANT }}" >> $GITHUB_ENV
+          echo "COST_CENTER=${{ env.COST_CENTER }}" >> $GITHUB_ENV
+          echo "USER=${{ env.USER }}" >> $GITHUB_ENV
+          echo "REGION=${{ env.REGION }}" >> $GITHUB_ENV
+          
+          # Set computed project IDs
+          echo "COMPUTE_PROJECT_ID=anbc-${{ inputs.env }}-${{ env.TENANT }}" >> $GITHUB_ENV
+
+          # Set service account
+          echo "SERVICE_ACCOUNT=gchcb-${{ env.TENANT }}-on${{ inputs.env == 'dev' && 'tpd' || inputs.env == 'test' && 'ppq' || 'ppp' }}@anbc-${{ inputs.env }}-${{ env.TENANT }}.iam.gserviceaccount.com" >> $GITHUB_ENV
+
+          # Set WIF variables
+          case "${{ inputs.env }}" in
+            "dev")
+              echo "WORKFLOW_ID_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+              echo "WIF_TEAM_SA=umcdt-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+              ;;
+            "test")
+              echo "WORKFLOW_ID_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+              echo "WIF_TEAM_SA=umcdt-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+              ;;
+            "prod")
+              echo "WORKFLOW_ID_PROVIDER=projects/46504011566/locations/global/workloadIdentityPools/wif-pool-github-prod/providers/wif-pool-github-prod" >> $GITHUB_ENV
+              echo "WIF_TEAM_SA=umcdt-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+              ;;
+          esac
+          
+          # Set KMS key based on environment
+          if [ "${{ inputs.env }}" = "prod" ]; then
+            echo "KMS_KEY=projects/cvs-key-vault-prod/locations/${{ env.REGION }}/keyRings/gkr-prod-${{ env.REGION }}/cryptoKeys/gk-anbc-${{ inputs.env }}-${{ env.TENANT }}-us-east4" >> $GITHUB_ENV
+          else
+            echo "KMS_KEY=projects/cvs-key-vault-nonprod/locations/${{ env.REGION }}/keyRings/gkr-nonprod-${{ env.REGION }}/cryptoKeys/gk-anbc-${{ inputs.env }}-${{ env.TENANT }}-us-east4" >> $GITHUB_ENV
+          fi
+          
+          # Set pipeline root bucket
+          echo "PIPELINE_ROOT_BUCKET=$TENANT-models-stg-hcb-${{ inputs.env }}" >> $GITHUB_ENV
+
+          # Set model GCS path
+          echo "MODEL_GCS_PATH=gs://$TENANT-models-stg-hcb-${{ inputs.env }}/models/${{ inputs.model_name }}/${{ inputs.model_version }}" >> $GITHUB_ENV
+  
+      - name: Display configuration
+        run: |
+          echo "=== Pipeline Configuration ==="
+          echo "Environment: ${{ inputs.env }}"
+          echo "Project ID: $PROJECT_ID"
+          echo "Compute Project ID: $COMPUTE_PROJECT_ID"
+          echo "Region: $REGION"
+          echo "Pipeline Root Bucket: $PIPELINE_ROOT_BUCKET"
+          echo "KMS Key: $KMS_KEY"
+          echo "Service Account: $SERVICE_ACCOUNT"
+          echo "============================="
+
+      - name: Create pipeline base configuration
+        run: |
+          cat > base_config.json << EOF
+          {
+            "compute_project_id": "$COMPUTE_PROJECT_ID",
+            "location": "$REGION",
+            "service_account": "$SERVICE_ACCOUNT",
+            "pipeline_root_bucket": "$PIPELINE_ROOT_BUCKET",
+            "kms_key": "$KMS_KEY",
+            "model_gcs_path": "$MODEL_GCS_PATH"
+          }
+          EOF
+          
+          echo "=== Generated Pipeline Configuration ==="
+          cat base_config.json
+          echo "========================================"
+        
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+        with:
+          workload_identity_provider: "${{ env.WORKFLOW_ID_PROVIDER }}"
+          service_account: "${{ env.WIF_TEAM_SA }}"
+      
+      - name: gcloud sa impersonate 
+        run: |
+          gcloud config set auth/impersonate_service_account "${{ env.SERVICE_ACCOUNT }}"
+          gcloud config set project "${{ env.COMPUTE_PROJECT_ID }}"
+          gcloud auth list
+      
+      - name: Upload model to GCS Path
+        run: |
+          echo "Uploading model files to GCS path: $MODEL_GCS_PATH"
+          echo "Model: ${{ inputs.model_name }}"
+          echo "Version: ${{ inputs.model_version }}"
+          echo "Environment: ${{ inputs.env }}"
+          
+          # Run the upload command
+          umendpoint upload "${{ inputs.model_name }}" "${{ inputs.model_version }}" \
+            --env "${{ inputs.env }}" \
+            --base-config "base_config.json"
+    
+      - name: Deploy model using CLI
+        run: |
+          echo "🚀 Deploying model using umendpoint CLI..."
+          echo "Model: ${{ inputs.model_name }}"
+          echo "Version: ${{ inputs.model_version }}"
+          echo "Environment: ${{ inputs.env }}"
+          
+          # Run the deploy command
+          umendpoint deploy "${{ inputs.model_name }}" "${{ inputs.model_version }}" \
+            --env "${{ inputs.env }}" \
+            --base-config "base_config.json"
+      
+      - name: Prepare artifacts for upload
+        run: |
+          echo "Preparing artifacts for upload..."
+          mkdir -p artifacts
+          
+          # Copy any generated pipeline files
+          find . -name "compiled-pipeline-*.json" -exec cp {} artifacts/ \; 2>/dev/null || echo "No compiled pipeline files found"
+          
+          # Copy model metadata for reference
+          cp "models/${{ inputs.model_name }}/${{ inputs.model_version }}/metadata.json" "artifacts/model-metadata.json" 2>/dev/null || echo "No metadata file found"
+          
+          # Create deployment summary
+          cat > artifacts/deployment-summary.json << EOF
+          {
+            "deployment_time": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "environment": "${{ inputs.env }}",
+            "model_name": "${{ inputs.model_name }}",
+            "model_version": "${{ inputs.model_version }}",
+            "github_actor": "${{ github.actor }}",
+            "github_run_id": "${{ github.run_id }}",
+            "github_run_number": "${{ github.run_number }}"
+          }
+          EOF
+          
+          echo "Artifacts prepared:"
+          ls -la artifacts/
+      
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-${{ inputs.env }}-${{ inputs.model_name }}-${{ inputs.model_version }}-${{ github.run_number }}
+          path: artifacts/
+          retention-days: 30
+      
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Model Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ inputs.env }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Model Name | \`${{ inputs.model_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Model Version | \`${{ inputs.model_version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployed By | \`${{ github.actor }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployment Time | \`$(date -u +"%Y-%m-%d %H:%M:%S UTC")\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Model Path | \`models/${{ inputs.model_name }}/${{ inputs.model_version }}/\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔧 Automatic Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "Configuration was automatically generated from:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`models/${{ inputs.model_name }}/${{ inputs.model_version }}/metadata.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment-specific settings for \`${{ inputs.env }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📁 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- \`deployment-summary.json\` - Deployment metadata" >> $GITHUB_STEP_SUMMARY
+          echo "- \`model-metadata.json\` - Model configuration used" >> $GITHUB_STEP_SUMMARY
+          echo "- \`compiled-pipeline-*.json\` - Compiled KFP pipeline (if generated)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Model deployment completed successfully!" >> $GITHUB_STEP_SUMMARY

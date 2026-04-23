@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XGBoost Baseline for Professional Tennis Match Prediction: Methodology, Results, and Indian Wells 2026 Predictions</title>
+<style>
+  @page { size: A4; margin: 2.5cm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    line-height: 1.65;
+    color: #1a1a1a;
+    font-size: 15px;
+    background: #fff;
+  }
+  h1 {
+    font-size: 1.7rem;
+    text-align: center;
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
+  }
+  .authors {
+    text-align: center;
+    font-style: italic;
+    color: #555;
+    margin-bottom: 0.3rem;
+  }
+  .date {
+    text-align: center;
+    color: #777;
+    margin-bottom: 2rem;
+    font-size: 0.95em;
+  }
+  h2 {
+    font-size: 1.3rem;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.3rem;
+    margin-top: 2rem;
+    counter-increment: section;
+  }
+  h2::before {
+    content: counter(section) ". ";
+  }
+  h3 {
+    font-size: 1.1rem;
+    margin-top: 1.3rem;
+    counter-increment: subsection;
+  }
+  body { counter-reset: section; }
+  h2 { counter-reset: subsection; }
+  p { text-align: justify; margin: 0.8em 0; }
+  table {
+    border-collapse: collapse;
+    margin: 1rem auto;
+    font-size: 0.92em;
+    width: auto;
+    min-width: 50%;
+  }
+  th, td {
+    border: 1px solid #aaa;
+    padding: 0.4em 0.8em;
+    text-align: left;
+  }
+  th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+  tr:nth-child(even) td { background-color: #f9f9f9; }
+  tr:hover td { background-color: #eef3ff; }
+  .caption {
+    text-align: center;
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 0.3rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+  }
+  .abstract-box {
+    border: 1px solid #ccc;
+    background: #fafafa;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .abstract-box h3 {
+    margin-top: 0;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+  code {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    background: #f4f4f4;
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-size: 0.88em;
+  }
+  .highlight-green { color: #2d8a2d; font-weight: bold; }
+  .highlight-red { color: #c0392b; font-weight: bold; }
+  ul, ol { margin: 0.5em 0; padding-left: 2em; }
+  li { margin-bottom: 0.3em; }
+  .prediction-card {
+    border: 2px solid #2c3e50;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin: 1rem 0;
+    background: #f8f9fa;
+  }
+  .prediction-card h4 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+  }
+  .prediction-card .winner {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #27ae60;
+  }
+  .refs { font-size: 0.9em; }
+  .refs p { text-indent: -2em; padding-left: 2em; }
+  @media print {
+    body { font-size: 11pt; padding: 0; }
+    .prediction-card { break-inside: avoid; }
+    table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<h1>XGBoost Baseline for Professional Tennis Match Prediction</h1>
+<h1 style="font-size:1.2rem; border:none; margin-top:0;">Methodology, Results, and Indian Wells 2026 Predictions</h1>
+<p class="authors">tennis-xgboost-autoresearch project</p>
+<p class="date">March 14, 2026 &mdash; Version 1.0 (Baseline)</p>
+
+<!-- ================================================================ -->
+<div class="abstract-box">
+<h3>Abstract</h3>
+<p>
+We present a gradient-boosted tree baseline for predicting professional tennis match outcomes on both the ATP and WTA tours. The model combines an ELO rating system (K=32, with Bayesian-shrunk surface-specific ratings) with 200+ engineered features spanning career statistics, rolling-window performance metrics, surface-specific form, head-to-head records, and rank momentum indicators. Feature vectors are constructed under strict temporal integrity constraints: all predictors use only pre-match information, and training/test splits enforce chronological separation. Trained on approximately 133K ATP and 113K WTA matches from 1985&ndash;2025 and validated on all 2026 matches through mid-March, the ATP model achieves <strong>68.7% accuracy</strong> (ROC-AUC 0.747, Brier 0.205) and the WTA model achieves <strong>66.6% accuracy</strong> (ROC-AUC 0.728, Brier 0.213). We document a data-ordering bug discovered during development that inflated WTA accuracy to 90.5%, describe how it was caught and fixed, and present forward-looking model forecasts for the Indian Wells 2026 semifinals and finals (all scheduled March 15, 2026; none yet played).
+</p>
+</div>
+
+<!-- ================================================================ -->
+<h2>Introduction</h2>
+
+<p>
+Predicting the outcome of professional tennis matches is a well-studied problem at the intersection of sports analytics and machine learning. Tennis is particularly amenable to quantitative modeling: matches are one-on-one contests with rich historical data, well-defined surfaces that affect play style, and standardized rating systems that provide a natural baseline signal.
+</p>
+
+<p>
+This project was inspired by a widely-cited result from GreenCoding (2025) claiming 85% prediction accuracy on a dataset of 95,000+ ATP matches using XGBoost with ELO features. While that figure warrants scrutiny&mdash;our own initial WTA run appeared to hit 90.5% before a temporal ordering bug was discovered (see Section 7)&mdash;the general finding that gradient-boosted trees on ELO-augmented features provide strong tennis prediction baselines is well-supported by the literature.
+</p>
+
+<p>
+This paper documents the baseline methodology for the <code>tennis-xgboost-autoresearch</code> project, which aims to establish a rigorous, reproducible prediction pipeline that can serve as the foundation for automated hyperparameter and feature engineering exploration. Our contributions are:
+</p>
+
+<ol>
+<li>A complete, tour-agnostic pipeline that works identically for ATP and WTA data with strict temporal integrity;</li>
+<li>Surface-specific ELO ratings with Bayesian shrinkage to handle players with limited surface exposure;</li>
+<li>A feature engineering framework spanning 210+ features across 8 categories;</li>
+<li>Honest baseline results with full per-tournament breakdowns;</li>
+<li>Documentation of a subtle but critical data ordering bug and its resolution.</li>
+</ol>
+
+<!-- ================================================================ -->
+<h2>Data</h2>
+
+<p>
+The primary data source is Jeff Sackmann's open tennis repositories (CC BY-NC-SA 4.0), which provide match-by-match records for the ATP tour (1968&ndash;present) and WTA tour (1968&ndash;present). We use main-tour matches from 1985 onward, excluding qualifiers, ITF events, futures, and challengers.
+</p>
+
+<p>
+For 2025&ndash;2026 coverage beyond the Sackmann repositories, we supplement with:
+</p>
+<ul>
+<li><strong>TML-Database:</strong> ATP match data for 2025&ndash;2026, converted to Sackmann-compatible format via a dedicated pipeline;</li>
+<li><strong>Web scraping:</strong> WTA 2025&ndash;2026 data from tennisexplorer.com and tennisabstract.com;</li>
+<li><strong>Indian Wells 2026 validation set:</strong> Manually curated results for the ongoing tournament (93 ATP matches, 96 WTA matches).</li>
+</ul>
+
+<p>
+The complete dataset comprises <strong>133,110 ATP matches</strong> and <strong>112,678 WTA matches</strong>. A detailed schema and provenance description is provided in the companion <a href="dataset.html">Dataset Documentation</a>.
+</p>
+
+<!-- ================================================================ -->
+<h2>Methodology</h2>
+
+<h3>3.1 ELO Rating System</h3>
+
+<p>
+We implement a standard ELO rating system with the following parameters:
+</p>
+
+<ul>
+<li><strong>K-factor:</strong> 32 (fixed for all matches, following the classical chess convention for active players)</li>
+<li><strong>Initial rating:</strong> 1500 for all players</li>
+<li><strong>Expected score:</strong> E(A) = 1 / (1 + 10<sup>(R<sub>B</sub> &minus; R<sub>A</sub>) / 400</sup>)</li>
+<li><strong>Update rule:</strong> R'<sub>A</sub> = R<sub>A</sub> + K &middot; (S<sub>A</sub> &minus; E(A)), where S<sub>A</sub> &isin; {0, 1}</li>
+</ul>
+
+<p>
+In addition to overall ELO, we maintain <strong>per-surface ELO ratings</strong> (Hard, Clay, Grass, Carpet) with independent tracking. To handle the cold-start problem for surface ratings&mdash;a player may have extensive match history on hard courts but very few grass-court appearances&mdash;we apply <strong>Bayesian shrinkage</strong>:
+</p>
+
+<p style="text-align: center;">
+ELO<sub>shrunk</sub> = ELO<sub>overall</sub> + (ELO<sub>surface</sub> &minus; ELO<sub>overall</sub>) &middot; min(n<sub>surface</sub> / 20, 1.0)
+</p>
+
+<p>
+where n<sub>surface</sub> is the player's match count on that surface and 20 is the <code>SURFACE_PRIOR_MATCHES</code> hyperparameter. When a player has fewer than 20 surface matches, their surface ELO is blended toward their overall rating; at 20+ matches, the raw surface ELO is used directly.
+</p>
+
+<p>
+<strong>Temporal integrity:</strong> All ELO values used as features are strictly pre-match snapshots. The ELO update is applied <em>after</em> feature extraction for each match, ensuring zero information leakage from future results.
+</p>
+
+<h3>3.2 Feature Engineering</h3>
+
+<p>
+Features are organized into eight categories, all computed from the perspective of a canonically-oriented player pair (player A vs. player B, assigned deterministically by ID comparison to remove winner/loser label bias):
+</p>
+
+<table>
+<tr><th>Category</th><th>Features</th><th>Description</th></tr>
+<tr><td>ELO Ratings</td><td>elo_diff, elo_sum, surface_elo_diff, surface_elo_sum, surface_elo_shrunk_diff/sum, surface_elo_gap_diff/sum</td><td>Overall and surface-specific ratings, Bayesian-shrunk variants, and surface-vs-overall gap</td></tr>
+<tr><td>Career Statistics</td><td>career_matches_diff/sum, career_win_rate_diff/sum, surface_matches_diff/sum, surface_win_rate_diff/sum</td><td>Lifetime match counts and win rates, overall and per-surface</td></tr>
+<tr><td>Rolling Windows</td><td>17 metrics &times; 4 windows (10/25/50/100) &times; 2 (diff/sum) = 136 features</td><td>Win rate, ace rate, double-fault rate, first-serve stats, return stats, break points, match duration, ELO delta, opponent strength, performance vs. expectation</td></tr>
+<tr><td>Surface-Specific Form</td><td>6 metrics &times; 2 windows (10/25) &times; 2 (diff/sum) = 24 features</td><td>Same metrics restricted to the current match surface</td></tr>
+<tr><td>Recent Activity</td><td>3 metrics &times; 2 windows (14/30 days) &times; 2 (diff/sum) = 12 features</td><td>Match count, total minutes, win rate in recent calendar windows</td></tr>
+<tr><td>Rank Momentum</td><td>2 metrics &times; 2 windows (28/91 days) &times; 2 (diff/sum) = 8 features</td><td>Rank change and ranking points change over recent periods</td></tr>
+<tr><td>Head-to-Head</td><td>h2h_diff, h2h_total</td><td>Pre-match head-to-head win count differential and total meetings</td></tr>
+<tr><td>Static Diffs</td><td>age_diff, height_diff, seed_diff, rank_edge, rank_points_diff</td><td>Physical and ranking attributes</td></tr>
+</table>
+<p class="caption">Table 1. Feature categories and their composition. Total: 210 numeric features + 3 categorical features.</p>
+
+<p>
+<strong>Canonical orientation:</strong> For each match, players are assigned to positions A and B deterministically by comparing (player_id, player_name) tuples. The label is 1 if player A won, 0 otherwise. All numeric features are computed as both <code>diff</code> (A &minus; B) and <code>sum</code> (A + B), allowing the model to capture both relative strength and absolute quality. This eliminates winner/loser ordering bias that would otherwise leak the target.
+</p>
+
+<h3>3.3 Categorical Features</h3>
+
+<p>Three categorical features are included:</p>
+<ul>
+<li><strong>surface:</strong> Hard, Clay, Grass, Carpet, Unknown</li>
+<li><strong>tourney_level:</strong> G (Grand Slam), M (Masters 1000), 500, 250, D (Davis Cup/Billie Jean King Cup), etc.</li>
+<li><strong>round:</strong> R128, R64, R32, R16, QF, SF, F, RR, BR</li>
+</ul>
+
+<h3>3.4 Model Architecture</h3>
+
+<p>
+The model is a scikit-learn <code>Pipeline</code> consisting of a preprocessing step and an XGBoost classifier:
+</p>
+
+<p><strong>Preprocessing:</strong></p>
+<ul>
+<li>Numeric features: median imputation (<code>SimpleImputer(strategy="median")</code>)</li>
+<li>Categorical features: most-frequent imputation followed by one-hot encoding (<code>OneHotEncoder(handle_unknown="ignore")</code>)</li>
+</ul>
+
+<p><strong>XGBoost hyperparameters (fixed baseline):</strong></p>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>n_estimators</td><td>500</td></tr>
+<tr><td>max_depth</td><td>4</td></tr>
+<tr><td>learning_rate</td><td>0.05</td></tr>
+<tr><td>subsample</td><td>0.85</td></tr>
+<tr><td>colsample_bytree</td><td>0.80</td></tr>
+<tr><td>reg_lambda</td><td>1.0</td></tr>
+<tr><td>min_child_weight</td><td>5</td></tr>
+<tr><td>objective</td><td>binary:logistic</td></tr>
+<tr><td>eval_metric</td><td>logloss</td></tr>
+<tr><td>tree_method</td><td>hist</td></tr>
+<tr><td>random_state</td><td>42</td></tr>
+</table>
+<p class="caption">Table 2. XGBoost baseline hyperparameters.</p>
+
+<p>
+Separate models are trained for ATP and WTA tours. The rationale is that the two tours have structurally different characteristics: ATP matches are best-of-5 at Grand Slams (vs. best-of-3 for WTA), tournament structures differ (Masters 1000 vs. Premier Mandatory/Premier 5), and the statistical distributions of serve dominance, break rates, and match duration differ meaningfully between tours. A unified model would need to learn these distinctions implicitly, adding unnecessary complexity to the baseline.
+</p>
+
+<!-- ================================================================ -->
+<h2>Experimental Setup</h2>
+
+<h3>4.1 Training Data</h3>
+
+<p>
+The training set comprises all matches from 1985 through December 31, 2025:
+</p>
+
+<table>
+<tr><th>Tour</th><th>Training Matches</th><th>Year Range</th></tr>
+<tr><td>ATP</td><td>132,503</td><td>1985&ndash;2025</td></tr>
+<tr><td>WTA</td><td>112,343</td><td>1985&ndash;2025</td></tr>
+</table>
+<p class="caption">Table 3. Training set composition.</p>
+
+<h3>4.2 Validation Data</h3>
+
+<p>
+The validation set consists of all matches played in 2026 (January 1 onward), providing a genuine out-of-time test:
+</p>
+
+<table>
+<tr><th>Tour</th><th>Test Matches</th><th>Tournaments</th><th>Period</th></tr>
+<tr><td>ATP</td><td>607</td><td>17</td><td>Jan 1 &ndash; Mar 14, 2026</td></tr>
+<tr><td>WTA</td><td>335</td><td>7</td><td>Jan 1 &ndash; Mar 14, 2026</td></tr>
+</table>
+<p class="caption">Table 4. Validation set composition.</p>
+
+<p>
+This temporal split is stricter than k-fold cross-validation and more realistic: the model must predict unseen future matches using only historical data, exactly as it would be used in practice.
+</p>
+
+<!-- ================================================================ -->
+<h2>Results</h2>
+
+<h3>5.1 Overall Metrics</h3>
+
+<table>
+<tr><th>Metric</th><th>ATP</th><th>WTA</th></tr>
+<tr><td>Accuracy</td><td class="highlight-green">68.70%</td><td class="highlight-green">66.57%</td></tr>
+<tr><td>ROC-AUC</td><td>0.7472</td><td>0.7282</td></tr>
+<tr><td>Brier Score</td><td>0.2052</td><td>0.2126</td></tr>
+<tr><td>Log Loss</td><td>0.5948</td><td>0.6118</td></tr>
+</table>
+<p class="caption">Table 5. Overall model performance on 2026 validation data.</p>
+
+<p>
+The ATP model outperforms WTA by approximately 2 percentage points in accuracy, consistent with the general observation that ATP results are more predictable due to best-of-5 format at Slams reducing upset variance, higher serve dominance amplifying skill differentials, and a more stable top-player hierarchy.
+</p>
+
+<h3>5.2 Per-Tournament Breakdown: ATP</h3>
+
+<table>
+<tr><th>Tournament</th><th>Matches</th><th>Correct</th><th>Accuracy</th></tr>
+<tr><td>Delray Beach</td><td>15</td><td>13</td><td class="highlight-green">86.7%</td></tr>
+<tr><td>Doha</td><td>31</td><td>25</td><td class="highlight-green">80.6%</td></tr>
+<tr><td>Australian Open</td><td>127</td><td>99</td><td class="highlight-green">78.0%</td></tr>
+<tr><td>Rotterdam</td><td>31</td><td>24</td><td>77.4%</td></tr>
+<tr><td>Dallas</td><td>31</td><td>24</td><td>77.4%</td></tr>
+<tr><td>Buenos Aires</td><td>15</td><td>11</td><td>73.3%</td></tr>
+<tr><td>Adelaide</td><td>27</td><td>19</td><td>70.4%</td></tr>
+<tr><td>Santiago</td><td>19</td><td>13</td><td>68.4%</td></tr>
+<tr><td>Acapulco</td><td>31</td><td>21</td><td>67.7%</td></tr>
+<tr><td>Dubai</td><td>31</td><td>21</td><td>67.7%</td></tr>
+<tr><td>Hong Kong</td><td>27</td><td>18</td><td>66.7%</td></tr>
+<tr><td>Rio de Janeiro</td><td>31</td><td>20</td><td>64.5%</td></tr>
+<tr><td>Indian Wells Masters</td><td>89</td><td>57</td><td>64.0%</td></tr>
+<tr><td>Auckland</td><td>27</td><td>17</td><td>63.0%</td></tr>
+<tr><td>Brisbane</td><td>31</td><td>16</td><td class="highlight-red">51.6%</td></tr>
+<tr><td>United Cup</td><td>25</td><td>12</td><td class="highlight-red">48.0%</td></tr>
+<tr><td>Montpellier</td><td>19</td><td>7</td><td class="highlight-red">36.8%</td></tr>
+</table>
+<p class="caption">Table 6. ATP per-tournament accuracy, sorted by accuracy descending.</p>
+
+<p>
+Performance varies substantially across tournaments. The model excels at Grand Slams (Australian Open: 78.0%) and larger events where top players dominate, but struggles at smaller 250-level events (Montpellier: 36.8%) and team events (United Cup: 48.0%) where match dynamics differ from standard tour play.
+</p>
+
+<h3>5.3 Per-Tournament Breakdown: WTA</h3>
+
+<table>
+<tr><th>Tournament</th><th>Matches</th><th>Correct</th><th>Accuracy</th></tr>
+<tr><td>Indian Wells</td><td>89</td><td>65</td><td class="highlight-green">73.0%</td></tr>
+<tr><td>Brisbane</td><td>47</td><td>34</td><td class="highlight-green">72.3%</td></tr>
+<tr><td>Auckland</td><td>31</td><td>22</td><td>71.0%</td></tr>
+<tr><td>Dubai</td><td>55</td><td>39</td><td>70.9%</td></tr>
+<tr><td>Doha</td><td>55</td><td>34</td><td>61.8%</td></tr>
+<tr><td>Abu Dhabi</td><td>27</td><td>15</td><td>55.6%</td></tr>
+<tr><td>Hobart</td><td>31</td><td>14</td><td class="highlight-red">45.2%</td></tr>
+</table>
+<p class="caption">Table 7. WTA per-tournament accuracy, sorted by accuracy descending.</p>
+
+<h3>5.4 Feature Importance: Top 10</h3>
+
+<table>
+<tr><th>Rank</th><th>ATP Feature</th><th>Importance</th><th>WTA Feature</th><th>Importance</th></tr>
+<tr><td>1</td><td>elo_diff</td><td>0.1457</td><td>elo_diff</td><td>0.1214</td></tr>
+<tr><td>2</td><td>surface_elo_diff</td><td>0.0675</td><td>surface_elo_shrunk_diff</td><td>0.0464</td></tr>
+<tr><td>3</td><td>rank_edge</td><td>0.0405</td><td>tourney_level_D</td><td>0.0331</td></tr>
+<tr><td>4</td><td>surface_point_win_rate_last_25_diff</td><td>0.0178</td><td>surface_elo_diff</td><td>0.0287</td></tr>
+<tr><td>5</td><td>opponent_elo_avg_last_100_diff</td><td>0.0178</td><td>opponent_elo_avg_last_100_diff</td><td>0.0231</td></tr>
+<tr><td>6</td><td>matches_last_30_days_diff</td><td>0.0156</td><td>opponent_surface_elo_avg_last_100_diff</td><td>0.0206</td></tr>
+<tr><td>7</td><td>point_win_rate_last_10_diff</td><td>0.0134</td><td>rank_edge</td><td>0.0203</td></tr>
+<tr><td>8</td><td>tourney_level_D</td><td>0.0124</td><td>round_RR</td><td>0.0158</td></tr>
+<tr><td>9</td><td>surface_matches_diff</td><td>0.0106</td><td>matches_last_30_days_diff</td><td>0.0146</td></tr>
+<tr><td>10</td><td>surface_point_win_rate_last_10_diff</td><td>0.0103</td><td>surface_service_points_won_rate_last_10_diff</td><td>0.0109</td></tr>
+</table>
+<p class="caption">Table 8. Top 10 features by XGBoost importance (gain) for each tour.</p>
+
+<p>
+The ELO differential dominates both models, accounting for 14.6% (ATP) and 12.1% (WTA) of total feature importance. Surface ELO variants collectively contribute another 7&ndash;8%, confirming that rating-based features are the backbone of prediction quality. Notably, the WTA model places higher importance on Bayesian-shrunk surface ELO, suggesting that surface-specific rating uncertainty matters more in the women's game where player surface specialization patterns differ.
+</p>
+
+<p>
+Beyond ELO, the models value recent form (point win rates, recent activity), strength of schedule (opponent ELO averages), and tournament context (tournament level, round). The long tail of 200+ features with individually small importance contributions collectively adds significant predictive power.
+</p>
+
+<!-- ================================================================ -->
+<h2>Indian Wells 2026 Predictions</h2>
+
+<p>
+We apply the trained models to generate forward-looking predictions for the Indian Wells 2026 semifinals and finals. All four matches below are scheduled for March 15, 2026 and have <strong>not yet been played</strong> at time of writing (March 14, 2026). These are pure model forecasts.
+</p>
+
+<h3>6.1 ATP Semifinal Forecasts (Scheduled March 15, 2026)</h3>
+
+<table>
+<tr><th>Match</th><th>Matchup</th><th>Predicted Winner</th><th>Model Confidence</th><th>Key Factors</th></tr>
+<tr>
+  <td>SF1</td>
+  <td>Carlos Alcaraz vs. Daniil Medvedev</td>
+  <td class="highlight-green">Carlos Alcaraz</td>
+  <td>76.1%</td>
+  <td>ELO diff +298.2, surface ELO diff +215.1 (Hard)</td>
+</tr>
+<tr>
+  <td>SF2</td>
+  <td>Jannik Sinner vs. Alexander Zverev</td>
+  <td class="highlight-green">Jannik Sinner</td>
+  <td>67.6%</td>
+  <td>ELO diff +294.8, surface ELO diff +299.4 (Hard)</td>
+</tr>
+</table>
+<p class="caption">Table 9. ATP Indian Wells 2026 semifinal forecasts. FORECAST &mdash; matches not yet played.</p>
+
+<p><strong>SF1 &mdash; Alcaraz vs. Medvedev:</strong> The model gives Alcaraz a strong 76.1% win probability, driven by an ELO differential of +298.2 and a hard-court surface ELO edge of +215.1. Alcaraz is the clear favorite despite Medvedev's strong run through the draw.</p>
+
+<p><strong>SF2 &mdash; Sinner vs. Zverev:</strong> The model favors Sinner at 67.6%, based on an ELO differential of +294.8 and surface ELO differential of +299.4 on hard court. This is a synthetic prediction constructed from each player's latest feature states.</p>
+
+<h3>6.2 ATP Final Forecast (Scheduled March 15, 2026)</h3>
+
+<div class="prediction-card">
+  <h4>FORECAST: ATP Indian Wells 2026 Final</h4>
+  <p><strong>Carlos Alcaraz vs. Jannik Sinner</strong> (conditional on both winning their SFs)</p>
+  <p>Predicted winner: <span class="winner">Jannik Sinner (66.0%)</span></p>
+  <table>
+  <tr><th>Factor</th><th>Value</th><th>Favors</th></tr>
+  <tr><td>ELO Differential</td><td>&minus;8.2</td><td>Essentially even (slight Sinner edge)</td></tr>
+  <tr><td>Surface ELO Differential</td><td>&minus;94.6</td><td>Sinner (+94.6 hard court advantage)</td></tr>
+  <tr><td>Surface ELO Shrunk Diff</td><td>&minus;94.6</td><td>Sinner (both have 20+ hard court matches)</td></tr>
+  </table>
+  <p style="font-size:0.9em; color:#666; margin-top:0.5rem;">
+    Note: This is a synthetic prediction constructed from each player's latest feature states. The overall ELO is nearly identical, but Sinner's hard-court surface ELO is approximately 95 points higher, driving the model's prediction. The confidence level of 66.0% reflects the genuine closeness of this matchup.
+  </p>
+</div>
+
+<h3>6.3 WTA Final Forecast (Scheduled March 15, 2026)</h3>
+
+<div class="prediction-card">
+  <h4>FORECAST: WTA Indian Wells 2026 Final</h4>
+  <p><strong>Aryna Sabalenka vs. Elena Rybakina</strong></p>
+  <p>Predicted winner: <span class="winner">Aryna Sabalenka (53.5%)</span></p>
+  <table>
+  <tr><th>Factor</th><th>Value</th><th>Favors</th></tr>
+  <tr><td>ELO Differential</td><td>+118.0</td><td>Sabalenka</td></tr>
+  <tr><td>Surface ELO Differential</td><td>+118.3</td><td>Sabalenka</td></tr>
+  <tr><td>Surface ELO Shrunk Diff</td><td>+118.3</td><td>Sabalenka</td></tr>
+  </table>
+  <p style="font-size:0.9em; color:#666; margin-top:0.5rem;">
+    Note: Despite the ELO edge, the model assigns only 53.5% probability, reflecting the high variance of WTA matchups at the highest level. This is essentially a coin-flip call with a slight lean toward Sabalenka.
+  </p>
+</div>
+
+<h3>6.4 Forecast Summary</h3>
+
+<table>
+<tr><th>Match</th><th>Predicted Winner</th><th>Model Confidence</th><th>Key Factor</th></tr>
+<tr><td>ATP SF1: Alcaraz vs. Medvedev</td><td>Carlos Alcaraz</td><td>76.1%</td><td>ELO diff +298.2</td></tr>
+<tr><td>ATP SF2: Sinner vs. Zverev</td><td>Jannik Sinner</td><td>67.6%</td><td>ELO diff +294.8</td></tr>
+<tr><td>ATP Final: Alcaraz vs. Sinner</td><td>Jannik Sinner</td><td>66.0%</td><td>Surface ELO diff +94.6</td></tr>
+<tr><td>WTA Final: Sabalenka vs. Rybakina</td><td>Aryna Sabalenka</td><td>53.5%</td><td>ELO diff +118.0</td></tr>
+</table>
+<p class="caption">Table 10. Indian Wells 2026 prediction summary. All matches scheduled March 15, 2026. FORECAST &mdash; none have been played yet.</p>
+
+<!-- ================================================================ -->
+<h2>Bug Discovery &amp; Fix: The <code>match_num</code> Ordering Problem</h2>
+
+<p>
+During initial development, the WTA model achieved an apparent accuracy of <strong>90.5%</strong>&mdash;a suspiciously high result that warranted investigation. The root cause was a subtle interaction between our temporal ordering logic and a convention change in Sackmann's data.
+</p>
+
+<p><strong>The convention change:</strong> Prior to the 2025 data files, Sackmann's <code>match_num</code> field assigned the highest values to later rounds (the final might have match_num ~300, R128 matches ~1&ndash;64). From 2025 onward, this convention reversed: the final has match_num=1 and early rounds have high match_num values.</p>
+
+<p><strong>The bug:</strong> Our initial implementation sorted matches by <code>(match_date, tourney_name, match_num ASC)</code>. This worked correctly for pre-2025 data (ascending match_num = R128 first, Final last = chronological order). But for 2025+ data, ascending match_num put the Final <em>first</em> and R128 matches <em>last</em>, reversing chronological order within each tournament. This meant ELO updates from the final contaminated features for first-round matches, creating massive temporal leakage.</p>
+
+<p><strong>The fix:</strong> Replace match_num-based ordering with explicit round-ordinal sorting. We defined a <code>ROUND_ORDER</code> mapping (R128=1, R64=2, ..., F=8) and sort by <code>(match_date, tourney_name, round_ordinal, match_num)</code>. The match_num is retained only as a tiebreaker within the same round. This approach is convention-agnostic and handles any future match_num encoding changes.</p>
+
+<p><strong>Impact:</strong> After the fix, WTA accuracy dropped from 90.5% to 66.6%&mdash;a 24-point correction that brought results into alignment with ATP accuracy and with expectations from the literature. We document this bug explicitly as a cautionary example: a model that appears to perform far above established baselines should be investigated for data leakage before being celebrated.</p>
+
+<!-- ================================================================ -->
+<h2>Limitations &amp; Future Work</h2>
+
+<p>This baseline has several known limitations that the auto-research exploration loop will address:</p>
+
+<ol>
+<li><strong>Fixed hyperparameters:</strong> The XGBoost parameters were set by reasonable convention, not tuned. Systematic Bayesian optimization over the hyperparameter space may yield 1&ndash;3% accuracy improvement.</li>
+<li><strong>Fixed K-factor:</strong> A constant K=32 treats all matches equally. Adaptive K-factors (higher for Grand Slams, lower for 250s; higher for new players, lower for established) could improve ELO signal quality.</li>
+<li><strong>Missing serve/return data:</strong> The 2025&ndash;2026 validation data lacks serve statistics (aces, double faults, first-serve percentage, etc.), meaning rolling window features based on these are NaN for recent matches. This disproportionately affects recent-form features.</li>
+<li><strong>No recency weighting:</strong> All historical matches contribute equally to career statistics. Time-decayed career metrics might better capture player trajectory.</li>
+<li><strong>No contextual features:</strong> The model does not incorporate betting odds, player injury status, weather conditions, or scheduling factors (e.g., days between matches, time zone changes).</li>
+<li><strong>Single model type:</strong> The baseline uses only XGBoost. Comparison with logistic regression (for calibration assessment), neural networks (for non-linear feature interactions), and ensemble methods would strengthen the analysis.</li>
+<li><strong>WTA data quality:</strong> WTA data has higher rates of missing height values and more tournament-level category diversity (T1&ndash;T5, PM, P, CC, etc.), introducing heterogeneity that may reduce model performance.</li>
+</ol>
+
+<p>The auto-research pipeline will systematically explore these dimensions, treating each as a hypothesis to be tested with proper experimental controls.</p>
+
+<!-- ================================================================ -->
+<h2>References</h2>
+
+<div class="refs">
+<p>[1] Sackmann, J. (2024). Tennis Abstract / GitHub: tennis_atp, tennis_wta. Available at: <code>github.com/JeffSackmann/tennis_atp</code>, <code>github.com/JeffSackmann/tennis_wta</code>. License: CC BY-NC-SA 4.0.</p>
+<p>[2] GreenCoding (2025). "Tennis Match Prediction with Machine Learning: 85% Accuracy on 95K+ Matches." Blog post. (Inspiration seed for this project.)</p>
+<p>[3] Elo, A. (1978). <em>The Rating of Chessplayers, Past and Present.</em> Arco Publishing.</p>
+<p>[4] Chen, T. &amp; Guestrin, C. (2016). "XGBoost: A Scalable Tree Boosting System." <em>Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining.</em></p>
+<p>[5] Klaassen, F. J. &amp; Magnus, J. R. (2003). "Forecasting the winner of a tennis match." <em>European Journal of Operational Research</em>, 148(2), 257&ndash;267.</p>
+<p>[6] Sipko, M. &amp; Knottenbelt, W. (2015). "Machine Learning for the Prediction of Professional Tennis Matches." MEng Computing Final Year Project, Imperial College London.</p>
+</div>
+
+<hr style="margin-top:3rem;">
+<p style="text-align:center; font-size:0.85em; color:#888;">
+  Generated by tennis-xgboost-autoresearch &bull; March 14, 2026 &bull; Baseline v1.0
+</p>
+
+</body>
+</html>

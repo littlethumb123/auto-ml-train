@@ -1,0 +1,615 @@
+match_id,match_date,tourney_name,surface,round,player_a_name,player_b_name,winner_name,label,prob_player_a_wins,predicted_label,predicted_winner
+2025-1075-32,2025-10-06,Wuhan,Hard,R64,Marie Bouzkova,Camila Osorio,Marie Bouzkova,1,0.5593333601951599,1,Marie Bouzkova
+2025-1075-33,2025-10-06,Wuhan,Hard,R64,Elise Mertens,Polina Kudermetova,Elise Mertens,1,0.5907166182994842,1,Elise Mertens
+2025-1075-34,2025-10-06,Wuhan,Hard,R64,Donna Vekic,Belinda Bencic,Belinda Bencic,0,0.27233349978923793,0,Belinda Bencic
+2025-1075-35,2025-10-06,Wuhan,Hard,R64,Olga Danilovic,Clara Tauson,Clara Tauson,0,0.2728699833154678,0,Clara Tauson
+2025-1075-36,2025-10-06,Wuhan,Hard,R64,Magda Linette,Antonia Ruzic,Antonia Ruzic,0,0.5740628600120544,1,Magda Linette
+2025-1075-37,2025-10-06,Wuhan,Hard,R64,Yue Yuan,Lucia Bronzetti,Yue Yuan,1,0.4712690025568008,0,Lucia Bronzetti
+2025-1075-38,2025-10-06,Wuhan,Hard,R64,Xin Yu Wang,Moyuka Uchijima,Moyuka Uchijima,0,0.5458217680454254,1,Xin Yu Wang
+2025-1075-39,2025-10-06,Wuhan,Hard,R64,Sorana Cirstea,Jelena Ostapenko,Sorana Cirstea,1,0.5458265244960785,1,Sorana Cirstea
+2025-1075-40,2025-10-06,Wuhan,Hard,R64,Shuai Zhang,Emma Navarro,Shuai Zhang,1,0.2804728657007217,0,Emma Navarro
+2025-1075-41,2025-10-06,Wuhan,Hard,R64,Karolina Muchova,Marta Kostyuk,Karolina Muchova,1,0.5856973886489868,1,Karolina Muchova
+2025-1075-42,2025-10-06,Wuhan,Hard,R64,Veronika Kudermetova,Magdalena Frech,Magdalena Frech,0,0.7089026629924774,1,Veronika Kudermetova
+2025-1075-43,2025-10-06,Wuhan,Hard,R64,Laura Siegemund,Dayana Yastremska,Laura Siegemund,1,0.37163762450218196,0,Dayana Yastremska
+2025-1075-44,2025-10-06,Wuhan,Hard,R64,Hailey Baptiste,Ashlyn Krueger,Hailey Baptiste,1,0.4521617084741592,0,Ashlyn Krueger
+2025-1075-45,2025-10-06,Wuhan,Hard,R64,Ann Li,Emma Raducanu,Ann Li,1,0.223613004386425,0,Emma Raducanu
+2025-1075-46,2025-10-06,Wuhan,Hard,R64,Ekaterina Alexandrova,Victoria Mboko,Ekaterina Alexandrova,1,0.6007535576820373,1,Ekaterina Alexandrova
+2025-1075-47,2025-10-06,Wuhan,Hard,R64,Katerina Siniakova,Diana Shnaider,Katerina Siniakova,1,0.4997249245643615,0,Diana Shnaider
+2025-1075-48,2025-10-06,Wuhan,Hard,R64,Lin Zhu,Maya Joint,Maya Joint,0,0.2603078976273536,0,Maya Joint
+2025-1075-49,2025-10-06,Wuhan,Hard,R64,Varvara Gracheva,Jessica Bouzas Maneiro,Jessica Bouzas Maneiro,0,0.4035029590129852,0,Jessica Bouzas Maneiro
+2025-1075-50,2025-10-06,Wuhan,Hard,R64,Jaqueline Cristian,Mccartney Kessler,Jaqueline Cristian,1,0.3438790559768677,0,Mccartney Kessler
+2025-1075-51,2025-10-06,Wuhan,Hard,R64,Yulia Putintseva,Linda Noskova,Linda Noskova,0,0.23512546867132184,0,Linda Noskova
+2025-1075-52,2025-10-06,Wuhan,Hard,R64,Naomi Osaka,Leylah Fernandez,Naomi Osaka,1,0.49064180552959435,0,Leylah Fernandez
+2025-1075-53,2025-10-06,Wuhan,Hard,R64,Liudmila Samsonova,Emiliana Arango,Liudmila Samsonova,1,0.5725589394569397,1,Liudmila Samsonova
+2025-1075-54,2025-10-06,Wuhan,Hard,R64,Sofia Kenin,Anastasia Zakharova,Sofia Kenin,1,0.6048184692859649,1,Sofia Kenin
+2025-1075-55,2025-10-06,Wuhan,Hard,R64,Rebecca Sramkova,Anna Kalinskaya,Rebecca Sramkova,1,0.22301311194896697,0,Anna Kalinskaya
+2025-1075-16,2025-10-06,Wuhan,Hard,R32,Marie Bouzkova,Iga Swiatek,Iga Swiatek,0,0.12175851076841354,0,Iga Swiatek
+2025-1075-17,2025-10-06,Wuhan,Hard,R32,Belinda Bencic,Elise Mertens,Belinda Bencic,1,0.5903403025865555,1,Belinda Bencic
+2025-1075-18,2025-10-06,Wuhan,Hard,R32,Clara Tauson,Antonia Ruzic,Clara Tauson,1,0.6589770251512527,1,Clara Tauson
+2025-1075-19,2025-10-06,Wuhan,Hard,R32,Yue Yuan,Jasmine Paolini,Jasmine Paolini,0,0.15585681170225144,0,Jasmine Paolini
+2025-1075-20,2025-10-06,Wuhan,Hard,R32,Moyuka Uchijima,Coco Gauff,Coco Gauff,0,0.06314342305064201,0,Coco Gauff
+2025-1075-21,2025-10-06,Wuhan,Hard,R32,Sorana Cirstea,Shuai Zhang,Shuai Zhang,0,0.659792959690094,1,Sorana Cirstea
+2025-1075-22,2025-10-06,Wuhan,Hard,R32,Magdalena Frech,Karolina Muchova,Magdalena Frech,1,0.1765858383476734,0,Karolina Muchova
+2025-1075-23,2025-10-06,Wuhan,Hard,R32,Laura Siegemund,Mirra Andreeva,Laura Siegemund,1,0.2202210694551468,0,Mirra Andreeva
+2025-1075-24,2025-10-06,Wuhan,Hard,R32,Jessica Pegula,Hailey Baptiste,Jessica Pegula,1,0.8130939984321593,1,Jessica Pegula
+2025-1075-25,2025-10-06,Wuhan,Hard,R32,Ekaterina Alexandrova,Ann Li,Ekaterina Alexandrova,1,0.7375573098659515,1,Ekaterina Alexandrova
+2025-1075-26,2025-10-06,Wuhan,Hard,R32,Katerina Siniakova,Maya Joint,Katerina Siniakova,1,0.39739241838455197,0,Maya Joint
+2025-1075-27,2025-10-06,Wuhan,Hard,R32,Jessica Bouzas Maneiro,Iva Jovic,Iva Jovic,0,0.4839687356352806,0,Iva Jovic
+2025-1075-28,2025-10-06,Wuhan,Hard,R32,Jaqueline Cristian,Elena Rybakina,Elena Rybakina,0,0.18144605964422225,0,Elena Rybakina
+2025-1075-29,2025-10-06,Wuhan,Hard,R32,Naomi Osaka,Linda Noskova,Linda Noskova,0,0.5223554772138596,1,Naomi Osaka
+2025-1075-30,2025-10-06,Wuhan,Hard,R32,Sofia Kenin,Liudmila Samsonova,Liudmila Samsonova,0,0.45032948672771456,0,Liudmila Samsonova
+2025-1075-31,2025-10-06,Wuhan,Hard,R32,Rebecca Sramkova,Aryna Sabalenka,Aryna Sabalenka,0,0.03848635075613856,0,Aryna Sabalenka
+2025-1075-8,2025-10-06,Wuhan,Hard,R16,Belinda Bencic,Iga Swiatek,Iga Swiatek,0,0.1786681354045868,0,Iga Swiatek
+2025-1075-9,2025-10-06,Wuhan,Hard,R16,Jasmine Paolini,Clara Tauson,Jasmine Paolini,1,0.6807135820388793,1,Jasmine Paolini
+2025-1075-10,2025-10-06,Wuhan,Hard,R16,Shuai Zhang,Coco Gauff,Coco Gauff,0,0.13297507017850874,0,Coco Gauff
+2025-1075-11,2025-10-06,Wuhan,Hard,R16,Laura Siegemund,Magdalena Frech,Laura Siegemund,1,0.5344094574451446,1,Laura Siegemund
+2025-1075-12,2025-10-06,Wuhan,Hard,R16,Jessica Pegula,Ekaterina Alexandrova,Jessica Pegula,1,0.6204293191432952,1,Jessica Pegula
+2025-1075-13,2025-10-06,Wuhan,Hard,R16,Katerina Siniakova,Iva Jovic,Katerina Siniakova,1,0.564317363500595,1,Katerina Siniakova
+2025-1075-14,2025-10-06,Wuhan,Hard,R16,Elena Rybakina,Linda Noskova,Elena Rybakina,1,0.5852147519588471,1,Elena Rybakina
+2025-1075-15,2025-10-06,Wuhan,Hard,R16,Aryna Sabalenka,Liudmila Samsonova,Aryna Sabalenka,1,0.8466636598110198,1,Aryna Sabalenka
+2025-1075-4,2025-10-06,Wuhan,Hard,QF,Jasmine Paolini,Iga Swiatek,Jasmine Paolini,1,0.22655754536390305,0,Iga Swiatek
+2025-1075-5,2025-10-06,Wuhan,Hard,QF,Laura Siegemund,Coco Gauff,Coco Gauff,0,0.13313561752438546,0,Coco Gauff
+2025-1075-6,2025-10-06,Wuhan,Hard,QF,Jessica Pegula,Katerina Siniakova,Jessica Pegula,1,0.6893325090408324,1,Jessica Pegula
+2025-1075-7,2025-10-06,Wuhan,Hard,QF,Aryna Sabalenka,Elena Rybakina,Aryna Sabalenka,1,0.6558948338031768,1,Aryna Sabalenka
+2025-1075-2,2025-10-06,Wuhan,Hard,SF,Jasmine Paolini,Coco Gauff,Coco Gauff,0,0.42250119447708123,0,Coco Gauff
+2025-1075-3,2025-10-06,Wuhan,Hard,SF,Jessica Pegula,Aryna Sabalenka,Jessica Pegula,1,0.2446087524294853,0,Aryna Sabalenka
+2025-1075-1,2025-10-06,Wuhan,Hard,F,Jessica Pegula,Coco Gauff,Coco Gauff,0,0.42903996706008907,0,Coco Gauff
+2025-2092-16,2025-10-13,Ningbo,Hard,R32,Veronika Kudermetova,Antonia Ruzic,Veronika Kudermetova,1,0.593120002835989,1,Veronika Kudermetova
+2025-2092-17,2025-10-13,Ningbo,Hard,R32,Yulia Putintseva,Yuliia Starodubtseva,Yuliia Starodubtseva,0,0.5739998499751091,1,Yulia Putintseva
+2025-2092-18,2025-10-13,Ningbo,Hard,R32,Belinda Bencic,Magda Linette,Belinda Bencic,1,0.6757593416273594,1,Belinda Bencic
+2025-2092-19,2025-10-13,Ningbo,Hard,R32,Dayana Yastremska,Victoria Mboko,Dayana Yastremska,1,0.3967079691141844,0,Victoria Mboko
+2025-2092-20,2025-10-13,Ningbo,Hard,R32,Aliaksandra Sasnovich,Zeynep Sonmez,Zeynep Sonmez,0,0.5493164912164211,1,Aliaksandra Sasnovich
+2025-2092-21,2025-10-13,Ningbo,Hard,R32,Ajla Tomljanovic,Clara Tauson,Ajla Tomljanovic,1,0.30731786361336705,0,Clara Tauson
+2025-2092-22,2025-10-13,Ningbo,Hard,R32,Liudmila Samsonova,Hanyu Guo,Liudmila Samsonova,1,0.641172455817461,1,Liudmila Samsonova
+2025-2092-23,2025-10-13,Ningbo,Hard,R32,Sofia Kenin,Mccartney Kessler,Mccartney Kessler,0,0.4134521598964929,0,Mccartney Kessler
+2025-2092-24,2025-10-13,Ningbo,Hard,R32,Yue Yuan,Xin Yu Wang,Yue Yuan,1,0.462933481708169,0,Xin Yu Wang
+2025-2092-25,2025-10-13,Ningbo,Hard,R32,Xiyu Wang,Diana Shnaider,Diana Shnaider,0,0.2736271297112107,0,Diana Shnaider
+2025-2092-26,2025-10-13,Ningbo,Hard,R32,Karolina Muchova,Marketa Vondrousova,Karolina Muchova,1,0.5911136873960494,1,Karolina Muchova
+2025-2092-27,2025-10-13,Ningbo,Hard,R32,Lin Zhu,Emma Raducanu,Lin Zhu,1,0.20788546034693714,0,Emma Raducanu
+2025-2092-8,2025-10-13,Ningbo,Hard,R16,Veronika Kudermetova,Jasmine Paolini,Jasmine Paolini,0,0.23921395786106586,0,Jasmine Paolini
+2025-2092-9,2025-10-13,Ningbo,Hard,R16,Belinda Bencic,Yuliia Starodubtseva,Belinda Bencic,1,0.7190726822614669,1,Belinda Bencic
+2025-2092-10,2025-10-13,Ningbo,Hard,R16,Elena Rybakina,Dayana Yastremska,Elena Rybakina,1,0.7941373205184936,1,Elena Rybakina
+2025-2092-11,2025-10-13,Ningbo,Hard,R16,Ajla Tomljanovic,Zeynep Sonmez,Ajla Tomljanovic,1,0.3988101497292519,0,Zeynep Sonmez
+2025-2092-12,2025-10-13,Ningbo,Hard,R16,Liudmila Samsonova,Mccartney Kessler,Mccartney Kessler,0,0.5379565274715423,1,Liudmila Samsonova
+2025-2092-13,2025-10-13,Ningbo,Hard,R16,Yue Yuan,Ekaterina Alexandrova,Ekaterina Alexandrova,0,0.23420912809669972,0,Ekaterina Alexandrova
+2025-2092-14,2025-10-13,Ningbo,Hard,R16,Karolina Muchova,Diana Shnaider,Diana Shnaider,0,0.6543667751550675,1,Karolina Muchova
+2025-2092-15,2025-10-13,Ningbo,Hard,R16,Lin Zhu,Mirra Andreeva,Lin Zhu,1,0.1983269862830639,0,Mirra Andreeva
+2025-2092-4,2025-10-13,Ningbo,Hard,QF,Belinda Bencic,Jasmine Paolini,Jasmine Paolini,0,0.39210697397589683,0,Jasmine Paolini
+2025-2092-5,2025-10-13,Ningbo,Hard,QF,Ajla Tomljanovic,Elena Rybakina,Elena Rybakina,0,0.1468886325135827,0,Elena Rybakina
+2025-2092-6,2025-10-13,Ningbo,Hard,QF,Ekaterina Alexandrova,Mccartney Kessler,Ekaterina Alexandrova,1,0.6006102046370505,1,Ekaterina Alexandrova
+2025-2092-7,2025-10-13,Ningbo,Hard,QF,Lin Zhu,Diana Shnaider,Diana Shnaider,0,0.27464079558849336,0,Diana Shnaider
+2025-2092-2,2025-10-13,Ningbo,Hard,SF,Jasmine Paolini,Elena Rybakina,Elena Rybakina,0,0.544675894677639,1,Jasmine Paolini
+2025-2092-3,2025-10-13,Ningbo,Hard,SF,Ekaterina Alexandrova,Diana Shnaider,Ekaterina Alexandrova,1,0.631318852007389,1,Ekaterina Alexandrova
+2025-2092-1,2025-10-13,Ningbo,Hard,F,Ekaterina Alexandrova,Elena Rybakina,Elena Rybakina,0,0.4215296286344528,0,Elena Rybakina
+2025-405-16,2025-10-13,Tokyo,Hard,R32,Maria Sakkari,Leylah Fernandez,Leylah Fernandez,0,0.47117235384881495,0,Leylah Fernandez
+2025-405-17,2025-10-13,Tokyo,Hard,R32,Katie Boulter,Eva Lys,Eva Lys,0,0.3437177049517631,0,Eva Lys
+2025-405-18,2025-10-13,Tokyo,Hard,R32,Bianca Andreescu,Victoria Mboko,Victoria Mboko,0,0.42507188518345357,0,Victoria Mboko
+2025-405-19,2025-10-13,Tokyo,Hard,R32,Cristina Bucsa,Mccartney Kessler,Mccartney Kessler,0,0.3217894074618816,0,Mccartney Kessler
+2025-405-20,2025-10-13,Tokyo,Hard,R32,Anna Kalinskaya,Suzan Lamens,Anna Kalinskaya,1,0.690489806652069,1,Anna Kalinskaya
+2025-405-21,2025-10-13,Tokyo,Hard,R32,Dayana Yastremska,Diana Shnaider,Diana Shnaider,0,0.42020560657978057,0,Diana Shnaider
+2025-405-22,2025-10-13,Tokyo,Hard,R32,Sofia Kenin,Moyuka Uchijima,Sofia Kenin,1,0.606731322735548,1,Sofia Kenin
+2025-405-23,2025-10-13,Tokyo,Hard,R32,Nikola Bartunkova,Wakana Sonobe,Wakana Sonobe,0,0.4801812453866005,0,Wakana Sonobe
+2025-405-24,2025-10-13,Tokyo,Hard,R32,Jaqueline Cristian,Alina Charaeva,Jaqueline Cristian,1,0.7107625371217727,1,Jaqueline Cristian
+2025-405-25,2025-10-13,Tokyo,Hard,R32,Karolina Muchova,Marketa Vondrousova,Karolina Muchova,1,0.5200328172594308,1,Karolina Muchova
+2025-405-26,2025-10-13,Tokyo,Hard,R32,Viktorija Golubic,Maya Joint,Maya Joint,0,0.2874577865302562,0,Maya Joint
+2025-405-27,2025-10-13,Tokyo,Hard,R32,Xin Yu Wang,Varvara Gracheva,Varvara Gracheva,0,0.45825133103132243,0,Varvara Gracheva
+2025-405-8,2025-10-13,Tokyo,Hard,R16,Elena Rybakina,Leylah Fernandez,Elena Rybakina,1,0.7003744626045227,1,Elena Rybakina
+2025-405-9,2025-10-13,Tokyo,Hard,R16,Eva Lys,Victoria Mboko,Victoria Mboko,0,0.5573542356491089,1,Eva Lys
+2025-405-10,2025-10-13,Tokyo,Hard,R16,Mccartney Kessler,Linda Noskova,Linda Noskova,0,0.377586126178503,0,Linda Noskova
+2025-405-11,2025-10-13,Tokyo,Hard,R16,Anna Kalinskaya,Diana Shnaider,Anna Kalinskaya,1,0.49335393339395517,0,Diana Shnaider
+2025-405-12,2025-10-13,Tokyo,Hard,R16,Sofia Kenin,Wakana Sonobe,Sofia Kenin,1,0.6813070386648178,1,Sofia Kenin
+2025-405-13,2025-10-13,Tokyo,Hard,R16,Ekaterina Alexandrova,Jaqueline Cristian,Ekaterina Alexandrova,1,0.6607151934504508,1,Ekaterina Alexandrova
+2025-405-14,2025-10-13,Tokyo,Hard,R16,Karolina Muchova,Maya Joint,Karolina Muchova,1,0.6612040972709655,1,Karolina Muchova
+2025-405-15,2025-10-13,Tokyo,Hard,R16,Belinda Bencic,Varvara Gracheva,Belinda Bencic,1,0.622039371728897,1,Belinda Bencic
+2025-405-4,2025-10-13,Tokyo,Hard,QF,Elena Rybakina,Victoria Mboko,Elena Rybakina,1,0.6140353173017502,1,Elena Rybakina
+2025-405-5,2025-10-13,Tokyo,Hard,QF,Anna Kalinskaya,Linda Noskova,Linda Noskova,0,0.35396925553679465,0,Linda Noskova
+2025-405-6,2025-10-13,Tokyo,Hard,QF,Ekaterina Alexandrova,Sofia Kenin,Sofia Kenin,0,0.6949390146136284,1,Ekaterina Alexandrova
+2025-405-7,2025-10-13,Tokyo,Hard,QF,Belinda Bencic,Karolina Muchova,Belinda Bencic,1,0.4142203542590141,0,Karolina Muchova
+2025-405-2,2025-10-13,Tokyo,Hard,SF,Elena Rybakina,Linda Noskova,Linda Noskova,0,0.605658466219902,1,Elena Rybakina
+2025-405-3,2025-10-13,Tokyo,Hard,SF,Belinda Bencic,Sofia Kenin,Belinda Bencic,1,0.6208822104334831,1,Belinda Bencic
+2025-405-1,2025-10-13,Tokyo,Hard,F,Belinda Bencic,Linda Noskova,Belinda Bencic,1,0.4315879759192467,0,Linda Noskova
+2025-1023-16,2025-10-20,Guangzhou,Hard,R32,Ann Li,Victoria Jimenez Kasintseva,Ann Li,1,0.7134159764051438,1,Ann Li
+2025-1023-17,2025-10-20,Guangzhou,Hard,R32,Lucia Bronzetti,Camila Osorio,Camila Osorio,0,0.42683601441979413,0,Camila Osorio
+2025-1023-18,2025-10-20,Guangzhou,Hard,R32,Diane Parry,Elisabetta Cocciaretto,Elisabetta Cocciaretto,0,0.5998053775131702,1,Diane Parry
+2025-1023-19,2025-10-20,Guangzhou,Hard,R32,Francesca Jones,Xiyu Wang,Xiyu Wang,0,0.3350787625610828,0,Xiyu Wang
+2025-1023-20,2025-10-20,Guangzhou,Hard,R32,Tatjana Maria,Veronika Erjavec,Veronika Erjavec,0,0.6017764604389667,1,Tatjana Maria
+2025-1023-21,2025-10-20,Guangzhou,Hard,R32,Shuai Zhang,Anastasia Zakharova,Shuai Zhang,1,0.6693433939516544,1,Shuai Zhang
+2025-1023-22,2025-10-20,Guangzhou,Hard,R32,Katarzyna Kawa,Katie Volynets,Katie Volynets,0,0.43560240329802036,0,Katie Volynets
+2025-1023-23,2025-10-20,Guangzhou,Hard,R32,Polina Kudermetova,Tiantsoa Sarah Rakotomanga Rajaonah,Tiantsoa Sarah Rakotomanga Rajaonah,0,0.6179205274581909,1,Polina Kudermetova
+2025-1023-24,2025-10-20,Guangzhou,Hard,R32,Yulia Putintseva,Alina Korneeva,Yulia Putintseva,1,0.6523778798878193,1,Yulia Putintseva
+2025-1023-25,2025-10-20,Guangzhou,Hard,R32,Leolia Jeanjean,Ella Seidel,Ella Seidel,0,0.22600757153332232,0,Ella Seidel
+2025-1023-26,2025-10-20,Guangzhou,Hard,R32,Anna Bondar,Hanyu Guo,Anna Bondar,1,0.5020427415370942,1,Anna Bondar
+2025-1023-27,2025-10-20,Guangzhou,Hard,R32,Claire Liu,Alexandra Eala,Claire Liu,1,0.45345404238998893,0,Alexandra Eala
+2025-1023-28,2025-10-20,Guangzhou,Hard,R32,Ajla Tomljanovic,Alycia Parks,Ajla Tomljanovic,1,0.6043130844533443,1,Ajla Tomljanovic
+2025-1023-29,2025-10-20,Guangzhou,Hard,R32,Kaja Juvan,Caty Mcnally,Caty Mcnally,0,0.44448232382535935,0,Caty Mcnally
+2025-1023-30,2025-10-20,Guangzhou,Hard,R32,Yafan Wang,Kamilla Rakhimova,Yafan Wang,1,0.44040707190334794,0,Kamilla Rakhimova
+2025-1023-31,2025-10-20,Guangzhou,Hard,R32,Lulu Sun,Jessica Bouzas Maneiro,Lulu Sun,1,0.2926058315932751,0,Jessica Bouzas Maneiro
+2025-1023-8,2025-10-20,Guangzhou,Hard,R16,Camila Osorio,Ann Li,Ann Li,0,0.5115276263654231,1,Camila Osorio
+2025-1023-9,2025-10-20,Guangzhou,Hard,R16,Xiyu Wang,Elisabetta Cocciaretto,Elisabetta Cocciaretto,0,0.5499228784441947,1,Xiyu Wang
+2025-1023-10,2025-10-20,Guangzhou,Hard,R16,Shuai Zhang,Veronika Erjavec,Shuai Zhang,1,0.7478875392675399,1,Shuai Zhang
+2025-1023-11,2025-10-20,Guangzhou,Hard,R16,Katie Volynets,Tiantsoa Sarah Rakotomanga Rajaonah,Katie Volynets,1,0.5013785761594772,1,Katie Volynets
+2025-1023-12,2025-10-20,Guangzhou,Hard,R16,Yulia Putintseva,Ella Seidel,Ella Seidel,0,0.5533717736601829,1,Yulia Putintseva
+2025-1023-13,2025-10-20,Guangzhou,Hard,R16,Anna Bondar,Claire Liu,Claire Liu,0,0.4016910022497177,0,Claire Liu
+2025-1023-14,2025-10-20,Guangzhou,Hard,R16,Ajla Tomljanovic,Caty Mcnally,Caty Mcnally,0,0.5904804754257202,1,Ajla Tomljanovic
+2025-1023-15,2025-10-20,Guangzhou,Hard,R16,Yafan Wang,Lulu Sun,Lulu Sun,0,0.4198983231186867,0,Lulu Sun
+2025-1023-4,2025-10-20,Guangzhou,Hard,QF,Ann Li,Elisabetta Cocciaretto,Ann Li,1,0.628456201851368,1,Ann Li
+2025-1023-5,2025-10-20,Guangzhou,Hard,QF,Shuai Zhang,Katie Volynets,Shuai Zhang,1,0.6295964917540551,1,Shuai Zhang
+2025-1023-6,2025-10-20,Guangzhou,Hard,QF,Claire Liu,Ella Seidel,Claire Liu,1,0.4273944741487503,0,Ella Seidel
+2025-1023-7,2025-10-20,Guangzhou,Hard,QF,Lulu Sun,Caty Mcnally,Lulu Sun,1,0.46639674857258795,0,Caty Mcnally
+2025-1023-2,2025-10-20,Guangzhou,Hard,SF,Shuai Zhang,Ann Li,Ann Li,0,0.5759010654687882,1,Shuai Zhang
+2025-1023-3,2025-10-20,Guangzhou,Hard,SF,Claire Liu,Lulu Sun,Lulu Sun,0,0.421497760117054,0,Lulu Sun
+2025-1023-1,2025-10-20,Guangzhou,Hard,F,Lulu Sun,Ann Li,Ann Li,0,0.4338375850021839,0,Ann Li
+2025-1074-16,2025-10-20,Hong Kong,Hard,R32,Xiyu Wang,Leylah Fernandez,Leylah Fernandez,0,0.24323580149561164,0,Leylah Fernandez
+2025-1074-17,2025-10-20,Hong Kong,Hard,R32,Eva Lys,Kristiana Sidorova,Eva Lys,1,0.7391447311341761,1,Eva Lys
+2025-1074-18,2025-10-20,Hong Kong,Hard,R32,Ajla Tomljanovic,Momoko Kobori,Ajla Tomljanovic,1,0.6576223969459534,1,Ajla Tomljanovic
+2025-1074-19,2025-10-20,Hong Kong,Hard,R32,Sorana Cirstea,Dalma Galfi,Sorana Cirstea,1,0.7323843084573745,1,Sorana Cirstea
+2025-1074-20,2025-10-20,Hong Kong,Hard,R32,Talia Gibson,Victoria Mboko,Victoria Mboko,0,0.14479953029751774,0,Victoria Mboko
+2025-1074-21,2025-10-20,Hong Kong,Hard,R32,Katie Boulter,Alexandra Eala,Alexandra Eala,0,0.5983831624686717,1,Katie Boulter
+2025-1074-22,2025-10-20,Hong Kong,Hard,R32,Shuai Zhang,Veronika Erjavec,Shuai Zhang,1,0.7648636323213578,1,Shuai Zhang
+2025-1074-23,2025-10-20,Hong Kong,Hard,R32,Anna Kalinskaya,Kamilla Rakhimova,Anna Kalinskaya,1,0.729580560296774,1,Anna Kalinskaya
+2025-1074-24,2025-10-20,Hong Kong,Hard,R32,Anastasija Sevastova,Maya Joint,Maya Joint,0,0.38481324730813504,0,Maya Joint
+2025-1074-25,2025-10-20,Hong Kong,Hard,R32,Viktoria Morvayova,Hong Yi Cody Wong,Viktoria Morvayova,1,0.649074836909771,1,Viktoria Morvayova
+2025-1074-26,2025-10-20,Hong Kong,Hard,R32,Eudice Wong Chong,Suzan Lamens,Eudice Wong Chong,1,0.13069867359101772,0,Suzan Lamens
+2025-1074-27,2025-10-20,Hong Kong,Hard,R32,Sofia Kenin,Himeno Sakatsume,Himeno Sakatsume,0,0.7823558921217918,1,Sofia Kenin
+2025-1074-28,2025-10-20,Hong Kong,Hard,R32,Emiliana Arango,Moyuka Uchijima,Emiliana Arango,1,0.5130769493579865,1,Emiliana Arango
+2025-1074-29,2025-10-20,Hong Kong,Hard,R32,Cristina Bucsa,Ye Xin Ma,Cristina Bucsa,1,0.628528650790453,1,Cristina Bucsa
+2025-1074-30,2025-10-20,Hong Kong,Hard,R32,Yafan Wang,Maddison Inglis,Yafan Wang,1,0.5661224880516529,1,Yafan Wang
+2025-1074-31,2025-10-20,Hong Kong,Hard,R32,Belinda Bencic,Aliaksandra Sasnovich,Belinda Bencic,1,0.812855775564909,1,Belinda Bencic
+2025-1074-8,2025-10-20,Hong Kong,Hard,R16,Eva Lys,Leylah Fernandez,Leylah Fernandez,0,0.431066093146801,0,Leylah Fernandez
+2025-1074-9,2025-10-20,Hong Kong,Hard,R16,Sorana Cirstea,Ajla Tomljanovic,Sorana Cirstea,1,0.5938133040070533,1,Sorana Cirstea
+2025-1074-10,2025-10-20,Hong Kong,Hard,R16,Alexandra Eala,Victoria Mboko,Victoria Mboko,0,0.20276889681816102,0,Victoria Mboko
+2025-1074-11,2025-10-20,Hong Kong,Hard,R16,Shuai Zhang,Anna Kalinskaya,Anna Kalinskaya,0,0.35587853923439977,0,Anna Kalinskaya
+2025-1074-12,2025-10-20,Hong Kong,Hard,R16,Viktoria Morvayova,Maya Joint,Maya Joint,0,0.18055542685091497,0,Maya Joint
+2025-1074-13,2025-10-20,Hong Kong,Hard,R16,Eudice Wong Chong,Himeno Sakatsume,Himeno Sakatsume,0,0.3640315932035446,0,Himeno Sakatsume
+2025-1074-14,2025-10-20,Hong Kong,Hard,R16,Cristina Bucsa,Emiliana Arango,Cristina Bucsa,1,0.5411033007502556,1,Cristina Bucsa
+2025-1074-15,2025-10-20,Hong Kong,Hard,R16,Belinda Bencic,Yafan Wang,Belinda Bencic,1,0.8553242847323417,1,Belinda Bencic
+2025-1074-4,2025-10-20,Hong Kong,Hard,QF,Sorana Cirstea,Leylah Fernandez,Leylah Fernandez,0,0.4357934108376502,0,Leylah Fernandez
+2025-1074-5,2025-10-20,Hong Kong,Hard,QF,Anna Kalinskaya,Victoria Mboko,Victoria Mboko,0,0.4673136882483959,0,Victoria Mboko
+2025-1074-6,2025-10-20,Hong Kong,Hard,QF,Himeno Sakatsume,Maya Joint,Maya Joint,0,0.20072577662765978,0,Maya Joint
+2025-1074-7,2025-10-20,Hong Kong,Hard,QF,Belinda Bencic,Cristina Bucsa,Cristina Bucsa,0,0.8240687412023544,1,Belinda Bencic
+2025-1074-2,2025-10-20,Hong Kong,Hard,SF,Leylah Fernandez,Victoria Mboko,Victoria Mboko,0,0.4819220381975174,0,Victoria Mboko
+2025-1074-3,2025-10-20,Hong Kong,Hard,SF,Cristina Bucsa,Maya Joint,Cristina Bucsa,1,0.42397673666477204,0,Maya Joint
+2025-1074-1,2025-10-20,Hong Kong,Hard,F,Cristina Bucsa,Victoria Mboko,Victoria Mboko,0,0.2794367648661137,0,Victoria Mboko
+2025-1056-16,2025-10-20,Pan Pacific Open,Hard,R32,Katie Boulter,Linda Noskova,Katie Boulter,1,0.23167606072127817,0,Linda Noskova
+2025-1056-17,2025-10-20,Pan Pacific Open,Hard,R32,Sorana Cirstea,Moyuka Uchijima,Sorana Cirstea,1,0.6593399915993212,1,Sorana Cirstea
+2025-1056-18,2025-10-20,Pan Pacific Open,Hard,R32,Viktorija Golubic,Bianca Andreescu,Viktorija Golubic,1,0.4248099920004606,0,Bianca Andreescu
+2025-1056-19,2025-10-20,Pan Pacific Open,Hard,R32,Marie Bouzkova,Ena Shibahara,Marie Bouzkova,1,0.6724297439157962,1,Marie Bouzkova
+2025-1056-20,2025-10-20,Pan Pacific Open,Hard,R32,Leylah Fernandez,Hailey Baptiste,Leylah Fernandez,1,0.6275272200405597,1,Leylah Fernandez
+2025-1056-21,2025-10-20,Pan Pacific Open,Hard,R32,Dalma Galfi,Alycia Parks,Dalma Galfi,1,0.47833514389395715,0,Alycia Parks
+2025-1056-22,2025-10-20,Pan Pacific Open,Hard,R32,Rebecca Sramkova,Joanna Garland,Rebecca Sramkova,1,0.6660016525387763,1,Rebecca Sramkova
+2025-1056-23,2025-10-20,Pan Pacific Open,Hard,R32,Ann Li,Varvara Gracheva,Ann Li,1,0.5556629392206669,1,Ann Li
+2025-1056-24,2025-10-20,Pan Pacific Open,Hard,R32,Nao Hibino,Olga Danilovic,Olga Danilovic,0,0.2539690123647451,0,Olga Danilovic
+2025-1056-25,2025-10-20,Pan Pacific Open,Hard,R32,Maria Sakkari,Ashlyn Krueger,Ashlyn Krueger,0,0.5398533458709717,1,Maria Sakkari
+2025-1056-26,2025-10-20,Pan Pacific Open,Hard,R32,Alexandra Eala,Tereza Valentova,Tereza Valentova,0,0.5835024839043617,1,Alexandra Eala
+2025-1056-27,2025-10-20,Pan Pacific Open,Hard,R32,Elise Mertens,Cristina Bucsa,Elise Mertens,1,0.5892843818366527,1,Elise Mertens
+2025-1056-28,2025-10-20,Pan Pacific Open,Hard,R32,Katie Volynets,Jessica Bouzas Maneiro,Jessica Bouzas Maneiro,0,0.33003722013533116,0,Jessica Bouzas Maneiro
+2025-1056-29,2025-10-20,Pan Pacific Open,Hard,R32,Jaqueline Cristian,Elisabetta Cocciaretto,Jaqueline Cristian,1,0.5789785814881325,1,Jaqueline Cristian
+2025-1056-30,2025-10-20,Pan Pacific Open,Hard,R32,Emiliana Arango,Suzan Lamens,Suzan Lamens,0,0.5563822141289712,1,Emiliana Arango
+2025-1056-31,2025-10-20,Pan Pacific Open,Hard,R32,Naomi Osaka,Wakana Sonobe,Naomi Osaka,1,0.8210606669485568,1,Naomi Osaka
+2025-1056-8,2025-10-20,Pan Pacific Open,Hard,R16,Sorana Cirstea,Katie Boulter,Sorana Cirstea,1,0.5991958147287368,1,Sorana Cirstea
+2025-1056-9,2025-10-20,Pan Pacific Open,Hard,R16,Viktorija Golubic,Marie Bouzkova,Viktorija Golubic,1,0.23705821938812732,0,Marie Bouzkova
+2025-1056-10,2025-10-20,Pan Pacific Open,Hard,R16,Dalma Galfi,Leylah Fernandez,Leylah Fernandez,0,0.2661995031684637,0,Leylah Fernandez
+2025-1056-11,2025-10-20,Pan Pacific Open,Hard,R16,Rebecca Sramkova,Ann Li,Rebecca Sramkova,1,0.38000471442937844,0,Ann Li
+2025-1056-12,2025-10-20,Pan Pacific Open,Hard,R16,Olga Danilovic,Ashlyn Krueger,Olga Danilovic,1,0.3865029254555702,0,Ashlyn Krueger
+2025-1056-13,2025-10-20,Pan Pacific Open,Hard,R16,Elise Mertens,Tereza Valentova,Tereza Valentova,0,0.5937945702672005,1,Elise Mertens
+2025-1056-14,2025-10-20,Pan Pacific Open,Hard,R16,Jaqueline Cristian,Jessica Bouzas Maneiro,Jaqueline Cristian,1,0.5363358584046364,1,Jaqueline Cristian
+2025-1056-15,2025-10-20,Pan Pacific Open,Hard,R16,Naomi Osaka,Suzan Lamens,Naomi Osaka,1,0.8027844250202179,1,Naomi Osaka
+2025-1056-4,2025-10-20,Pan Pacific Open,Hard,QF,Sorana Cirstea,Viktorija Golubic,Sorana Cirstea,1,0.6302727150917053,1,Sorana Cirstea
+2025-1056-5,2025-10-20,Pan Pacific Open,Hard,QF,Rebecca Sramkova,Leylah Fernandez,Leylah Fernandez,0,0.32135418221354484,0,Leylah Fernandez
+2025-1056-6,2025-10-20,Pan Pacific Open,Hard,QF,Olga Danilovic,Tereza Valentova,Tereza Valentova,0,0.5527874563634396,1,Olga Danilovic
+2025-1056-7,2025-10-20,Pan Pacific Open,Hard,QF,Jaqueline Cristian,Naomi Osaka,Jaqueline Cristian,1,0.2832489973306656,0,Naomi Osaka
+2025-1056-2,2025-10-20,Pan Pacific Open,Hard,SF,Sorana Cirstea,Leylah Fernandez,Leylah Fernandez,0,0.38315638691186904,0,Leylah Fernandez
+2025-1056-3,2025-10-20,Pan Pacific Open,Hard,SF,Jaqueline Cristian,Tereza Valentova,Tereza Valentova,0,0.6429390099644661,1,Jaqueline Cristian
+2025-1056-1,2025-10-20,Pan Pacific Open,Hard,F,Leylah Fernandez,Tereza Valentova,Leylah Fernandez,1,0.6878903850913047,1,Leylah Fernandez
+2025-8998-16,2025-10-27,Chennai,Hard,R32,Mei Yamaguchi,Francesca Jones,Mei Yamaguchi,1,0.4594729917347431,0,Francesca Jones
+2025-8998-17,2025-10-27,Chennai,Hard,R32,Arianne Hartono,Joanna Garland,Joanna Garland,0,0.46640060579776765,0,Joanna Garland
+2025-8998-18,2025-10-27,Chennai,Hard,R32,Storm Hunter,Mai Hontama,Storm Hunter,1,0.6432174239456654,1,Storm Hunter
+2025-8998-19,2025-10-27,Chennai,Hard,R32,Arina Rodionova,Nina Stojanovic,Arina Rodionova,1,0.40906467558443543,0,Nina Stojanovic
+2025-8998-20,2025-10-27,Chennai,Hard,R32,Donna Vekic,Vaishnavi Adkar,Donna Vekic,1,0.7152669282555579,1,Donna Vekic
+2025-8998-21,2025-10-27,Chennai,Hard,R32,Priska Madelyn Nugroho,Sahaja Yamalapalli,Sahaja Yamalapalli,0,0.633031958937645,1,Priska Madelyn Nugroho
+2025-8998-22,2025-10-27,Chennai,Hard,R32,Shrivalli Rashmikaa Bhamidipaty,Maaya Rajeshwaran Revathi,Shrivalli Rashmikaa Bhamidipaty,1,0.6316136374771595,1,Shrivalli Rashmikaa Bhamidipaty
+2025-8998-23,2025-10-27,Chennai,Hard,R32,Kimberly Birrell,Nikola Bartunkova,Kimberly Birrell,1,0.6547818863391877,1,Kimberly Birrell
+2025-8998-24,2025-10-27,Chennai,Hard,R32,Diane Parry,Thasaporn Naklo,Diane Parry,1,0.7290068829357623,1,Diane Parry
+2025-8998-25,2025-10-27,Chennai,Hard,R32,Nao Hibino,Mia Pohankova,Mia Pohankova,0,0.6350106343030929,1,Nao Hibino
+2025-8998-26,2025-10-27,Chennai,Hard,R32,Linda Fruhvirtova,Astrid Lew Yan Foon,Linda Fruhvirtova,1,0.622159725189209,1,Linda Fruhvirtova
+2025-8998-27,2025-10-27,Chennai,Hard,R32,Caroline Uebelhoer,Janice Tjen,Janice Tjen,0,0.5759714656770228,1,Caroline Uebelhoer
+2025-8998-28,2025-10-27,Chennai,Hard,R32,Katarzyna Kawa,Lucia Bronzetti,Katarzyna Kawa,1,0.3371888319253921,0,Lucia Bronzetti
+2025-8998-29,2025-10-27,Chennai,Hard,R32,Alina Charaeva,Polina Iatcenko,Polina Iatcenko,0,0.6428930568099023,1,Alina Charaeva
+2025-8998-30,2025-10-27,Chennai,Hard,R32,Maria Timofeeva,Lanlana Tararudee,Lanlana Tararudee,0,0.6211149961352348,1,Maria Timofeeva
+2025-8998-31,2025-10-27,Chennai,Hard,R32,Zeynep Sonmez,Tatiana Prozorova,Zeynep Sonmez,1,0.7042507654726505,1,Zeynep Sonmez
+2025-8998-8,2025-10-27,Chennai,Hard,R16,Mei Yamaguchi,Joanna Garland,Joanna Garland,0,0.5658200874924659,1,Mei Yamaguchi
+2025-8998-9,2025-10-27,Chennai,Hard,R16,Arina Rodionova,Storm Hunter,Arina Rodionova,1,0.3374708211421966,0,Storm Hunter
+2025-8998-10,2025-10-27,Chennai,Hard,R16,Donna Vekic,Sahaja Yamalapalli,Donna Vekic,1,0.7992863461375236,1,Donna Vekic
+2025-8998-11,2025-10-27,Chennai,Hard,R16,Kimberly Birrell,Shrivalli Rashmikaa Bhamidipaty,Kimberly Birrell,1,0.7334945958852768,1,Kimberly Birrell
+2025-8998-12,2025-10-27,Chennai,Hard,R16,Diane Parry,Mia Pohankova,Mia Pohankova,0,0.7957515928149222,1,Diane Parry
+2025-8998-13,2025-10-27,Chennai,Hard,R16,Janice Tjen,Linda Fruhvirtova,Janice Tjen,1,0.38003941997885704,0,Linda Fruhvirtova
+2025-8998-14,2025-10-27,Chennai,Hard,R16,Katarzyna Kawa,Polina Iatcenko,Polina Iatcenko,0,0.6446993571519851,1,Katarzyna Kawa
+2025-8998-15,2025-10-27,Chennai,Hard,R16,Zeynep Sonmez,Lanlana Tararudee,Lanlana Tararudee,0,0.6669190171360969,1,Zeynep Sonmez
+2025-8998-4,2025-10-27,Chennai,Hard,QF,Arina Rodionova,Joanna Garland,Joanna Garland,0,0.4805613455176353,0,Joanna Garland
+2025-8998-5,2025-10-27,Chennai,Hard,QF,Donna Vekic,Kimberly Birrell,Kimberly Birrell,0,0.6180117639899254,1,Donna Vekic
+2025-8998-6,2025-10-27,Chennai,Hard,QF,Janice Tjen,Mia Pohankova,Janice Tjen,1,0.6704617741703986,1,Janice Tjen
+2025-8998-7,2025-10-27,Chennai,Hard,QF,Lanlana Tararudee,Polina Iatcenko,Lanlana Tararudee,1,0.6618776294589043,1,Lanlana Tararudee
+2025-8998-2,2025-10-27,Chennai,Hard,SF,Kimberly Birrell,Joanna Garland,Kimberly Birrell,1,0.6557349863648414,1,Kimberly Birrell
+2025-8998-3,2025-10-27,Chennai,Hard,SF,Janice Tjen,Lanlana Tararudee,Janice Tjen,1,0.4118436531722545,0,Lanlana Tararudee
+2025-8998-1,2025-10-27,Chennai,Hard,F,Kimberly Birrell,Janice Tjen,Janice Tjen,0,0.4939128339290619,0,Janice Tjen
+2025-1077-16,2025-10-27,Jiujiang,Hard,R32,Viktorija Golubic,Rina Saigo,Viktorija Golubic,1,0.726935951948166,1,Viktorija Golubic
+2025-1077-17,2025-10-27,Jiujiang,Hard,R32,Yue Yuan,Elena Pridankina,Elena Pridankina,0,0.7739018532037735,1,Yue Yuan
+2025-1077-18,2025-10-27,Jiujiang,Hard,R32,Wushuang Zheng,Yuliia Starodubtseva,Wushuang Zheng,1,0.1721676703542471,0,Yuliia Starodubtseva
+2025-1077-19,2025-10-27,Jiujiang,Hard,R32,Yulia Putintseva,Victoria Jimenez Kasintseva,Yulia Putintseva,1,0.6682200766205788,1,Yulia Putintseva
+2025-1077-20,2025-10-27,Jiujiang,Hard,R32,Tamara Korpatsch,Polina Kudermetova,Tamara Korpatsch,1,0.33876348164677617,0,Polina Kudermetova
+2025-1077-21,2025-10-27,Jiujiang,Hard,R32,Ella Seidel,Tiantsoa Sarah Rakotomanga Rajaonah,Ella Seidel,1,0.6700612788498401,1,Ella Seidel
+2025-1077-22,2025-10-27,Jiujiang,Hard,R32,Lilli Tagger,Chenting Zhu,Lilli Tagger,1,0.6297752488553523,1,Lilli Tagger
+2025-1077-23,2025-10-27,Jiujiang,Hard,R32,Camila Osorio,Elisabetta Cocciaretto,Elisabetta Cocciaretto,0,0.5273168933987618,1,Camila Osorio
+2025-1077-24,2025-10-27,Jiujiang,Hard,R32,Anna Bondar,Sijia Wei,Anna Bondar,1,0.5948372413218022,1,Anna Bondar
+2025-1077-25,2025-10-27,Jiujiang,Hard,R32,Chloe Paquet,Anna Blinkova,Anna Blinkova,0,0.20370710788667198,0,Anna Blinkova
+2025-1077-26,2025-10-27,Jiujiang,Hard,R32,Claire Liu,Kaja Juvan,Kaja Juvan,0,0.6090895886421204,1,Claire Liu
+2025-1077-27,2025-10-27,Jiujiang,Hard,R32,Lin Zhu,Alycia Parks,Alycia Parks,0,0.595914867401123,1,Lin Zhu
+2025-1077-28,2025-10-27,Jiujiang,Hard,R32,Ena Shibahara,Anastasia Zakharova,Anastasia Zakharova,0,0.5023900777548551,1,Ena Shibahara
+2025-1077-29,2025-10-27,Jiujiang,Hard,R32,Aliona Falei,Dominika Salkova,Dominika Salkova,0,0.32148133289068936,0,Dominika Salkova
+2025-1077-30,2025-10-27,Jiujiang,Hard,R32,Hanyu Guo,Alina Korneeva,Hanyu Guo,1,0.5089900597333908,1,Hanyu Guo
+2025-1077-31,2025-10-27,Jiujiang,Hard,R32,Ann Li,Zhuoxuan Bai,Zhuoxuan Bai,0,0.8714775357246398,1,Ann Li
+2025-1077-8,2025-10-27,Jiujiang,Hard,R16,Viktorija Golubic,Elena Pridankina,Viktorija Golubic,1,0.7398585227131844,1,Viktorija Golubic
+2025-1077-9,2025-10-27,Jiujiang,Hard,R16,Yulia Putintseva,Wushuang Zheng,Yulia Putintseva,1,0.7967784452438355,1,Yulia Putintseva
+2025-1077-10,2025-10-27,Jiujiang,Hard,R16,Tamara Korpatsch,Ella Seidel,Tamara Korpatsch,1,0.31266847595572467,0,Ella Seidel
+2025-1077-11,2025-10-27,Jiujiang,Hard,R16,Elisabetta Cocciaretto,Lilli Tagger,Lilli Tagger,0,0.7713554415106774,1,Elisabetta Cocciaretto
+2025-1077-12,2025-10-27,Jiujiang,Hard,R16,Anna Bondar,Anna Blinkova,Anna Blinkova,0,0.3525692568719387,0,Anna Blinkova
+2025-1077-13,2025-10-27,Jiujiang,Hard,R16,Kaja Juvan,Alycia Parks,Alycia Parks,0,0.4173799230158329,0,Alycia Parks
+2025-1077-14,2025-10-27,Jiujiang,Hard,R16,Anastasia Zakharova,Dominika Salkova,Dominika Salkova,0,0.5499210438132287,1,Anastasia Zakharova
+2025-1077-15,2025-10-27,Jiujiang,Hard,R16,Hanyu Guo,Zhuoxuan Bai,Zhuoxuan Bai,0,0.5678473523259162,1,Hanyu Guo
+2025-1077-4,2025-10-27,Jiujiang,Hard,QF,Yulia Putintseva,Viktorija Golubic,Viktorija Golubic,0,0.5538288021087646,1,Yulia Putintseva
+2025-1077-5,2025-10-27,Jiujiang,Hard,QF,Tamara Korpatsch,Lilli Tagger,Lilli Tagger,0,0.6041039663553238,1,Tamara Korpatsch
+2025-1077-6,2025-10-27,Jiujiang,Hard,QF,Anna Blinkova,Alycia Parks,Anna Blinkova,1,0.5047121886909007,1,Anna Blinkova
+2025-1077-7,2025-10-27,Jiujiang,Hard,QF,Zhuoxuan Bai,Dominika Salkova,Dominika Salkova,0,0.38837614968419076,0,Dominika Salkova
+2025-1077-2,2025-10-27,Jiujiang,Hard,SF,Viktorija Golubic,Lilli Tagger,Lilli Tagger,0,0.7501949593424797,1,Viktorija Golubic
+2025-1077-3,2025-10-27,Jiujiang,Hard,SF,Anna Blinkova,Dominika Salkova,Anna Blinkova,1,0.6555729988217354,1,Anna Blinkova
+2025-1077-1,2025-10-27,Jiujiang,Hard,F,Anna Blinkova,Lilli Tagger,Anna Blinkova,1,0.6930868336558342,1,Anna Blinkova
+2025-808-289,2025-11-01,Riyadh Finals,Hard,RR,Ekaterina Alexandrova,Elena Rybakina,Elena Rybakina,0,0.31005909144878385,0,Elena Rybakina
+2025-808-290,2025-11-01,Riyadh Finals,Hard,RR,Amanda Anisimova,Iga Swiatek,Amanda Anisimova,1,0.38947811424732204,0,Iga Swiatek
+2025-808-291,2025-11-01,Riyadh Finals,Hard,RR,Jessica Pegula,Jasmine Paolini,Jessica Pegula,1,0.5966867327690124,1,Jessica Pegula
+2025-808-292,2025-11-01,Riyadh Finals,Hard,RR,Aryna Sabalenka,Coco Gauff,Aryna Sabalenka,1,0.6086612343788147,1,Aryna Sabalenka
+2025-808-293,2025-11-01,Riyadh Finals,Hard,RR,Madison Keys,Amanda Anisimova,Amanda Anisimova,0,0.30192928910255434,0,Amanda Anisimova
+2025-808-294,2025-11-01,Riyadh Finals,Hard,RR,Elena Rybakina,Iga Swiatek,Elena Rybakina,1,0.450168827176094,0,Iga Swiatek
+2025-808-295,2025-11-01,Riyadh Finals,Hard,RR,Jasmine Paolini,Coco Gauff,Coco Gauff,0,0.3952339261770248,0,Coco Gauff
+2025-808-296,2025-11-01,Riyadh Finals,Hard,RR,Jessica Pegula,Aryna Sabalenka,Aryna Sabalenka,0,0.28570377826690674,0,Aryna Sabalenka
+2025-808-297,2025-11-01,Riyadh Finals,Hard,RR,Elena Rybakina,Amanda Anisimova,Elena Rybakina,1,0.533954381942749,1,Elena Rybakina
+2025-808-298,2025-11-01,Riyadh Finals,Hard,RR,Madison Keys,Iga Swiatek,Iga Swiatek,0,0.2767350316047668,0,Iga Swiatek
+2025-808-299,2025-11-01,Riyadh Finals,Hard,RR,Jessica Pegula,Coco Gauff,Jessica Pegula,1,0.4309203892946243,0,Coco Gauff
+2025-808-300,2025-11-01,Riyadh Finals,Hard,RR,Jasmine Paolini,Aryna Sabalenka,Aryna Sabalenka,0,0.2586318239569664,0,Aryna Sabalenka
+2025-808-287,2025-11-01,Riyadh Finals,Hard,SF,Jessica Pegula,Elena Rybakina,Elena Rybakina,0,0.4017372280359268,0,Elena Rybakina
+2025-808-288,2025-11-01,Riyadh Finals,Hard,SF,Aryna Sabalenka,Amanda Anisimova,Aryna Sabalenka,1,0.6804607450962067,1,Aryna Sabalenka
+2025-808-286,2025-11-01,Riyadh Finals,Hard,F,Aryna Sabalenka,Elena Rybakina,Elena Rybakina,0,0.6345506727695465,1,Aryna Sabalenka
+2026-800-32,2026-01-01,Brisbane,Hard,R64,Rebecca Sramkova,Kimberly Birrell,Kimberly Birrell,0,0.5952786120772362,1,Rebecca Sramkova
+2026-800-33,2026-01-01,Brisbane,Hard,R64,Yulia Putintseva,Hailey Baptiste,Yulia Putintseva,1,0.5567056781053543,1,Yulia Putintseva
+2026-800-34,2026-01-01,Brisbane,Hard,R64,Magdalena Frech,Marketa Vondrousova,Magdalena Frech,1,0.24636915668845175,0,Marketa Vondrousova
+2026-800-35,2026-01-01,Brisbane,Hard,R64,Ann Li,Olivia Gadecki,Olivia Gadecki,0,0.6193672242760657,1,Ann Li
+2026-800-36,2026-01-01,Brisbane,Hard,R64,Anna Kalinskaya,Tereza Valentova,Anna Kalinskaya,1,0.670067738890648,1,Anna Kalinskaya
+2026-800-37,2026-01-01,Brisbane,Hard,R64,Dayana Yastremska,Talia Gibson,Dayana Yastremska,1,0.657706712782383,1,Dayana Yastremska
+2026-800-38,2026-01-01,Brisbane,Hard,R64,Tatjana Maria,Emerson Jones,Emerson Jones,0,0.4796707764267921,0,Emerson Jones
+2026-800-39,2026-01-01,Brisbane,Hard,R64,Aliaksandra Sasnovich,Anna Blinkova,Aliaksandra Sasnovich,1,0.536528131365776,1,Aliaksandra Sasnovich
+2026-800-40,2026-01-01,Brisbane,Hard,R64,Elena Gabriela Ruse,Sofia Kenin,Sofia Kenin,0,0.4501692816615105,0,Sofia Kenin
+2026-800-41,2026-01-01,Brisbane,Hard,R64,Ajla Tomljanovic,Elsa Jacquemot,Ajla Tomljanovic,1,0.5940465366840362,1,Ajla Tomljanovic
+2026-800-42,2026-01-01,Brisbane,Hard,R64,Jaqueline Cristian,Marie Bouzkova,Marie Bouzkova,0,0.474277644008398,0,Marie Bouzkova
+2026-800-43,2026-01-01,Brisbane,Hard,R64,Shuai Zhang,Ashlyn Krueger,Shuai Zhang,1,0.4874423626065254,0,Ashlyn Krueger
+2026-800-44,2026-01-01,Brisbane,Hard,R64,Emiliana Arango,Mccartney Kessler,Mccartney Kessler,0,0.2978716368228197,0,Mccartney Kessler
+2026-800-45,2026-01-01,Brisbane,Hard,R64,Daria Kasatkina,Anastasia Potapova,Anastasia Potapova,0,0.5024673271179199,1,Daria Kasatkina
+2026-800-46,2026-01-01,Brisbane,Hard,R64,Anastasia Pavlyuchenkova,Sorana Cirstea,Sorana Cirstea,0,0.402115478515625,0,Sorana Cirstea
+2026-800-47,2026-01-01,Brisbane,Hard,R64,Cristina Bucsa,Anna Bondar,Cristina Bucsa,1,0.6238798281550406,1,Cristina Bucsa
+2026-800-16,2026-01-01,Brisbane,Hard,R32,Kimberly Birrell,Amanda Anisimova,Amanda Anisimova,0,0.19083822465315461,0,Amanda Anisimova
+2026-800-17,2026-01-01,Brisbane,Hard,R32,Yulia Putintseva,Marta Kostyuk,Marta Kostyuk,0,0.31780116313695905,0,Marta Kostyuk
+2026-800-18,2026-01-01,Brisbane,Hard,R32,Magdalena Frech,Linda Noskova,Linda Noskova,0,0.31006024649739267,0,Linda Noskova
+2026-800-19,2026-01-01,Brisbane,Hard,R32,Olivia Gadecki,Mirra Andreeva,Mirra Andreeva,0,0.28189551166445015,0,Mirra Andreeva
+2026-800-20,2026-01-01,Brisbane,Hard,R32,Jessica Pegula,Anna Kalinskaya,Jessica Pegula,1,0.585312956482172,1,Jessica Pegula
+2026-800-21,2026-01-01,Brisbane,Hard,R32,Dayana Yastremska,Leylah Fernandez,Dayana Yastremska,1,0.37365785394608975,0,Leylah Fernandez
+2026-800-22,2026-01-01,Brisbane,Hard,R32,Liudmila Samsonova,Emerson Jones,Liudmila Samsonova,1,0.655778962045908,1,Liudmila Samsonova
+2026-800-23,2026-01-01,Brisbane,Hard,R32,Aliaksandra Sasnovich,Clara Tauson,Aliaksandra Sasnovich,1,0.42500949625670914,0,Clara Tauson
+2026-800-24,2026-01-01,Brisbane,Hard,R32,Ekaterina Alexandrova,Sofia Kenin,Ekaterina Alexandrova,1,0.5811334199905396,1,Ekaterina Alexandrova
+2026-800-25,2026-01-01,Brisbane,Hard,R32,Ajla Tomljanovic,Karolina Muchova,Karolina Muchova,0,0.2745515588000417,0,Karolina Muchova
+2026-800-26,2026-01-01,Brisbane,Hard,R32,Paula Badosa,Marie Bouzkova,Paula Badosa,1,0.569306276500225,1,Paula Badosa
+2026-800-27,2026-01-01,Brisbane,Hard,R32,Shuai Zhang,Elena Rybakina,Elena Rybakina,0,0.11945203102380036,0,Elena Rybakina
+2026-800-28,2026-01-01,Brisbane,Hard,R32,Madison Keys,Mccartney Kessler,Madison Keys,1,0.5888667880296707,1,Madison Keys
+2026-800-29,2026-01-01,Brisbane,Hard,R32,Anastasia Potapova,Diana Shnaider,Diana Shnaider,0,0.554845767915249,1,Anastasia Potapova
+2026-800-30,2026-01-01,Brisbane,Hard,R32,Sorana Cirstea,Jelena Ostapenko,Sorana Cirstea,1,0.597150413453579,1,Sorana Cirstea
+2026-800-31,2026-01-01,Brisbane,Hard,R32,Cristina Bucsa,Aryna Sabalenka,Aryna Sabalenka,0,0.07276279377192259,0,Aryna Sabalenka
+2026-800-8,2026-01-01,Brisbane,Hard,R16,Marta Kostyuk,Amanda Anisimova,Marta Kostyuk,1,0.3232532554119825,0,Amanda Anisimova
+2026-800-9,2026-01-01,Brisbane,Hard,R16,Linda Noskova,Mirra Andreeva,Mirra Andreeva,0,0.5147327108681201,1,Linda Noskova
+2026-800-10,2026-01-01,Brisbane,Hard,R16,Jessica Pegula,Dayana Yastremska,Jessica Pegula,1,0.733563847541809,1,Jessica Pegula
+2026-800-11,2026-01-01,Brisbane,Hard,R16,Aliaksandra Sasnovich,Liudmila Samsonova,Liudmila Samsonova,0,0.4312829291820526,0,Liudmila Samsonova
+2026-800-12,2026-01-01,Brisbane,Hard,R16,Ekaterina Alexandrova,Karolina Muchova,Karolina Muchova,0,0.4528258329629898,0,Karolina Muchova
+2026-800-13,2026-01-01,Brisbane,Hard,R16,Paula Badosa,Elena Rybakina,Elena Rybakina,0,0.2700000555813312,0,Elena Rybakina
+2026-800-14,2026-01-01,Brisbane,Hard,R16,Madison Keys,Diana Shnaider,Madison Keys,1,0.668015577495098,1,Madison Keys
+2026-800-15,2026-01-01,Brisbane,Hard,R16,Sorana Cirstea,Aryna Sabalenka,Aryna Sabalenka,0,0.12731036674231289,0,Aryna Sabalenka
+2026-800-4,2026-01-01,Brisbane,Hard,QF,Marta Kostyuk,Mirra Andreeva,Marta Kostyuk,1,0.49742206871509553,0,Mirra Andreeva
+2026-800-5,2026-01-01,Brisbane,Hard,QF,Jessica Pegula,Liudmila Samsonova,Jessica Pegula,1,0.698340360224247,1,Jessica Pegula
+2026-800-6,2026-01-01,Brisbane,Hard,QF,Karolina Muchova,Elena Rybakina,Karolina Muchova,1,0.31619939431548116,0,Elena Rybakina
+2026-800-7,2026-01-01,Brisbane,Hard,QF,Madison Keys,Aryna Sabalenka,Aryna Sabalenka,0,0.25808023393154145,0,Aryna Sabalenka
+2026-800-2,2026-01-01,Brisbane,Hard,SF,Jessica Pegula,Marta Kostyuk,Marta Kostyuk,0,0.6516999715566635,1,Jessica Pegula
+2026-800-3,2026-01-01,Brisbane,Hard,SF,Karolina Muchova,Aryna Sabalenka,Aryna Sabalenka,0,0.292143429890275,0,Aryna Sabalenka
+2026-800-1,2026-01-01,Brisbane,Hard,F,Aryna Sabalenka,Marta Kostyuk,Aryna Sabalenka,1,0.7879828622937203,1,Aryna Sabalenka
+2026-1049-16,2026-01-05,Auckland,Hard,R32,Emma Navarro,Francesca Jones,Francesca Jones,0,0.7629010449647904,1,Emma Navarro
+2026-1049-17,2026-01-05,Auckland,Hard,R32,Julia Grabher,Sinja Kraus,Sinja Kraus,0,0.526377464056015,1,Julia Grabher
+2026-1049-18,2026-01-05,Auckland,Hard,R32,Sloane Stephens,Renata Zarazua,Renata Zarazua,0,0.43086983108520505,0,Renata Zarazua
+2026-1049-19,2026-01-05,Auckland,Hard,R32,Caty Mcnally,Xin Yu Wang,Xin Yu Wang,0,0.4712458204478025,0,Xin Yu Wang
+2026-1049-20,2026-01-05,Auckland,Hard,R32,Donna Vekic,Alexandra Eala,Alexandra Eala,0,0.5953821863830089,1,Donna Vekic
+2026-1049-21,2026-01-05,Auckland,Hard,R32,Camila Osorio,Petra Marcinko,Petra Marcinko,0,0.7823902086615562,1,Camila Osorio
+2026-1049-22,2026-01-05,Auckland,Hard,R32,Alycia Parks,Elisabetta Cocciaretto,Elisabetta Cocciaretto,0,0.5345478804409505,1,Alycia Parks
+2026-1049-23,2026-01-05,Auckland,Hard,R32,Venus Williams,Magda Linette,Magda Linette,0,0.434038465231657,0,Magda Linette
+2026-1049-24,2026-01-05,Auckland,Hard,R32,Peyton Stearns,Kaitlin Quevedo,Kaitlin Quevedo,0,0.6221703973412513,1,Peyton Stearns
+2026-1049-25,2026-01-05,Auckland,Hard,R32,Whitney Osuigwe,Sofia Costoulas,Sofia Costoulas,0,0.3668147587627173,0,Sofia Costoulas
+2026-1049-26,2026-01-05,Auckland,Hard,R32,Panna Udvardy,Sara Bejlek,Sara Bejlek,0,0.43044625556468963,0,Sara Bejlek
+2026-1049-27,2026-01-05,Auckland,Hard,R32,Gabriela Andrea Knutson,Iva Jovic,Iva Jovic,0,0.13833257610350846,0,Iva Jovic
+2026-1049-28,2026-01-05,Auckland,Hard,R32,Janice Tjen,Sonay Kartal,Sonay Kartal,0,0.32672230242937805,0,Sonay Kartal
+2026-1049-29,2026-01-05,Auckland,Hard,R32,Monique Barry,Ella Seidel,Ella Seidel,0,0.1951921017989516,0,Ella Seidel
+2026-1049-30,2026-01-05,Auckland,Hard,R32,Katie Boulter,Yuliia Starodubtseva,Katie Boulter,1,0.5563641780614853,1,Katie Boulter
+2026-1049-31,2026-01-05,Auckland,Hard,R32,Elina Svitolina,Varvara Gracheva,Elina Svitolina,1,0.7324943536221982,1,Elina Svitolina
+2026-1049-8,2026-01-05,Auckland,Hard,R16,Francesca Jones,Sinja Kraus,Francesca Jones,1,0.5180144529044628,1,Francesca Jones
+2026-1049-9,2026-01-05,Auckland,Hard,R16,Renata Zarazua,Xin Yu Wang,Xin Yu Wang,0,0.38534040585160256,0,Xin Yu Wang
+2026-1049-10,2026-01-05,Auckland,Hard,R16,Alexandra Eala,Petra Marcinko,Alexandra Eala,1,0.6610902732610703,1,Alexandra Eala
+2026-1049-11,2026-01-05,Auckland,Hard,R16,Magda Linette,Elisabetta Cocciaretto,Magda Linette,1,0.6224121963977813,1,Magda Linette
+2026-1049-12,2026-01-05,Auckland,Hard,R16,Sofia Costoulas,Kaitlin Quevedo,Sofia Costoulas,1,0.6787799799442291,1,Sofia Costoulas
+2026-1049-13,2026-01-05,Auckland,Hard,R16,Sara Bejlek,Iva Jovic,Iva Jovic,0,0.2826110778003931,0,Iva Jovic
+2026-1049-14,2026-01-05,Auckland,Hard,R16,Sonay Kartal,Ella Seidel,Sonay Kartal,1,0.6261046236753464,1,Sonay Kartal
+2026-1049-15,2026-01-05,Auckland,Hard,R16,Elina Svitolina,Katie Boulter,Elina Svitolina,1,0.6372679433226585,1,Elina Svitolina
+2026-1049-4,2026-01-05,Auckland,Hard,QF,Francesca Jones,Xin Yu Wang,Xin Yu Wang,0,0.27040233626961707,0,Xin Yu Wang
+2026-1049-5,2026-01-05,Auckland,Hard,QF,Magda Linette,Alexandra Eala,Alexandra Eala,0,0.5564894080162048,1,Magda Linette
+2026-1049-6,2026-01-05,Auckland,Hard,QF,Sofia Costoulas,Iva Jovic,Iva Jovic,0,0.3147875815629959,0,Iva Jovic
+2026-1049-7,2026-01-05,Auckland,Hard,QF,Elina Svitolina,Sonay Kartal,Elina Svitolina,1,0.641916714310646,1,Elina Svitolina
+2026-1049-2,2026-01-05,Auckland,Hard,SF,Xin Yu Wang,Alexandra Eala,Xin Yu Wang,1,0.46313687652349467,0,Alexandra Eala
+2026-1049-3,2026-01-05,Auckland,Hard,SF,Elina Svitolina,Iva Jovic,Elina Svitolina,1,0.677531014084816,1,Elina Svitolina
+2026-1049-1,2026-01-05,Auckland,Hard,F,Elina Svitolina,Xin Yu Wang,Elina Svitolina,1,0.6635283783078194,1,Elina Svitolina
+2026-1050-16,2026-01-12,Hobart,Hard,R32,Olga Danilovic,Mccartney Kessler,Olga Danilovic,1,0.25588300649821755,0,Mccartney Kessler
+2026-1050-17,2026-01-12,Hobart,Hard,R32,Barbora Krejcikova,Peyton Stearns,Peyton Stearns,0,0.5862265706956385,1,Barbora Krejcikova
+2026-1050-18,2026-01-12,Hobart,Hard,R32,Caty Mcnally,Solana Sierra,Solana Sierra,0,0.6993279653787613,1,Caty Mcnally
+2026-1050-19,2026-01-12,Hobart,Hard,R32,Emiliana Arango,Antonia Ruzic,Antonia Ruzic,0,0.5853701711893081,1,Emiliana Arango
+2026-1050-20,2026-01-12,Hobart,Hard,R32,Ann Li,Katie Volynets,Ann Li,1,0.5832826502919197,1,Ann Li
+2026-1050-21,2026-01-12,Hobart,Hard,R32,Ayano Shimizu,Elisabetta Cocciaretto,Elisabetta Cocciaretto,0,0.1787256416603923,0,Elisabetta Cocciaretto
+2026-1050-22,2026-01-12,Hobart,Hard,R32,Anna Bondar,Ella Seidel,Anna Bondar,1,0.3600504234582186,0,Ella Seidel
+2026-1050-23,2026-01-12,Hobart,Hard,R32,Venus Williams,Tatjana Maria,Tatjana Maria,0,0.6413380546271801,1,Venus Williams
+2026-1050-24,2026-01-12,Hobart,Hard,R32,Magda Linette,Oksana Selekhmeteva,Magda Linette,1,0.6921242688298225,1,Magda Linette
+2026-1050-25,2026-01-12,Hobart,Hard,R32,Xin Yu Wang,Talia Gibson,Xin Yu Wang,1,0.7108192516863345,1,Xin Yu Wang
+2026-1050-26,2026-01-12,Hobart,Hard,R32,Renata Zarazua,Hailey Baptiste,Renata Zarazua,1,0.4494527423679828,0,Hailey Baptiste
+2026-1050-27,2026-01-12,Hobart,Hard,R32,Janice Tjen,Iva Jovic,Iva Jovic,0,0.2871088710799813,0,Iva Jovic
+2026-1050-28,2026-01-12,Hobart,Hard,R32,Jessica Bouzas Maneiro,Taylah Preston,Taylah Preston,0,0.7114653907716274,1,Jessica Bouzas Maneiro
+2026-1050-29,2026-01-12,Hobart,Hard,R32,Rebecca Sramkova,Varvara Gracheva,Rebecca Sramkova,1,0.4915010345876216,0,Varvara Gracheva
+2026-1050-30,2026-01-12,Hobart,Hard,R32,Magdalena Frech,Elsa Jacquemot,Magdalena Frech,1,0.6614732493460178,1,Magdalena Frech
+2026-1050-31,2026-01-12,Hobart,Hard,R32,Camila Osorio,Emma Raducanu,Emma Raducanu,0,0.2827565262466669,0,Emma Raducanu
+2026-1050-8,2026-01-12,Hobart,Hard,R16,Olga Danilovic,Peyton Stearns,Olga Danilovic,1,0.5043311014771461,1,Olga Danilovic
+2026-1050-9,2026-01-12,Hobart,Hard,R16,Solana Sierra,Antonia Ruzic,Antonia Ruzic,0,0.48138296946883197,0,Antonia Ruzic
+2026-1050-10,2026-01-12,Hobart,Hard,R16,Ann Li,Elisabetta Cocciaretto,Elisabetta Cocciaretto,0,0.4897371083498001,0,Elisabetta Cocciaretto
+2026-1050-11,2026-01-12,Hobart,Hard,R16,Tatjana Maria,Anna Bondar,Anna Bondar,0,0.4733764785528183,0,Anna Bondar
+2026-1050-12,2026-01-12,Hobart,Hard,R16,Magda Linette,Xin Yu Wang,Magda Linette,1,0.4388288530707359,0,Xin Yu Wang
+2026-1050-13,2026-01-12,Hobart,Hard,R16,Renata Zarazua,Iva Jovic,Iva Jovic,0,0.3487824122607708,0,Iva Jovic
+2026-1050-14,2026-01-12,Hobart,Hard,R16,Rebecca Sramkova,Taylah Preston,Taylah Preston,0,0.5932452327013016,1,Rebecca Sramkova
+2026-1050-15,2026-01-12,Hobart,Hard,R16,Magdalena Frech,Emma Raducanu,Emma Raducanu,0,0.42334172099828715,0,Emma Raducanu
+2026-1050-4,2026-01-12,Hobart,Hard,QF,Olga Danilovic,Antonia Ruzic,Antonia Ruzic,0,0.5756641218066215,1,Olga Danilovic
+2026-1050-5,2026-01-12,Hobart,Hard,QF,Anna Bondar,Elisabetta Cocciaretto,Elisabetta Cocciaretto,0,0.27975471258163453,0,Elisabetta Cocciaretto
+2026-1050-6,2026-01-12,Hobart,Hard,QF,Magda Linette,Iva Jovic,Iva Jovic,0,0.41378741160035126,0,Iva Jovic
+2026-1050-7,2026-01-12,Hobart,Hard,QF,Emma Raducanu,Taylah Preston,Taylah Preston,0,0.7216082718968391,1,Emma Raducanu
+2026-1050-2,2026-01-12,Hobart,Hard,SF,Elisabetta Cocciaretto,Antonia Ruzic,Elisabetta Cocciaretto,1,0.5556318971514702,1,Elisabetta Cocciaretto
+2026-1050-3,2026-01-12,Hobart,Hard,SF,Taylah Preston,Iva Jovic,Iva Jovic,0,0.2978917957097292,0,Iva Jovic
+2026-1050-1,2026-01-12,Hobart,Hard,F,Elisabetta Cocciaretto,Iva Jovic,Elisabetta Cocciaretto,1,0.3914929004013538,0,Iva Jovic
+2026-2088-16,2026-02-02,Abu Dhabi,Hard,R32,Beatriz Haddad Maia,Dayana Yastremska,Dayana Yastremska,0,0.4075856018066406,0,Dayana Yastremska
+2026-2088-17,2026-02-02,Abu Dhabi,Hard,R32,Zeynep Sonmez,Alexandra Eala,Alexandra Eala,0,0.27304950506985187,0,Alexandra Eala
+2026-2088-18,2026-02-02,Abu Dhabi,Hard,R32,Aliaksandra Sasnovich,Paula Badosa,Aliaksandra Sasnovich,1,0.2881985024809837,0,Paula Badosa
+2026-2088-19,2026-02-02,Abu Dhabi,Hard,R32,Hailey Baptiste,Teodora Kostovic,Hailey Baptiste,1,0.6157225125432013,1,Hailey Baptiste
+2026-2088-20,2026-02-02,Abu Dhabi,Hard,R32,Janice Tjen,Maya Joint,Janice Tjen,1,0.29224264845252035,0,Maya Joint
+2026-2088-21,2026-02-02,Abu Dhabi,Hard,R32,Sofia Kenin,Liudmila Samsonova,Liudmila Samsonova,0,0.4301510065197945,0,Liudmila Samsonova
+2026-2088-22,2026-02-02,Abu Dhabi,Hard,R32,Chloe Paquet,Leylah Fernandez,Leylah Fernandez,0,0.07951522400230168,0,Leylah Fernandez
+2026-2088-23,2026-02-02,Abu Dhabi,Hard,R32,Anastasia Pavlyuchenkova,Mccartney Kessler,Mccartney Kessler,0,0.4426106778979301,0,Mccartney Kessler
+2026-2088-24,2026-02-02,Abu Dhabi,Hard,R32,Daria Kasatkina,Simona Waltert,Simona Waltert,0,0.6936386364400386,1,Daria Kasatkina
+2026-2088-25,2026-02-02,Abu Dhabi,Hard,R32,Jelena Ostapenko,Oksana Selekhmeteva,Jelena Ostapenko,1,0.6101406182944774,1,Jelena Ostapenko
+2026-2088-26,2026-02-02,Abu Dhabi,Hard,R32,Ashlyn Krueger,Sara Bejlek,Sara Bejlek,0,0.5404259949028491,1,Ashlyn Krueger
+2026-2088-27,2026-02-02,Abu Dhabi,Hard,R32,Cristina Bucsa,Sonay Kartal,Sonay Kartal,0,0.41624679531157016,0,Sonay Kartal
+2026-2088-8,2026-02-02,Abu Dhabi,Hard,R16,Ekaterina Alexandrova,Dayana Yastremska,Ekaterina Alexandrova,1,0.5974890699982642,1,Ekaterina Alexandrova
+2026-2088-9,2026-02-02,Abu Dhabi,Hard,R16,Aliaksandra Sasnovich,Alexandra Eala,Alexandra Eala,0,0.47786319121718407,0,Alexandra Eala
+2026-2088-10,2026-02-02,Abu Dhabi,Hard,R16,Emma Navarro,Hailey Baptiste,Hailey Baptiste,0,0.6653647595643997,1,Emma Navarro
+2026-2088-11,2026-02-02,Abu Dhabi,Hard,R16,Liudmila Samsonova,Janice Tjen,Liudmila Samsonova,1,0.6768413728475571,1,Liudmila Samsonova
+2026-2088-12,2026-02-02,Abu Dhabi,Hard,R16,Leylah Fernandez,Mccartney Kessler,Mccartney Kessler,0,0.536870698928833,1,Leylah Fernandez
+2026-2088-13,2026-02-02,Abu Dhabi,Hard,R16,Simona Waltert,Clara Tauson,Clara Tauson,0,0.2518443171679974,0,Clara Tauson
+2026-2088-14,2026-02-02,Abu Dhabi,Hard,R16,Jelena Ostapenko,Sara Bejlek,Sara Bejlek,0,0.5536519810557365,1,Jelena Ostapenko
+2026-2088-15,2026-02-02,Abu Dhabi,Hard,R16,Renata Zarazua,Sonay Kartal,Sonay Kartal,0,0.3075148116052151,0,Sonay Kartal
+2026-2088-4,2026-02-02,Abu Dhabi,Hard,QF,Ekaterina Alexandrova,Alexandra Eala,Ekaterina Alexandrova,1,0.6165128573775291,1,Ekaterina Alexandrova
+2026-2088-5,2026-02-02,Abu Dhabi,Hard,QF,Liudmila Samsonova,Hailey Baptiste,Hailey Baptiste,0,0.6562280973792076,1,Liudmila Samsonova
+2026-2088-6,2026-02-02,Abu Dhabi,Hard,QF,Mccartney Kessler,Clara Tauson,Clara Tauson,0,0.554919393658638,1,Mccartney Kessler
+2026-2088-7,2026-02-02,Abu Dhabi,Hard,QF,Sonay Kartal,Sara Bejlek,Sara Bejlek,0,0.6313975006341934,1,Sonay Kartal
+2026-2088-2,2026-02-02,Abu Dhabi,Hard,SF,Ekaterina Alexandrova,Hailey Baptiste,Ekaterina Alexandrova,1,0.6704172545671463,1,Ekaterina Alexandrova
+2026-2088-3,2026-02-02,Abu Dhabi,Hard,SF,Clara Tauson,Sara Bejlek,Sara Bejlek,0,0.5860061258077621,1,Clara Tauson
+2026-2088-1,2026-02-02,Abu Dhabi,Hard,F,Ekaterina Alexandrova,Sara Bejlek,Sara Bejlek,0,0.6102882060408592,1,Ekaterina Alexandrova
+2026-1003-32,2026-02-09,Doha,Hard,R64,Emiliana Arango,Xin Yu Wang,Xin Yu Wang,0,0.33070964515209195,0,Xin Yu Wang
+2026-1003-33,2026-02-09,Doha,Hard,R64,Sofia Kenin,Qinwen Zheng,Qinwen Zheng,0,0.2839540094137192,0,Qinwen Zheng
+2026-1003-34,2026-02-09,Doha,Hard,R64,Alycia Parks,Diana Shnaider,Alycia Parks,1,0.2885475069284439,0,Diana Shnaider
+2026-1003-35,2026-02-09,Doha,Hard,R64,Marie Bouzkova,Victoria Mboko,Victoria Mboko,0,0.3106394439935684,0,Victoria Mboko
+2026-1003-36,2026-02-09,Doha,Hard,R64,Vera Zvonareva,Peyton Stearns,Vera Zvonareva,1,0.5306865155696869,1,Vera Zvonareva
+2026-1003-37,2026-02-09,Doha,Hard,R64,Magda Linette,Sonay Kartal,Magda Linette,1,0.48745469152927395,0,Sonay Kartal
+2026-1003-38,2026-02-09,Doha,Hard,R64,Elisabetta Cocciaretto,Elsa Jacquemot,Elisabetta Cocciaretto,1,0.6386333882808685,1,Elisabetta Cocciaretto
+2026-1003-39,2026-02-09,Doha,Hard,R64,Ann Li,Leylah Fernandez,Ann Li,1,0.37537247538566587,0,Leylah Fernandez
+2026-1003-40,2026-02-09,Doha,Hard,R64,Magdalena Frech,Liudmila Samsonova,Magdalena Frech,1,0.30744560062885284,0,Liudmila Samsonova
+2026-1003-41,2026-02-09,Doha,Hard,R64,Katerina Siniakova,Clara Tauson,Katerina Siniakova,1,0.35167785584926603,0,Clara Tauson
+2026-1003-42,2026-02-09,Doha,Hard,R64,Camila Osorio,Emma Raducanu,Camila Osorio,1,0.2978712022304535,0,Emma Raducanu
+2026-1003-43,2026-02-09,Doha,Hard,R64,Jelena Ostapenko,Anastasia Zakharova,Jelena Ostapenko,1,0.6804026961326599,1,Jelena Ostapenko
+2026-1003-44,2026-02-09,Doha,Hard,R64,Cristina Bucsa,Dayana Yastremska,Dayana Yastremska,0,0.3770596504211426,0,Dayana Yastremska
+2026-1003-45,2026-02-09,Doha,Hard,R64,Anna Kalinskaya,Jessica Bouzas Maneiro,Anna Kalinskaya,1,0.5849447786808013,1,Anna Kalinskaya
+2026-1003-46,2026-02-09,Doha,Hard,R64,Tatjana Maria,Emma Navarro,Emma Navarro,0,0.20614791512489317,0,Emma Navarro
+2026-1003-47,2026-02-09,Doha,Hard,R64,Jaqueline Cristian,Karolina Muchova,Karolina Muchova,0,0.23614270985126495,0,Karolina Muchova
+2026-1003-48,2026-02-09,Doha,Hard,R64,Alexandra Eala,Tereza Valentova,Tereza Valentova,0,0.4891426056623459,0,Tereza Valentova
+2026-1003-49,2026-02-09,Doha,Hard,R64,Karolina Pliskova,Solana Sierra,Karolina Pliskova,1,0.6153673648834228,1,Karolina Pliskova
+2026-1003-50,2026-02-09,Doha,Hard,R64,Maria Sakkari,Zeynep Sonmez,Maria Sakkari,1,0.5698599576950073,1,Maria Sakkari
+2026-1003-51,2026-02-09,Doha,Hard,R64,Laura Siegemund,Varvara Gracheva,Varvara Gracheva,0,0.4255721032619476,0,Varvara Gracheva
+2026-1003-52,2026-02-09,Doha,Hard,R64,Linda Noskova,Maya Joint,Linda Noskova,1,0.6273421764373779,1,Linda Noskova
+2026-1003-53,2026-02-09,Doha,Hard,R64,Anastasia Pavlyuchenkova,Elise Mertens,Elise Mertens,0,0.5148990094661712,1,Anastasia Pavlyuchenkova
+2026-1003-54,2026-02-09,Doha,Hard,R64,Daria Kasatkina,Moyuka Uchijima,Daria Kasatkina,1,0.6205948710441589,1,Daria Kasatkina
+2026-1003-55,2026-02-09,Doha,Hard,R64,Beatriz Haddad Maia,Janice Tjen,Janice Tjen,0,0.4341999143362045,0,Janice Tjen
+2026-1003-16,2026-02-09,Doha,Hard,R32,Elena Rybakina,Xin Yu Wang,Elena Rybakina,1,0.8819576174020767,1,Elena Rybakina
+2026-1003-17,2026-02-09,Doha,Hard,R32,Alycia Parks,Qinwen Zheng,Qinwen Zheng,0,0.12344737008213996,0,Qinwen Zheng
+2026-1003-18,2026-02-09,Doha,Hard,R32,Vera Zvonareva,Victoria Mboko,Victoria Mboko,0,0.198204153329134,0,Victoria Mboko
+2026-1003-19,2026-02-09,Doha,Hard,R32,Magda Linette,Mirra Andreeva,Mirra Andreeva,0,0.3394966134428978,0,Mirra Andreeva
+2026-1003-20,2026-02-09,Doha,Hard,R32,Elisabetta Cocciaretto,Coco Gauff,Elisabetta Cocciaretto,1,0.1587512481212616,0,Coco Gauff
+2026-1003-21,2026-02-09,Doha,Hard,R32,Magdalena Frech,Ann Li,Ann Li,0,0.5645166289806366,1,Magdalena Frech
+2026-1003-22,2026-02-09,Doha,Hard,R32,Katerina Siniakova,Camila Osorio,Camila Osorio,0,0.5149514693021774,1,Katerina Siniakova
+2026-1003-23,2026-02-09,Doha,Hard,R32,Ekaterina Alexandrova,Jelena Ostapenko,Jelena Ostapenko,0,0.656390592455864,1,Ekaterina Alexandrova
+2026-1003-24,2026-02-09,Doha,Hard,R32,Elina Svitolina,Dayana Yastremska,Elina Svitolina,1,0.6503053444623947,1,Elina Svitolina
+2026-1003-25,2026-02-09,Doha,Hard,R32,Anna Kalinskaya,Emma Navarro,Anna Kalinskaya,1,0.5628125143051147,1,Anna Kalinskaya
+2026-1003-26,2026-02-09,Doha,Hard,R32,Karolina Muchova,Tereza Valentova,Karolina Muchova,1,0.7295084178447724,1,Karolina Muchova
+2026-1003-27,2026-02-09,Doha,Hard,R32,Karolina Pliskova,Amanda Anisimova,Karolina Pliskova,1,0.24875874668359757,0,Amanda Anisimova
+2026-1003-28,2026-02-09,Doha,Hard,R32,Maria Sakkari,Jasmine Paolini,Maria Sakkari,1,0.2986485925316811,0,Jasmine Paolini
+2026-1003-29,2026-02-09,Doha,Hard,R32,Varvara Gracheva,Linda Noskova,Varvara Gracheva,1,0.25598131120204926,0,Linda Noskova
+2026-1003-30,2026-02-09,Doha,Hard,R32,Elise Mertens,Daria Kasatkina,Daria Kasatkina,0,0.5505335819721222,1,Elise Mertens
+2026-1003-31,2026-02-09,Doha,Hard,R32,Iga Swiatek,Janice Tjen,Iga Swiatek,1,0.8322569894790649,1,Iga Swiatek
+2026-1003-8,2026-02-09,Doha,Hard,R16,Elena Rybakina,Qinwen Zheng,Elena Rybakina,1,0.6901603817939758,1,Elena Rybakina
+2026-1003-9,2026-02-09,Doha,Hard,R16,Victoria Mboko,Mirra Andreeva,Victoria Mboko,1,0.5908215761184692,1,Victoria Mboko
+2026-1003-10,2026-02-09,Doha,Hard,R16,Ann Li,Elisabetta Cocciaretto,Elisabetta Cocciaretto,0,0.4538969933986663,0,Elisabetta Cocciaretto
+2026-1003-11,2026-02-09,Doha,Hard,R16,Jelena Ostapenko,Camila Osorio,Jelena Ostapenko,1,0.5845306992530822,1,Jelena Ostapenko
+2026-1003-12,2026-02-09,Doha,Hard,R16,Elina Svitolina,Anna Kalinskaya,Anna Kalinskaya,0,0.6383628249168396,1,Elina Svitolina
+2026-1003-13,2026-02-09,Doha,Hard,R16,Karolina Pliskova,Karolina Muchova,Karolina Muchova,0,0.2567129462957382,0,Karolina Muchova
+2026-1003-14,2026-02-09,Doha,Hard,R16,Maria Sakkari,Varvara Gracheva,Maria Sakkari,1,0.556773042678833,1,Maria Sakkari
+2026-1003-15,2026-02-09,Doha,Hard,R16,Daria Kasatkina,Iga Swiatek,Iga Swiatek,0,0.07737591862678528,0,Iga Swiatek
+2026-1003-4,2026-02-09,Doha,Hard,QF,Elena Rybakina,Victoria Mboko,Victoria Mboko,0,0.7068294167518616,1,Elena Rybakina
+2026-1003-5,2026-02-09,Doha,Hard,QF,Jelena Ostapenko,Elisabetta Cocciaretto,Jelena Ostapenko,1,0.48961012065410614,0,Elisabetta Cocciaretto
+2026-1003-6,2026-02-09,Doha,Hard,QF,Karolina Muchova,Anna Kalinskaya,Karolina Muchova,1,0.6363450646400451,1,Karolina Muchova
+2026-1003-7,2026-02-09,Doha,Hard,QF,Maria Sakkari,Iga Swiatek,Maria Sakkari,1,0.13420258313417432,0,Iga Swiatek
+2026-1003-2,2026-02-09,Doha,Hard,SF,Jelena Ostapenko,Victoria Mboko,Victoria Mboko,0,0.2642208904027939,0,Victoria Mboko
+2026-1003-3,2026-02-09,Doha,Hard,SF,Maria Sakkari,Karolina Muchova,Karolina Muchova,0,0.24564067274332047,0,Karolina Muchova
+2026-1003-1,2026-02-09,Doha,Hard,F,Karolina Muchova,Victoria Mboko,Karolina Muchova,1,0.4530135184526443,0,Victoria Mboko
+2026-718-32,2026-02-16,Dubai,Hard,R64,Anastasia Pavlyuchenkova,Barbora Krejcikova,Barbora Krejcikova,0,0.35066825449466704,0,Barbora Krejcikova
+2026-718-33,2026-02-16,Dubai,Hard,R64,Dayana Yastremska,Janice Tjen,Janice Tjen,0,0.609416377544403,1,Dayana Yastremska
+2026-718-34,2026-02-16,Dubai,Hard,R64,Liudmila Samsonova,Leylah Fernandez,Leylah Fernandez,0,0.4998925656080246,0,Leylah Fernandez
+2026-718-35,2026-02-16,Dubai,Hard,R64,Jaqueline Cristian,Petra Marcinko,Jaqueline Cristian,1,0.7990729510784148,1,Jaqueline Cristian
+2026-718-36,2026-02-16,Dubai,Hard,R64,Cristina Bucsa,Ella Seidel,Ella Seidel,0,0.5794792711734772,1,Cristina Bucsa
+2026-718-37,2026-02-16,Dubai,Hard,R64,Laura Siegemund,Daria Kasatkina,Daria Kasatkina,0,0.4465695291757583,0,Daria Kasatkina
+2026-718-38,2026-02-16,Dubai,Hard,R64,Rebecca Sramkova,Varvara Gracheva,Varvara Gracheva,0,0.37862170934677125,0,Varvara Gracheva
+2026-718-39,2026-02-16,Dubai,Hard,R64,Diana Shnaider,Maya Joint,Diana Shnaider,1,0.5169420301914215,1,Diana Shnaider
+2026-718-40,2026-02-16,Dubai,Hard,R64,Kamilla Rakhimova,Iva Jovic,Iva Jovic,0,0.24053744077682493,0,Iva Jovic
+2026-718-41,2026-02-16,Dubai,Hard,R64,Sofia Kenin,Clara Tauson,Clara Tauson,0,0.3972348213195801,0,Clara Tauson
+2026-718-42,2026-02-16,Dubai,Hard,R64,Magdalena Frech,Peyton Stearns,Peyton Stearns,0,0.545337051153183,1,Magdalena Frech
+2026-718-43,2026-02-16,Dubai,Hard,R64,Magda Linette,Lulu Sun,Magda Linette,1,0.6539589643478393,1,Magda Linette
+2026-718-44,2026-02-16,Dubai,Hard,R64,Hailey Baptiste,Alexandra Eala,Alexandra Eala,0,0.508057165145874,1,Hailey Baptiste
+2026-718-45,2026-02-16,Dubai,Hard,R64,Sorana Cirstea,Aliaksandra Sasnovich,Sorana Cirstea,1,0.5360890328884125,1,Sorana Cirstea
+2026-718-46,2026-02-16,Dubai,Hard,R64,Ann Li,Linda Noskova,Linda Noskova,0,0.3448246598243713,0,Linda Noskova
+2026-718-47,2026-02-16,Dubai,Hard,R64,Elena Gabriela Ruse,Emma Navarro,Emma Navarro,0,0.3289761334657669,0,Emma Navarro
+2026-718-48,2026-02-16,Dubai,Hard,R64,Elise Mertens,Marie Bouzkova,Elise Mertens,1,0.5903688371181488,1,Elise Mertens
+2026-718-49,2026-02-16,Dubai,Hard,R64,Jelena Ostapenko,Anna Kalinskaya,Anna Kalinskaya,0,0.36231431365013117,0,Anna Kalinskaya
+2026-718-50,2026-02-16,Dubai,Hard,R64,Paula Badosa,Katerina Siniakova,Paula Badosa,1,0.6065738022327423,1,Paula Badosa
+2026-718-51,2026-02-16,Dubai,Hard,R64,Zeynep Sonmez,Sara Bejlek,Sara Bejlek,0,0.2986457794904709,0,Sara Bejlek
+2026-718-52,2026-02-16,Dubai,Hard,R64,Belinda Bencic,Jessica Bouzas Maneiro,Belinda Bencic,1,0.7294971168041229,1,Belinda Bencic
+2026-718-53,2026-02-16,Dubai,Hard,R64,Moyuka Uchijima,Anastasia Zakharova,Anastasia Zakharova,0,0.5753575205802918,1,Moyuka Uchijima
+2026-718-54,2026-02-16,Dubai,Hard,R64,Emma Raducanu,Antonia Ruzic,Antonia Ruzic,0,0.6805557072162628,1,Emma Raducanu
+2026-718-55,2026-02-16,Dubai,Hard,R64,Tatjana Maria,Kimberly Birrell,Kimberly Birrell,0,0.27372190505266186,0,Kimberly Birrell
+2026-718-16,2026-02-16,Dubai,Hard,R32,Barbora Krejcikova,Amanda Anisimova,Amanda Anisimova,0,0.31152526289224625,0,Amanda Anisimova
+2026-718-17,2026-02-16,Dubai,Hard,R32,Leylah Fernandez,Janice Tjen,Janice Tjen,0,0.5848733139038086,1,Leylah Fernandez
+2026-718-18,2026-02-16,Dubai,Hard,R32,Jaqueline Cristian,Ella Seidel,Jaqueline Cristian,1,0.5976787209510803,1,Jaqueline Cristian
+2026-718-19,2026-02-16,Dubai,Hard,R32,Daria Kasatkina,Mirra Andreeva,Mirra Andreeva,0,0.3468128255009651,0,Mirra Andreeva
+2026-718-20,2026-02-16,Dubai,Hard,R32,Jessica Pegula,Varvara Gracheva,Jessica Pegula,1,0.7289076054096222,1,Jessica Pegula
+2026-718-21,2026-02-16,Dubai,Hard,R32,Diana Shnaider,Iva Jovic,Iva Jovic,0,0.5799053746461869,1,Diana Shnaider
+2026-718-22,2026-02-16,Dubai,Hard,R32,Peyton Stearns,Clara Tauson,Clara Tauson,0,0.29163387686014175,0,Clara Tauson
+2026-718-23,2026-02-16,Dubai,Hard,R32,Magda Linette,Ekaterina Alexandrova,Magda Linette,1,0.34176008850336076,0,Ekaterina Alexandrova
+2026-718-24,2026-02-16,Dubai,Hard,R32,Jasmine Paolini,Alexandra Eala,Alexandra Eala,0,0.7327914613485336,1,Jasmine Paolini
+2026-718-25,2026-02-16,Dubai,Hard,R32,Sorana Cirstea,Linda Noskova,Sorana Cirstea,1,0.42766839295625686,0,Linda Noskova
+2026-718-26,2026-02-16,Dubai,Hard,R32,Elise Mertens,Emma Navarro,Elise Mertens,1,0.5232728117704392,1,Elise Mertens
+2026-718-27,2026-02-16,Dubai,Hard,R32,Anna Kalinskaya,Coco Gauff,Coco Gauff,0,0.3622443687915802,0,Coco Gauff
+2026-718-28,2026-02-16,Dubai,Hard,R32,Elina Svitolina,Paula Badosa,Elina Svitolina,1,0.6357326769828796,1,Elina Svitolina
+2026-718-29,2026-02-16,Dubai,Hard,R32,Belinda Bencic,Sara Bejlek,Belinda Bencic,1,0.6824126261472702,1,Belinda Bencic
+2026-718-30,2026-02-16,Dubai,Hard,R32,Anastasia Zakharova,Antonia Ruzic,Antonia Ruzic,0,0.413401283621788,0,Antonia Ruzic
+2026-718-31,2026-02-16,Dubai,Hard,R32,Kimberly Birrell,Elena Rybakina,Elena Rybakina,0,0.048255393579602235,0,Elena Rybakina
+2026-718-8,2026-02-16,Dubai,Hard,R16,Amanda Anisimova,Janice Tjen,Amanda Anisimova,1,0.6927524507045746,1,Amanda Anisimova
+2026-718-9,2026-02-16,Dubai,Hard,R16,Jaqueline Cristian,Mirra Andreeva,Mirra Andreeva,0,0.3039454758167267,0,Mirra Andreeva
+2026-718-10,2026-02-16,Dubai,Hard,R16,Jessica Pegula,Iva Jovic,Jessica Pegula,1,0.7507622241973877,1,Jessica Pegula
+2026-718-11,2026-02-16,Dubai,Hard,R16,Magda Linette,Clara Tauson,Clara Tauson,0,0.4139810293912888,0,Clara Tauson
+2026-718-12,2026-02-16,Dubai,Hard,R16,Sorana Cirstea,Alexandra Eala,Alexandra Eala,0,0.6238367855548859,1,Sorana Cirstea
+2026-718-13,2026-02-16,Dubai,Hard,R16,Elise Mertens,Coco Gauff,Coco Gauff,0,0.25151574760675427,0,Coco Gauff
+2026-718-14,2026-02-16,Dubai,Hard,R16,Elina Svitolina,Belinda Bencic,Elina Svitolina,1,0.552532285451889,1,Elina Svitolina
+2026-718-15,2026-02-16,Dubai,Hard,R16,Elena Rybakina,Antonia Ruzic,Antonia Ruzic,0,0.9244682788848877,1,Elena Rybakina
+2026-718-4,2026-02-16,Dubai,Hard,QF,Amanda Anisimova,Mirra Andreeva,Amanda Anisimova,1,0.6157024979591369,1,Amanda Anisimova
+2026-718-5,2026-02-16,Dubai,Hard,QF,Jessica Pegula,Clara Tauson,Jessica Pegula,1,0.7206628978252411,1,Jessica Pegula
+2026-718-6,2026-02-16,Dubai,Hard,QF,Coco Gauff,Alexandra Eala,Coco Gauff,1,0.7775311231613159,1,Coco Gauff
+2026-718-7,2026-02-16,Dubai,Hard,QF,Elina Svitolina,Antonia Ruzic,Elina Svitolina,1,0.7803381085395812,1,Elina Svitolina
+2026-718-2,2026-02-16,Dubai,Hard,SF,Jessica Pegula,Amanda Anisimova,Jessica Pegula,1,0.4783375650644302,0,Amanda Anisimova
+2026-718-3,2026-02-16,Dubai,Hard,SF,Elina Svitolina,Coco Gauff,Elina Svitolina,1,0.4268566846847534,0,Coco Gauff
+2026-718-1,2026-02-16,Dubai,Hard,F,Jessica Pegula,Elina Svitolina,Jessica Pegula,1,0.5342755973339081,1,Jessica Pegula
+2026-609-64,2026-03-06,Indian Wells,Hard,R128,Anhelina Kalinina,Clara Burel,Anhelina Kalinina,1,0.5612588882446289,1,Anhelina Kalinina
+2026-609-65,2026-03-06,Indian Wells,Hard,R128,Sara Sorribes Tormo,Olga Danilovic,Olga Danilovic,0,0.4531843334436416,0,Olga Danilovic
+2026-609-67,2026-03-06,Indian Wells,Hard,R128,Lucia Bronzetti,Miriam Bulgaru,Miriam Bulgaru,0,0.7413633108139038,1,Lucia Bronzetti
+2026-609-68,2026-03-06,Indian Wells,Hard,R128,Nao Hibino,Peyton Stearns,Peyton Stearns,0,0.2604699701070785,0,Peyton Stearns
+2026-609-69,2026-03-06,Indian Wells,Hard,R128,Katerina Siniakova,Sofia Kenin,Katerina Siniakova,1,0.5650121212005615,1,Katerina Siniakova
+2026-609-70,2026-03-06,Indian Wells,Hard,R128,Renata Zarazua,Marta Kostyuk,Marta Kostyuk,0,0.1913125291466713,0,Marta Kostyuk
+2026-609-71,2026-03-06,Indian Wells,Hard,R128,Petra Kvitova,Nadia Podoroska,Petra Kvitova,1,0.7190099060535431,1,Petra Kvitova
+2026-609-72,2026-03-06,Indian Wells,Hard,R128,Laura Siegemund,Petra Marcinko,Laura Siegemund,1,0.7790532767772674,1,Laura Siegemund
+2026-609-73,2026-03-06,Indian Wells,Hard,R128,Magda Linette,Ashlyn Krueger,Ashlyn Krueger,0,0.5998340308666229,1,Magda Linette
+2026-609-74,2026-03-06,Indian Wells,Hard,R128,Tamara Korpatsch,Whitney Osuigwe,Whitney Osuigwe,0,0.5899578750133514,1,Tamara Korpatsch
+2026-609-75,2026-03-06,Indian Wells,Hard,R128,Mananchaya Tararudee,Sonay Kartal,Sonay Kartal,0,0.27466660887002947,0,Sonay Kartal
+2026-609-76,2026-03-06,Indian Wells,Hard,R128,Venus Williams,Diane Parry,Diane Parry,0,0.38737305998802185,0,Diane Parry
+2026-609-77,2026-03-06,Indian Wells,Hard,R128,Whitney Hunter,Magdalena Frech,Whitney Hunter,1,0.410610756278038,0,Magdalena Frech
+2026-609-78,2026-03-06,Indian Wells,Hard,R128,Bernarda Pera,Mirjam Bjorklund,Bernarda Pera,1,0.6667204797267914,1,Bernarda Pera
+2026-609-79,2026-03-06,Indian Wells,Hard,R128,Rebecca Sramkova,Katie Volynets,Katie Volynets,0,0.616217428445816,1,Rebecca Sramkova
+2026-609-81,2026-03-06,Indian Wells,Hard,R128,Anastasia Potapova,Marina Stakusic,Anastasia Potapova,1,0.6857021689414977,1,Anastasia Potapova
+2026-609-82,2026-03-06,Indian Wells,Hard,R128,Ajla Tomljanovic,Elena Gabriela Ruse,Ajla Tomljanovic,1,0.48136317729949946,0,Elena Gabriela Ruse
+2026-609-83,2026-03-06,Indian Wells,Hard,R128,Yulia Putintseva,Paula Badosa,Yulia Putintseva,1,0.22439728826284405,0,Paula Badosa
+2026-609-85,2026-03-06,Indian Wells,Hard,R128,Beatriz Haddad Maia,Jessica Bouzas Maneiro,Jessica Bouzas Maneiro,0,0.4616018533706665,0,Jessica Bouzas Maneiro
+2026-609-86,2026-03-06,Indian Wells,Hard,R128,Sorana Cirstea,Tatjana Maria,Sorana Cirstea,1,0.8830904483795166,1,Sorana Cirstea
+2026-609-87,2026-03-06,Indian Wells,Hard,R128,Shuai Zhang,Dayana Yastremska,Dayana Yastremska,0,0.40205801427364346,0,Dayana Yastremska
+2026-609-88,2026-03-06,Indian Wells,Hard,R128,Bianca Andreescu,Kamilla Rakhimova,Kamilla Rakhimova,0,0.549159687757492,1,Bianca Andreescu
+2026-609-89,2026-03-06,Indian Wells,Hard,R128,Dalma Galfi,Anna Blinkova,Anna Blinkova,0,0.36758092045783997,0,Anna Blinkova
+2026-609-90,2026-03-06,Indian Wells,Hard,R128,Jule Niemeier,Anastasia Zakharova,Anastasia Zakharova,0,0.37761973738670346,0,Anastasia Zakharova
+2026-609-91,2026-03-06,Indian Wells,Hard,R128,Zeynep Sonmez,Robin Kessler,Zeynep Sonmez,1,0.2830177560448647,0,Robin Kessler
+2026-609-92,2026-03-06,Indian Wells,Hard,R128,Kimberly Birrell,Yuki Naito,Yuki Naito,0,0.7583140075206756,1,Kimberly Birrell
+2026-609-93,2026-03-06,Indian Wells,Hard,R128,Catherine McNally,Vicky Jimenez Kasintseva,Vicky Jimenez Kasintseva,0,0.45231195092201226,0,Vicky Jimenez Kasintseva
+2026-609-94,2026-03-06,Indian Wells,Hard,R128,Sloane Stephens,Camila Osorio,Camila Osorio,0,0.30609525144100186,0,Camila Osorio
+2026-609-95,2026-03-06,Indian Wells,Hard,R128,Jaqueline Cristian,Suzan Lamens,Jaqueline Cristian,1,0.7178178369998931,1,Jaqueline Cristian
+2026-609-96,2026-03-06,Indian Wells,Hard,R128,Alycia Parks,Moyuka Sakatsume,Moyuka Sakatsume,0,0.4961772561073303,0,Moyuka Sakatsume
+2026-609-34,2026-03-06,Indian Wells,Hard,R64,Anhelina Kalinina,Qinwen Zheng,Qinwen Zheng,0,0.1251717373728752,0,Qinwen Zheng
+2026-609-35,2026-03-06,Indian Wells,Hard,R64,Elizabeth Day,Iga Swiatek,Iga Swiatek,0,0.06476037055253983,0,Iga Swiatek
+2026-609-36,2026-03-06,Indian Wells,Hard,R64,Maria Sakkari,Olga Danilovic,Maria Sakkari,1,0.7245511531829834,1,Maria Sakkari
+2026-609-37,2026-03-06,Indian Wells,Hard,R64,Laura Siegemund,Elina Svitolina,Elina Svitolina,0,0.1351480282843113,0,Elina Svitolina
+2026-609-38,2026-03-06,Indian Wells,Hard,R64,Liudmila Samsonova,Leylah Fernandez,Leylah Fernandez,0,0.3925428748130798,0,Leylah Fernandez
+2026-609-39,2026-03-06,Indian Wells,Hard,R64,Katerina Siniakova,Victoria Kenin,Katerina Siniakova,1,0.5652926087379455,1,Katerina Siniakova
+2026-609-40,2026-03-06,Indian Wells,Hard,R64,Elena Rybakina,Mirra Andreeva,Elena Rybakina,1,0.6823539674282073,1,Elena Rybakina
+2026-609-41,2026-03-06,Indian Wells,Hard,R64,Whitney Osuigwe,Marta Kostyuk,Marta Kostyuk,0,0.07116441875696182,0,Marta Kostyuk
+2026-609-42,2026-03-06,Indian Wells,Hard,R64,Emma Navarro,Sonay Kartal,Sonay Kartal,0,0.5976439893245696,1,Emma Navarro
+2026-609-43,2026-03-06,Indian Wells,Hard,R64,Madison Keys,Diane Parry,Madison Keys,1,0.7210092306137084,1,Madison Keys
+2026-609-44,2026-03-06,Indian Wells,Hard,R64,Belinda Bencic,Whitney Hunter,Belinda Bencic,1,0.7731538116931915,1,Belinda Bencic
+2026-609-45,2026-03-06,Indian Wells,Hard,R64,Elise Mertens,Bernarda Pera,Elise Mertens,1,0.7493476033210754,1,Elise Mertens
+2026-609-46,2026-03-06,Indian Wells,Hard,R64,Jelena Ostapenko,Katie Volynets,Jelena Ostapenko,1,0.7218938887119293,1,Jelena Ostapenko
+2026-609-47,2026-03-06,Indian Wells,Hard,R64,Jessica Pegula,Donna Vekic,Jessica Pegula,1,0.886168372631073,1,Jessica Pegula
+2026-609-48,2026-03-06,Indian Wells,Hard,R64,Jasmine Paolini,Anastasia Potapova,Jasmine Paolini,1,0.6570195078849792,1,Jasmine Paolini
+2026-609-49,2026-03-06,Indian Wells,Hard,R64,Ajla Tomljanovic,Xiyu Wang,Ajla Tomljanovic,1,0.6024005591869354,1,Ajla Tomljanovic
+2026-609-50,2026-03-06,Indian Wells,Hard,R64,Yulia Putintseva,Clara Tauson,Clara Tauson,0,0.3099117368459701,0,Clara Tauson
+2026-609-52,2026-03-06,Indian Wells,Hard,R64,Linda Noskova,Jessica Bouzas Maneiro,Linda Noskova,1,0.7561019301414489,1,Linda Noskova
+2026-609-53,2026-03-06,Indian Wells,Hard,R64,Sorana Cirstea,Karolina Muchova,Karolina Muchova,0,0.2388485699892044,0,Karolina Muchova
+2026-609-54,2026-03-06,Indian Wells,Hard,R64,Dayana Yastremska,Alex Eala,Alex Eala,0,0.5378640294075012,1,Dayana Yastremska
+2026-609-55,2026-03-06,Indian Wells,Hard,R64,Kamilla Rakhimova,Coco Gauff,Coco Gauff,0,0.06786370798945426,0,Coco Gauff
+2026-609-56,2026-03-06,Indian Wells,Hard,R64,Anna Blinkova,Amanda Anisimova,Amanda Anisimova,0,0.12755342125892638,0,Amanda Anisimova
+2026-609-57,2026-03-06,Indian Wells,Hard,R64,Anastasia Zakharova,Emma Raducanu,Emma Raducanu,0,0.3130860775709152,0,Emma Raducanu
+2026-609-58,2026-03-06,Indian Wells,Hard,R64,Anna Kalinskaya,Zeynep Sonmez,Anna Kalinskaya,1,0.8021077930927276,1,Anna Kalinskaya
+2026-609-59,2026-03-06,Indian Wells,Hard,R64,Yuki Naito,Victoria Mboko,Victoria Mboko,0,0.05638499222695827,0,Victoria Mboko
+2026-609-60,2026-03-06,Indian Wells,Hard,R64,Naomi Osaka,Mirra Andreeva,Naomi Osaka,1,0.4253835469484329,0,Mirra Andreeva
+2026-609-61,2026-03-06,Indian Wells,Hard,R64,Camila Osorio,Vicky Jimenez Kasintseva,Camila Osorio,1,0.5668253719806671,1,Camila Osorio
+2026-609-62,2026-03-06,Indian Wells,Hard,R64,Elise Mertens,Jaqueline Cristian,Jaqueline Cristian,0,0.647962075471878,1,Elise Mertens
+2026-609-63,2026-03-06,Indian Wells,Hard,R64,Aryna Sabalenka,Moyuka Sakatsume,Aryna Sabalenka,1,0.9540411293506622,1,Aryna Sabalenka
+2026-609-18,2026-03-06,Indian Wells,Hard,R32,Maria Sakkari,Iga Swiatek,Iga Swiatek,0,0.20550701320171355,0,Iga Swiatek
+2026-609-19,2026-03-06,Indian Wells,Hard,R32,Karolina Muchova,Miriam Bulgaru,Karolina Muchova,1,0.9493325304985047,1,Karolina Muchova
+2026-609-20,2026-03-06,Indian Wells,Hard,R32,Elina Svitolina,Mitchell Krueger,Elina Svitolina,1,0.8713932639360428,1,Elina Svitolina
+2026-609-21,2026-03-06,Indian Wells,Hard,R32,Katerina Siniakova,Leylah Fernandez,Katerina Siniakova,1,0.4494183537364006,0,Leylah Fernandez
+2026-609-22,2026-03-06,Indian Wells,Hard,R32,Elena Rybakina,Marta Kostyuk,Elena Rybakina,1,0.7159304821491241,1,Elena Rybakina
+2026-609-23,2026-03-06,Indian Wells,Hard,R32,Madison Keys,Sonay Kartal,Madison Keys,1,0.7431245076656341,1,Madison Keys
+2026-609-24,2026-03-06,Indian Wells,Hard,R32,Belinda Bencic,Elise Mertens,Belinda Bencic,1,0.6033920502662659,1,Belinda Bencic
+2026-609-25,2026-03-06,Indian Wells,Hard,R32,Jessica Pegula,Jelena Ostapenko,Jessica Pegula,1,0.8271471512317657,1,Jessica Pegula
+2026-609-26,2026-03-06,Indian Wells,Hard,R32,Ajla Tomljanovic,Jasmine Paolini,Jasmine Paolini,0,0.17754904180765152,0,Jasmine Paolini
+2026-609-28,2026-03-06,Indian Wells,Hard,R32,Karolina Muchova,Linda Noskova,Linda Noskova,0,0.6638367998600007,1,Karolina Muchova
+2026-609-29,2026-03-06,Indian Wells,Hard,R32,Coco Gauff,Alex Eala,Coco Gauff,1,0.8005564320087433,1,Coco Gauff
+2026-609-30,2026-03-06,Indian Wells,Hard,R32,Amanda Anisimova,Emma Raducanu,Amanda Anisimova,1,0.7598273503780364,1,Amanda Anisimova
+2026-609-31,2026-03-06,Indian Wells,Hard,R32,Anna Kalinskaya,Victoria Mboko,Victoria Mboko,0,0.3738650530576706,0,Victoria Mboko
+2026-609-32,2026-03-06,Indian Wells,Hard,R32,Naomi Osaka,Camila Osorio,Naomi Osaka,1,0.7514793729782104,1,Naomi Osaka
+2026-609-33,2026-03-06,Indian Wells,Hard,R32,Jaqueline Cristian,Aryna Sabalenka,Aryna Sabalenka,0,0.05557139210402965,0,Aryna Sabalenka
+2026-609-9,2026-03-06,Indian Wells,Hard,R16,Iga Swiatek,Qinwen Zheng,Iga Swiatek,1,0.6526922702789306,1,Iga Swiatek
+2026-609-10,2026-03-06,Indian Wells,Hard,R16,Elina Svitolina,Karolina Muchova,Elina Svitolina,1,0.5188319504261016,1,Elina Svitolina
+2026-609-11,2026-03-06,Indian Wells,Hard,R16,Katerina Siniakova,Elena Rybakina,Elena Rybakina,0,0.11040857583284377,0,Elena Rybakina
+2026-609-12,2026-03-06,Indian Wells,Hard,R16,Madison Keys,Sonay Kartal,Sonay Kartal,0,0.7465611040592194,1,Madison Keys
+2026-609-13,2026-03-06,Indian Wells,Hard,R16,Jessica Pegula,Belinda Bencic,Jessica Pegula,1,0.6888637244701385,1,Jessica Pegula
+2026-609-15,2026-03-06,Indian Wells,Hard,R16,Coco Gauff,Linda Noskova,Linda Noskova,0,0.6621689438819884,1,Coco Gauff
+2026-609-16,2026-03-06,Indian Wells,Hard,R16,Amanda Anisimova,Victoria Mboko,Victoria Mboko,0,0.5124600142240524,1,Amanda Anisimova
+2026-609-17,2026-03-06,Indian Wells,Hard,R16,Naomi Osaka,Aryna Sabalenka,Aryna Sabalenka,0,0.17483251839876174,0,Aryna Sabalenka
+2026-609-1,2026-03-06,Indian Wells,Hard,QF,Elina Svitolina,Iga Swiatek,Elina Svitolina,1,0.3979042619466781,0,Iga Swiatek
+2026-609-2,2026-03-06,Indian Wells,Hard,QF,Jessica Pegula,Elena Rybakina,Elena Rybakina,0,0.5668909847736359,1,Jessica Pegula
+2026-609-6,2026-03-06,Indian Wells,Hard,QF,Jessica Pegula,Sonay Kartal,Jessica Pegula,1,0.8591865777969359,1,Jessica Pegula
+2026-609-8,2026-03-06,Indian Wells,Hard,QF,Aryna Sabalenka,Victoria Mboko,Aryna Sabalenka,1,0.6536635875701904,1,Aryna Sabalenka
+2026-609-4,2026-03-06,Indian Wells,Hard,SF,Elina Svitolina,Elena Rybakina,Elena Rybakina,0,0.3390873551368713,0,Elena Rybakina
+2026-609-5,2026-03-06,Indian Wells,Hard,SF,Aryna Sabalenka,Linda Noskova,Aryna Sabalenka,1,0.7724457025527954,1,Aryna Sabalenka
+2026-609-3,2026-03-06,Indian Wells,Hard,F,Aryna Sabalenka,Elena Rybakina,Aryna Sabalenka,1,0.6082581341266632,1,Aryna Sabalenka

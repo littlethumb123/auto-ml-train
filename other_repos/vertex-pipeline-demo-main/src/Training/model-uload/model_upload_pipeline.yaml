@@ -1,0 +1,248 @@
+# PIPELINE DEFINITION
+# Name: model-upload-pipeline
+# Description: Simple pipeline to upload model to Vertex AI Model Registry
+# Inputs:
+#    cmek_key: str
+#    description: str
+#    existing_model_resource_name: str [Default: '']
+#    location: str
+#    model_display_name: str
+#    model_framework: str [Default: 'XGBoost']
+#    model_gcs_location: str
+#    model_type: str [Default: 'classifier']
+#    project: str
+#    service_account: str
+#    serving_container_health_route: str [Default: '/health']
+#    serving_container_image_uri: str
+#    serving_container_predict_route: str [Default: '/predict']
+#    upload_to_existing_model: bool [Default: False]
+components:
+  comp-upload-model-component:
+    executorLabel: exec-upload-model-component
+    inputDefinitions:
+      parameters:
+        cmek_key:
+          parameterType: STRING
+        description:
+          description: model or version description
+          isOptional: true
+          parameterType: STRING
+        existing_model_resource_name:
+          defaultValue: ''
+          description: Full resource name of the existing model (if applicable).
+          isOptional: true
+          parameterType: STRING
+        location:
+          description: GCP region.
+          parameterType: STRING
+        model_display_name:
+          parameterType: STRING
+        model_framework:
+          defaultValue: XGBoost
+          description: ML framework name (e.g., "XGBoost", "scikit-learn", "TensorFlow")
+          isOptional: true
+          parameterType: STRING
+        model_gcs_location:
+          description: GCS URI to the model artifact directory or file.
+          parameterType: STRING
+        model_type:
+          defaultValue: classifier
+          description: Model type ("classifier" or "regressor")
+          isOptional: true
+          parameterType: STRING
+        project:
+          description: GCP project ID.
+          parameterType: STRING
+        service_account:
+          parameterType: STRING
+        serving_container_health_route:
+          defaultValue: /health
+          description: 'Route for health check endpoint (default: "/health")'
+          isOptional: true
+          parameterType: STRING
+        serving_container_image_uri:
+          description: URI of the serving container image.
+          parameterType: STRING
+        serving_container_predict_route:
+          defaultValue: /predict
+          description: 'Route for prediction endpoint (default: "/predict")'
+          isOptional: true
+          parameterType: STRING
+        upload_to_existing_model:
+          defaultValue: false
+          description: If True, upload as a new version to existing model.
+          isOptional: true
+          parameterType: BOOLEAN
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-upload-model-component:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - upload_model_component
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.13.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&\
+          \  python3 -m pip install --quiet --no-warn-script-location 'google-cloud-aiplatform>=1.38.0'\
+          \ 'google-cloud-storage>=2.0.0' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef upload_model_component(\n    project: str,\n    location: str,\n\
+          \    service_account: str,\n    cmek_key: str,\n    model_gcs_location:\
+          \ str,\n    serving_container_image_uri: str,\n    model_display_name: str,\n\
+          \    upload_to_existing_model: bool = False,\n    existing_model_resource_name:\
+          \ str = \"\",\n    description: str = None,\n    serving_container_predict_route:\
+          \ str = \"/predict\",\n    serving_container_health_route: str = \"/health\"\
+          ,\n    model_framework: str = \"XGBoost\",  # Framework name\n    model_type:\
+          \ str = \"classifier\",  # \"classifier\" or \"regressor\"\n) -> str:\n\
+          \    \"\"\"\n    Registers a model in Vertex AI Model Registry with metadata.\n\
+          \    - Checks if the model file exists and is of an allowed type.\n    -\
+          \ Can upload to a new model or an existing model.\n    - Adds metadata for\
+          \ proper model serving.\n\n    Args:\n        project: GCP project ID.\n\
+          \        location: GCP region.\n        model_gcs_location: GCS URI to the\
+          \ model artifact directory or file.\n        serving_container_image_uri:\
+          \ URI of the serving container image.\n        display_name: Display name\
+          \ for the model.\n        upload_to_existing_model: If True, upload as a\
+          \ new version to existing model.\n        existing_model_resource_name:\
+          \ Full resource name of the existing model (if applicable).\n        encryption_spec_key_name:\
+          \ CMEK key (optional).\n        description: model or version description\n\
+          \        serving_container_predict_route: Route for prediction endpoint\
+          \ (default: \"/predict\")\n        serving_container_health_route: Route\
+          \ for health check endpoint (default: \"/health\")\n        model_framework:\
+          \ ML framework name (e.g., \"XGBoost\", \"scikit-learn\", \"TensorFlow\"\
+          )\n        model_type: Model type (\"classifier\" or \"regressor\")\n\n\
+          \    Returns:\n        The resource name of the uploaded model version.\n\
+          \    \"\"\"\n    import os\n    from google.cloud import storage, aiplatform\n\
+          \n    # Check model file(s) in GCS\n    if not model_gcs_location.startswith(\"\
+          gs://\"):\n        raise ValueError(\"model_gcs_location must be a GCS URI\
+          \ (gs://...)\")\n    if upload_to_existing_model==True and existing_model_resource_name==\"\
+          \":\n        raise ValueError(\"existing_model_resource_name must have value\
+          \ when upload_to_existing_model is True\")\n\n    aiplatform.init(project=project,\
+          \ location=location, service_account=service_account)\n\n    # Build description\
+          \ with metadata\n    metadata_description = f\"\"\"Framework: {model_framework}\n\
+          \    Model Type: {model_type}\n    {description if description else \"\"\
+          }\"\"\".strip()\n\n    # Upload as new version to existing model\n    if\
+          \ upload_to_existing_model and existing_model_resource_name:\n        existing_model\
+          \ = aiplatform.Model(existing_model_resource_name)\n        new_model_version\
+          \ = aiplatform.Model.upload(\n            display_name=model_display_name,\n\
+          \            version_description=metadata_description,\n            artifact_uri=model_gcs_location,\n\
+          \            serving_container_image_uri=serving_container_image_uri,\n\
+          \            serving_container_predict_route=serving_container_predict_route,\n\
+          \            serving_container_health_route=serving_container_health_route,\n\
+          \            parent_model=existing_model.resource_name,\n            encryption_spec_key_name=cmek_key,\n\
+          \        )\n        return new_model_version.resource_name\n\n    # Upload\
+          \ as a new model (default)\n    model = aiplatform.Model.upload(\n     \
+          \   display_name=model_display_name,\n        description=metadata_description,\n\
+          \        artifact_uri=model_gcs_location,\n        serving_container_image_uri=serving_container_image_uri,\n\
+          \        serving_container_predict_route=serving_container_predict_route,\n\
+          \        serving_container_health_route=serving_container_health_route,\n\
+          \        encryption_spec_key_name=cmek_key,\n    )\n    model.wait()\n \
+          \   return model.resource_name\n\n"
+        image: python:3.9
+pipelineInfo:
+  description: Simple pipeline to upload model to Vertex AI Model Registry
+  name: model-upload-pipeline
+root:
+  dag:
+    tasks:
+      upload-model-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-upload-model-component
+        inputs:
+          parameters:
+            cmek_key:
+              componentInputParameter: cmek_key
+            description:
+              componentInputParameter: description
+            existing_model_resource_name:
+              componentInputParameter: existing_model_resource_name
+            location:
+              componentInputParameter: location
+            model_display_name:
+              componentInputParameter: model_display_name
+            model_framework:
+              componentInputParameter: model_framework
+            model_gcs_location:
+              componentInputParameter: model_gcs_location
+            model_type:
+              componentInputParameter: model_type
+            project:
+              componentInputParameter: project
+            service_account:
+              componentInputParameter: service_account
+            serving_container_health_route:
+              componentInputParameter: serving_container_health_route
+            serving_container_image_uri:
+              componentInputParameter: serving_container_image_uri
+            serving_container_predict_route:
+              componentInputParameter: serving_container_predict_route
+            upload_to_existing_model:
+              componentInputParameter: upload_to_existing_model
+        taskInfo:
+          name: upload-model-component
+  inputDefinitions:
+    parameters:
+      cmek_key:
+        parameterType: STRING
+      description:
+        isOptional: true
+        parameterType: STRING
+      existing_model_resource_name:
+        defaultValue: ''
+        isOptional: true
+        parameterType: STRING
+      location:
+        parameterType: STRING
+      model_display_name:
+        parameterType: STRING
+      model_framework:
+        defaultValue: XGBoost
+        isOptional: true
+        parameterType: STRING
+      model_gcs_location:
+        parameterType: STRING
+      model_type:
+        defaultValue: classifier
+        isOptional: true
+        parameterType: STRING
+      project:
+        parameterType: STRING
+      service_account:
+        parameterType: STRING
+      serving_container_health_route:
+        defaultValue: /health
+        isOptional: true
+        parameterType: STRING
+      serving_container_image_uri:
+        parameterType: STRING
+      serving_container_predict_route:
+        defaultValue: /predict
+        isOptional: true
+        parameterType: STRING
+      upload_to_existing_model:
+        defaultValue: false
+        isOptional: true
+        parameterType: BOOLEAN
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.13.0

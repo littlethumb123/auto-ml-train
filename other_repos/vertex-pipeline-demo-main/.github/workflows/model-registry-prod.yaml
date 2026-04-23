@@ -1,0 +1,282 @@
+name: Model Registration - Multi Environment
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+        default: dev
+      model-path:
+        description: 'Model path (full GCS URI, e.g., gs://bucket/path/to/model/)'
+        required: true
+        type: string
+        default: 'gs://hcm-cm-de-data-hcb-dev/batch-prediction-model'
+      model-name:
+        description: 'Model display name in Vertex AI'
+        required: true
+        type: string
+        default: 'simple-batch-prediction-model'
+      serving-container-image:
+        description: 'Serving container image URI'
+        required: true
+        type: string
+        default: 'gcr.io/cloud-aiplatform/prediction/sklearn-cpu.1-0:latest'
+      runs-on-group:
+        description: 'The runner group to use'
+        required: true
+        type: string
+        default: cvs-linux-self-hosted
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Generate timestamp for prod deployment
+      id: timestamp
+      run: |
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        echo "timestamp=$TIMESTAMP" >> "$GITHUB_OUTPUT"
+        echo "Generated timestamp: $TIMESTAMP"
+    - name: Set environment variables
+      run: |
+        if [ "${{ inputs.environment }}" == "prod" ]; then
+          echo "PROJECT_ID=anbc-prod-hcm-cm-de" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/46504011566/locations/global/workloadIdentityPools/wif-pool-github-prod/providers/wif-pool-github-prod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-prod-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-onppp@anbc-prod-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "PROD_BUCKET=hcm-cm-de-code-hcb-prod" >> $GITHUB_ENV
+          echo "DEV_WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "DEV_WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "DEV_TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "ENCRYPTION_KEY=projects/cvs-key-vault-prod/locations/us-east4/keyRings/gkr-prod-us-east4/cryptoKeys/gk-anbc-prod-hcm-cm-de-us-east4" >> $GITHUB_ENV
+        elif [ "${{ inputs.environment }}" == "test" ]; then
+          echo "PROJECT_ID=anbc-test-hcm-cm-de" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-onppq@anbc-test-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "PROD_BUCKET=hcm-cm-de-data-hcb-test" >> $GITHUB_ENV
+          echo "DEV_WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "DEV_WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "DEV_TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "ENCRYPTION_KEY=projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-test-hcm-cm-de-us-east4" >> $GITHUB_ENV
+        else
+          echo "PROJECT_ID=anbc-dev-hcm-cm-de" >> $GITHUB_ENV
+          echo "WIF_PROVIDER=projects/1037010797476/locations/global/workloadIdentityPools/wif-pool-github-nonprod/providers/wif-pool-github-nonprod" >> $GITHUB_ENV
+          echo "WIF_SERVICE_ACCOUNT=hcm-cm-github-wif-automation@css-dev-iam.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "TARGET_SERVICE_ACCOUNT=gchcb-hcm-cm-de-ontpd@anbc-dev-hcm-cm-de.iam.gserviceaccount.com" >> $GITHUB_ENV
+          echo "ENCRYPTION_KEY=projects/cvs-key-vault-nonprod/locations/us-east4/keyRings/gkr-nonprod-us-east4/cryptoKeys/gk-anbc-dev-hcm-cm-de-us-east4" >> $GITHUB_ENV
+        fi
+    # STEP 1: Download model from dev bucket using dev SA (for prod and test environments)
+    - name: Authenticate to Google Cloud (Dev for model download)
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      id: auth-dev
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ env.DEV_WIF_PROVIDER }}
+        service_account: ${{ env.DEV_WIF_SERVICE_ACCOUNT }}
+
+    - name: 'Setup Cloud SDK for Dev'
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+
+    - name: Set up dev impersonation for model download
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      run: |-
+        gcloud config set auth/impersonate_service_account ${{ env.DEV_TARGET_SERVICE_ACCOUNT }}
+    - name: Download model from dev bucket to local storage
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      run: |
+        echo "Downloading model from dev bucket..."
+        
+        SOURCE_PATH="${{ inputs.model-path }}"
+        LOCAL_MODEL_DIR="./temp-model-download"
+        
+        echo "Source: $SOURCE_PATH"
+        echo "Local temp dir: $LOCAL_MODEL_DIR"
+        
+        # Validate source path
+        if [[ ! "$SOURCE_PATH" =~ ^gs:// ]]; then
+          echo "Error: Source path must be a valid GCS URI (gs://...)"
+          exit 1
+        fi
+        
+        # Check if source exists
+        if gsutil ls "$SOURCE_PATH" > /dev/null 2>&1; then
+          echo "Source model found"
+          
+          # Create local directory
+          mkdir -p "$LOCAL_MODEL_DIR"
+          
+          # Download model files to local storage
+          if gsutil -m cp -r "$SOURCE_PATH"* "$LOCAL_MODEL_DIR/"; then
+            echo "Model downloaded successfully to local storage"
+            
+            # List downloaded files
+            echo "Downloaded files:"
+            find "$LOCAL_MODEL_DIR" -type f -exec ls -la {} \;
+            
+            echo "LOCAL_MODEL_DIR=$LOCAL_MODEL_DIR" >> $GITHUB_ENV
+          else
+            echo "Error: Failed to download model from dev bucket"
+            exit 1
+          fi
+        else
+          echo "Error: Source model not found at $SOURCE_PATH"
+          exit 1
+        fi
+    # STEP 2: Upload model to target bucket (prod or test) using target SA
+    - name: Clear dev authentication
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      run: |-
+        gcloud config unset auth/impersonate_service_account || true
+        gcloud auth revoke --all || true
+        echo "Cleared dev authentication"
+    - name: Authenticate to Google Cloud (Target for model upload)
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      id: auth-target-upload
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+
+    - name: 'Setup Cloud SDK for Target Upload'
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+
+    - name: Set up target impersonation for model upload
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      run: |-
+        gcloud config set auth/impersonate_service_account ${{ env.TARGET_SERVICE_ACCOUNT }}
+    - name: Upload model to target bucket with timestamp
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      run: |
+        echo "Uploading model to ${{ inputs.environment }} bucket with timestamp..."
+        
+        LOCAL_MODEL_DIR="${{ env.LOCAL_MODEL_DIR }}"
+        TARGET_BUCKET="${{ env.PROD_BUCKET }}"
+        TARGET_DIR="gs://$TARGET_BUCKET/vertex-test/${{ inputs.model-name }}/${{ steps.timestamp.outputs.timestamp }}/"
+        
+        echo "Source (local): $LOCAL_MODEL_DIR"
+        echo "Target (${{ inputs.environment }}): $TARGET_DIR"
+        echo "Timestamp: ${{ steps.timestamp.outputs.timestamp }}"
+        
+        # Verify local files exist
+        if [ ! -d "$LOCAL_MODEL_DIR" ] || [ -z "$(ls -A $LOCAL_MODEL_DIR)" ]; then
+          echo "Error: Local model directory is empty or doesn't exist"
+          exit 1
+        fi
+        
+        echo "Files to upload:"
+        find "$LOCAL_MODEL_DIR" -type f -exec ls -la {} \;
+        
+        # Upload to target bucket
+        if gsutil -m cp -r "$LOCAL_MODEL_DIR"/* "$TARGET_DIR"; then
+          echo "Model uploaded successfully to ${{ inputs.environment }} with timestamp"
+          echo "Model location: $TARGET_DIR"
+          
+          # Verify the upload
+          echo "Verifying uploaded files:"
+          gsutil ls -la "$TARGET_DIR"
+          
+          # Set final model path for registration
+          echo "FINAL_MODEL_PATH=$TARGET_DIR" >> $GITHUB_ENV
+          
+          # Clean up local files
+          rm -rf "$LOCAL_MODEL_DIR"
+          echo "Cleaned up local model files"
+        else
+          echo "Error: Failed to upload model to ${{ inputs.environment }} bucket"
+          exit 1
+        fi
+    - name: Set model path for dev environment
+      if: inputs.environment == 'dev'
+      run: |
+        echo "Dev environment - using original model path"
+        echo "Model path: ${{ inputs.model-path }}"
+        echo "FINAL_MODEL_PATH=${{ inputs.model-path }}" >> $GITHUB_ENV
+    # Remove the old "Set model path for test environment" step since test now follows prod pattern
+
+    # STEP 3: Model registration (re-authenticate for target environment)
+    - name: Clear previous authentication for model registration
+      if: inputs.environment == 'prod' || inputs.environment == 'test'
+      run: |-
+        gcloud config unset auth/impersonate_service_account || true
+        gcloud auth revoke --all || true
+        echo "Cleared previous authentication for model registration"
+    - name: Authenticate to Google Cloud (Target Environment for Model Registration)
+      id: auth-target
+      uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193'
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+
+    - name: 'Setup Cloud SDK for Target Environment'
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
+
+    - name: Set up target environment impersonation
+      id: impersonate
+      run: |-
+        gcloud config set auth/impersonate_service_account ${{ env.TARGET_SERVICE_ACCOUNT }}
+        ACCESS_TOKEN=$(gcloud auth print-access-token)
+        echo "::add-mask::$ACCESS_TOKEN"
+        echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
+
+    - name: Install python3-venv
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-venv
+    - name: Detect Python interpreter
+      run: |-
+        set -e
+        if command -v python3 >/dev/null 2>&1; then
+          PY=python3
+        elif command -v python >/dev/null 2>&1; then
+          PY=python
+        else
+          echo "Python not found on runner" >&2
+          exit 1
+        fi
+        echo "PYTHON_INTERPRETER=$PY" >> "$GITHUB_ENV"
+        $PY --version
+    - name: Create virtual environment
+      run: |
+        "$PYTHON_INTERPRETER" -m venv .venv
+        . .venv/bin/activate
+        python -m pip install --upgrade pip
+        echo "VENV_PY=.venv/bin/python" >> "$GITHUB_ENV"
+        echo "VENV_PIP=.venv/bin/pip" >> "$GITHUB_ENV"
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: ${{ runner.os }}-pip-
+
+    - name: Install Python dependencies
+      run: |
+        "$VENV_PIP" install google-cloud-aiplatform google-auth
+    - name: Register Model in Vertex AI
+      env:
+        GOOGLE_CLOUD_PROJECT: ${{ env.PROJECT_ID }}
+        IMPERSONATED_SERVICE_ACCOUNT: ${{ env.TARGET_SERVICE_ACCOUNT }}
+        MODEL_DISPLAY_NAME: ${{ inputs.model-name }}
+        MODEL_ARTIFACT_URI: ${{ env.FINAL_MODEL_PATH }}
+        SERVING_CONTAINER_IMAGE_URI: ${{ inputs.serving-container-image }}
+        ENVIRONMENT: ${{ github.event.inputs.environment }}
+        ACCESS_TOKEN: ${{ steps.impersonate.outputs.access_token }}
+        KMS_KEY: ${{ env.ENCRYPTION_KEY }}
+      run: |-
+        echo "Registering model in Vertex AI..."
+        "$VENV_PY" model_registration.py

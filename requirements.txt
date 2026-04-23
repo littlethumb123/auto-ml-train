@@ -9,3 +9,7 @@ optuna>=3.6
 pandas>=2.0
 numpy>=1.26
 matplotlib>=3.5
+pytest>=7.0
+PyYAML>=6.0
+scipy>=1.11
+xxhash>=3.4
