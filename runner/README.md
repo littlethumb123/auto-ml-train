@@ -158,6 +158,10 @@ git merge campaign/<campaign_id> --no-ff -m "Merge campaign <campaign_id> — be
 
 All stages accept `--campaign-dir <path>` (default `runner/`).
 
+Optional JSON-list flags (passed through to the driver when present):
+
+- `--tools-ran` (`review-finalize`): tools the Reviewer executed, for `EVAL_PROTOCOL.mandatory_tools` enforcement.
+
 ---
 
 ## Tactical tools (examples)
