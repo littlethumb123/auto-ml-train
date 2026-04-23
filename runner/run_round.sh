@@ -34,6 +34,7 @@ elif stage == "execute-finalize":
     print(json.dumps(res))
 elif stage == "review-finalize":
     metrics = json.loads(args["metrics_json"])
+    tools_ran = json.loads(args["tools_ran"]) if "tools_ran" in args else None
     res = runner_driver.review_finalize(
         verdict=args["verdict"],
         commit=args["commit"],
@@ -44,6 +45,7 @@ elif stage == "review-finalize":
         model_family=args["model_family"],
         n_features=int(args["n_features"]),
         campaign_dir=args.get("campaign_dir", "runner/"),
+        tools_ran=tools_ran,
     )
     print(json.dumps(res))
 elif stage == "resolve-c2":

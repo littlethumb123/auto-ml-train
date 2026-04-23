@@ -39,6 +39,27 @@ _STDOUT_RE = re.compile(
 )
 
 
+def _normalize_mandatory_tool_name(name: str) -> str:
+    """Map contract entries (e.g. tools/anomaly.py) to dotted module form for comparison."""
+    n = name.strip()
+    if not n:
+        return ""
+    if n.endswith(".py"):
+        n = n[:-3]
+    n = n.replace("\\", "/")
+    if n.startswith("runner.tools."):
+        return n
+    if n.startswith("runner/tools/"):
+        rest = n[len("runner/tools/") :].replace("/", ".")
+        return "runner.tools." + rest
+    if n.startswith("tools/"):
+        rest = n[len("tools/") :].replace("/", ".")
+        return "runner.tools." + rest
+    if "/" in n:
+        return n.replace("/", ".")
+    return n
+
+
 def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     camp = Path(campaign_dir)
     contracts = {
@@ -222,6 +243,7 @@ def review_finalize(
     model_family: str,
     n_features: int,
     campaign_dir: str = "runner/",
+    tools_ran: list[str] | None = None,
 ) -> dict[str, Any]:
     camp = Path(campaign_dir)
     state_path = camp / "state" / "CAMPAIGN_STATE.json"
@@ -231,6 +253,18 @@ def review_finalize(
     pm = (eval_fm.get("primary_metric") or {})
     metric_name = pm.get("name", "val_pr_auc")
     direction = pm.get("direction", "maximize")
+
+    mandatory_gate_reason = ""
+    mandatory_raw = list(eval_fm.get("mandatory_tools") or [])
+    if tools_ran is not None and mandatory_raw and verdict == "keep":
+        mandatory_norm = {_normalize_mandatory_tool_name(m) for m in mandatory_raw if m}
+        ran_norm = {_normalize_mandatory_tool_name(t) for t in tools_ran if t}
+        missing = mandatory_norm - ran_norm
+        if missing:
+            verdict = "malformed"
+            mandatory_gate_reason = (
+                f"mandatory_tools: missing normalized tool(s) {sorted(missing)} (spec §8.3 item 8)"
+            )
 
     log.append_result(
         commit=commit if commit else "none",
@@ -255,6 +289,8 @@ def review_finalize(
     if verdict == "malformed" and prior_verdict == "malformed":
         halt_loop = True
         halt_reason = "two consecutive malformed verdicts — BUG: role producing malformed artifacts"
+    elif mandatory_gate_reason:
+        halt_reason = mandatory_gate_reason
     if state_after.get("round", 0) >= state_after.get("budget_total", 0):
         halt_loop = True
         halt_reason = halt_reason or "budget_exhausted"
