@@ -38,6 +38,22 @@ _STDOUT_RE = re.compile(
     re.MULTILINE,
 )
 
+_SUCCESS_METRIC_RE = re.compile(r"(\w+)\s*>=?\s*([\d.]+)", re.IGNORECASE)
+
+
+def _parse_success_target(problem_contract_path: Path, primary_metric_name: str) -> float | None:
+    """Best-effort parse of the first success_criteria entry for a numeric target."""
+    try:
+        fm, _ = parse_frontmatter(problem_contract_path)
+    except (FrontmatterError, OSError):
+        return None
+    criteria = fm.get("success_criteria") or []
+    for crit in criteria:
+        m = _SUCCESS_METRIC_RE.search(str(crit))
+        if m and m.group(1).lower() == primary_metric_name.lower():
+            return float(m.group(2))
+    return None
+
 
 _READ_ONLY_PREFIXES = (
     "prepare.py",
@@ -302,6 +318,7 @@ def review_finalize(
     n_features: int,
     campaign_dir: str = "runner/",
     tools_ran: list[str] | None = None,
+    bootstrap_se: float | None = None,
 ) -> dict[str, Any]:
     camp = Path(campaign_dir)
     state_path = camp / "state" / "CAMPAIGN_STATE.json"
@@ -357,10 +374,33 @@ def review_finalize(
         halt_loop = True
         halt_reason = halt_reason or "budget_exhausted"
 
-    return {
+    c3_advisory = False
+    c3_advisory_reason = ""
+    if (
+        bootstrap_se is not None
+        and bootstrap_se > 0
+        and verdict in ("keep", "discard")
+    ):
+        problem_path = camp / "contracts" / "PROBLEM_CONTRACT.md"
+        success_target = _parse_success_target(problem_path, metric_name)
+        best_metric = (state_after.get("best_so_far") or {}).get("primary_metric")
+        if success_target is not None and best_metric is not None:
+            target_gap = success_target - best_metric
+            if target_gap > 0 and target_gap <= 2 * bootstrap_se:
+                c3_advisory = True
+                c3_advisory_reason = (
+                    f"target_gap={target_gap:.4f} <= 2*bootstrap_se={2 * bootstrap_se:.4f} — "
+                    "bottleneck is measurement, not modeling; consider C3 to upgrade CV scheme"
+                )
+
+    result: dict[str, Any] = {
         "verdict": verdict,
         "should_rollback": should_rollback,
         "pause_loop": pause_loop,
         "halt_loop": halt_loop,
         "halt_reason": halt_reason,
     }
+    if c3_advisory:
+        result["c3_advisory"] = True
+        result["c3_advisory_reason"] = c3_advisory_reason
+    return result
