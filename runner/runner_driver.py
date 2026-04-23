@@ -39,6 +39,24 @@ _STDOUT_RE = re.compile(
 )
 
 
+_READ_ONLY_PREFIXES = (
+    "prepare.py",
+    "data/",
+    "runner/contracts/",
+    "runner/roles/",
+    "runner/tools/",
+    "log.py",
+)
+
+
+def _path_in_write_scope(path: str, allowed: set[str]) -> bool:
+    if path == "train.py":
+        return True
+    if path in allowed:
+        return True
+    return any(path.startswith(a + "/") for a in allowed if a != "train.py")
+
+
 def _normalize_mandatory_tool_name(name: str) -> str:
     """Map contract entries (e.g. tools/anomaly.py) to dotted module form for comparison."""
     n = name.strip()
@@ -207,6 +225,7 @@ def resolve_c2(
 def execute_finalize(
     executor_stdout: str,
     campaign_dir: str = "runner/",
+    commit_diff_files: list[str] | None = None,
 ) -> dict[str, Any]:
     matches = list(_STDOUT_RE.finditer(executor_stdout))
     if not matches:
@@ -222,6 +241,33 @@ def execute_finalize(
 
     if channel == "RUN_COMPLETE":
         commit = rest.split()[0] if rest else None
+
+        if commit_diff_files is not None:
+            camp = Path(campaign_dir)
+            plan_path = camp / "state" / "NEXT_EXPERIMENT.md"
+            allowed: set[str] = {"train.py"}
+            try:
+                fm, _ = parse_frontmatter(plan_path)
+                for h in fm.get("helpers_declared") or []:
+                    if h:
+                        allowed.add(str(h))
+            except (FrontmatterError, OSError):
+                pass
+            violations = [f for f in commit_diff_files if not _path_in_write_scope(f, allowed)]
+            if violations:
+                read_hits = [
+                    f
+                    for f in violations
+                    if any(f == p or f.startswith(p) for p in _READ_ONLY_PREFIXES)
+                ]
+                detail = read_hits if read_hits else violations
+                return {
+                    "channel": channel,
+                    "commit": commit,
+                    "synthetic_verdict": "malformed",
+                    "reason": f"write_scope_violation: {detail}",
+                }
+
         return {"channel": channel, "commit": commit, "synthetic_verdict": None, "reason": ""}
     if channel == "RUN_FAILED":
         parts = rest.split(maxsplit=1)

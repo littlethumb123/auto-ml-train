@@ -161,6 +161,7 @@ All stages accept `--campaign-dir <path>` (default `runner/`).
 Optional JSON-list flags (passed through to the driver when present):
 
 - `--tools-ran` (`review-finalize`): tools the Reviewer executed, for `EVAL_PROTOCOL.mandatory_tools` enforcement.
+- `--commit-diff-files` (`execute-finalize`): paths changed in the Executor commit, for write-scope checks vs `NEXT_EXPERIMENT.md` helpers.
 
 ---
 
