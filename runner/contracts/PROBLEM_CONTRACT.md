@@ -18,8 +18,8 @@ constraints:
 non_goals:
   - "No deployment / inference service."
   - "No fairness / subgroup analysis in this campaign."
-approved_at: null
-approved_by: null
+approved_at: "2026-04-22"
+approved_by: "copilot"
 ---
 
 ## 1. Task

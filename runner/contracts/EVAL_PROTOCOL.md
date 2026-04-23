@@ -21,8 +21,8 @@ paired_test:
   enabled: false
   test: "wilcoxon"
 mandatory_tools:
-  - "tools/anomaly.py"
-  - "tools/bootstrap_ci.py"
+  - "runner.tools.anomaly"
+  - "runner.tools.bootstrap_ci"
 action_types:
   - "A_model"
   - "A_feature"
@@ -42,8 +42,8 @@ plateau_trigger:
 anomaly:
   floor: 0.75
   relative: 0.5
-approved_at: null
-approved_by: null
+approved_at: "2026-04-22"
+approved_by: "copilot"
 ---
 
 ## 1. Rationale

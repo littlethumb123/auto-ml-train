@@ -123,6 +123,66 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
     return {"status": "ok", "errors": []}
 
 
+def resolve_c2(
+    resolution: str,
+    campaign_dir: str = "runner/",
+) -> dict[str, Any]:
+    """Acknowledge a C2 plateau pause and reset consecutive_discards.
+
+    Called after the human/agent reviews the C2 escalation, decides
+    a new direction, and wants to resume normal planning.
+
+    Args:
+        resolution: Free-text description of the decided strategy shift
+                    (e.g., "switching from XGBoost to LightGBM family").
+        campaign_dir: Path to runner directory.
+
+    Returns:
+        Updated state dict with consecutive_discards reset to 0.
+    """
+    camp = Path(campaign_dir)
+    state_path = camp / "state" / "CAMPAIGN_STATE.json"
+    if not state_path.exists():
+        raise DriverError("CAMPAIGN_STATE.json not found — run init first")
+    state = json.loads(state_path.read_text())
+
+    eval_fm, _ = parse_frontmatter(camp / "contracts" / "EVAL_PROTOCOL.md")
+    trigger = int((eval_fm.get("plateau_trigger") or {}).get("consecutive_discards", 3))
+
+    if state.get("consecutive_discards", 0) < trigger:
+        return {
+            "status": "no_plateau",
+            "message": f"consecutive_discards={state['consecutive_discards']} < trigger={trigger}; "
+                       "no C2 plateau active — nothing to resolve",
+        }
+
+    import datetime as _dt
+
+    prior_discards = state["consecutive_discards"]
+    state["consecutive_discards"] = 0
+    state["updated_at"] = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    state_path.write_text(json.dumps(state, indent=2) + "\n")
+
+    # Append resolution to NOTEBOOK.md for audit trail
+    notebook_path = camp / "state" / "NOTEBOOK.md"
+    entry = (
+        f"\n- **C2 resolved (round {state['round']}):** "
+        f"consecutive_discards reset from {prior_discards} to 0. "
+        f"Resolution: {resolution}\n"
+    )
+    if notebook_path.exists():
+        with open(notebook_path, "a") as f:
+            f.write(entry)
+    else:
+        notebook_path.write_text(entry)
+
+    return {
+        "status": "resolved",
+        "prior_consecutive_discards": prior_discards,
+        "resolution": resolution,
+    }
+
+
 def execute_finalize(
     executor_stdout: str,
     campaign_dir: str = "runner/",

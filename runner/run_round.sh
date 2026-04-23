@@ -2,7 +2,7 @@
 # runner/run_round.sh — thin CLI wrapper over runner_driver.py.
 set -euo pipefail
 
-STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize"}
+STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize|resolve-c2"}
 shift || true
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -43,6 +43,12 @@ elif stage == "review-finalize":
         description=args["description"],
         model_family=args["model_family"],
         n_features=int(args["n_features"]),
+        campaign_dir=args.get("campaign_dir", "runner/"),
+    )
+    print(json.dumps(res))
+elif stage == "resolve-c2":
+    res = runner_driver.resolve_c2(
+        resolution=args.get("resolution", ""),
         campaign_dir=args.get("campaign_dir", "runner/"),
     )
     print(json.dumps(res))

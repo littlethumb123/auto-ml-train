@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "apr21-creditcard-fraud"
-count: 8
-last_updated: "2026-04-21"
+count: 9
+last_updated: "2026-04-22"
 ---
 
 # Dead ends — do NOT retry
@@ -15,3 +15,4 @@ last_updated: "2026-04-21"
 - DART booster — exceeds 90s timeout at 500 trees (apr01)
 - `tree_method=approx` — exceeds 90s timeout on 170K rows (apr01)
 - sklearn GBM (GradientBoostingClassifier) — exceeds 90s at 100 trees (apr01)
+- CatBoost numeric-feature search — underperformed XGBoost and consumed ~58.5s total budget (apr22)
