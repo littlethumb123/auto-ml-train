@@ -107,9 +107,21 @@ Capture executor stdout to a file, e.g. `/tmp/executor_out.txt`.
 
 ### 4. Execute finalize
 
+Minimal (parse stdout only):
+
 ```bash
 ./runner/run_round.sh execute-finalize \
   --stdout-file /tmp/executor_out.txt \
+  --campaign-dir runner/
+```
+
+With **write-scope enforcement** (recommended): pass the paths touched by the Executor commit so the driver rejects anything outside `train.py` plus `helpers_declared` in `NEXT_EXPERIMENT.md`. From repo root, after `RUN_COMPLETE` (replace `<sha>` with the Executor commit; `<parent>` is usually `HEAD~1` on a single-child branch):
+
+```bash
+DIFF_JSON=$(git diff --name-only <parent>..<sha> | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))")
+./runner/run_round.sh execute-finalize \
+  --stdout-file /tmp/executor_out.txt \
+  --commit-diff-files "$DIFF_JSON" \
   --campaign-dir runner/
 ```
 
@@ -130,6 +142,25 @@ Capture executor stdout to a file, e.g. `/tmp/executor_out.txt`.
   --n-features 30 \
   --campaign-dir runner/
 ```
+
+**Mandatory-tools enforcement (recommended for `keep`):** pass every tool you actually ran, using names that normalize to the same dotted form as `EVAL_PROTOCOL.mandatory_tools` (e.g. `runner.tools.anomaly` matches `tools/anomaly.py` in the contract). If any mandatory tool is missing from this list, the driver **overrides** `keep` → `malformed`.
+
+```bash
+./runner/run_round.sh review-finalize \
+  --verdict keep \
+  --commit <sha> \
+  --metrics-json '{"val_pr_auc":0.80,"lift_at_10":5.0,"macro_f1":0.8,"val_f1":0.7}' \
+  --action-type A_hp \
+  --hypothesis "short label" \
+  --description "longer text" \
+  --model-family lightgbm \
+  --n-features 30 \
+  --tools-ran '["runner.tools.anomaly","runner.tools.bootstrap_ci"]' \
+  --bootstrap-se 0.035 \
+  --campaign-dir runner/
+```
+
+`--bootstrap-se` is optional; when set, JSON output may include `c3_advisory` / `c3_advisory_reason` when the gap to `PROBLEM_CONTRACT` success criteria is within `2×` that SE (STRATEGY_GUIDE §1).
 
 On **discard / crash / malformed**, your process should **`git reset --hard HEAD~1`** after logging (per harness rules). On **anomaly**, pause and investigate (C1).
 
@@ -158,10 +189,13 @@ git merge campaign/<campaign_id> --no-ff -m "Merge campaign <campaign_id> — be
 
 All stages accept `--campaign-dir <path>` (default `runner/`).
 
-Optional JSON-list flags (passed through to the driver when present):
+Optional flags (passed through to the driver when present):
 
-- `--tools-ran` (`review-finalize`): tools the Reviewer executed, for `EVAL_PROTOCOL.mandatory_tools` enforcement.
-- `--commit-diff-files` (`execute-finalize`): paths changed in the Executor commit, for write-scope checks vs `NEXT_EXPERIMENT.md` helpers.
+- `--tools-ran` (`review-finalize`): JSON array of tools the Reviewer ran; required for mechanical `mandatory_tools` check on **`keep`** (omit = no check).
+- `--bootstrap-se` (`review-finalize`): float; optional input for C3 measurement-bottleneck advisory in JSON response.
+- `--commit-diff-files` (`execute-finalize`): JSON array of paths changed in the Executor commit; optional write-scope gate vs `train.py` + `helpers_declared`.
+
+**After `./runner/run_round.sh resolve-c2`:** the next `plan-check` requires `action_type: A_diagnose` until that round completes (`c2_pending_diagnose` in `CAMPAIGN_STATE.json`).
 
 ---
 

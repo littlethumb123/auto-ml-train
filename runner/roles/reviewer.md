@@ -17,7 +17,7 @@ You do not edit `train.py`, contracts, or helpers.
 
 ## 3. Required procedure
 1. Check the full Reviewer rejection list (see `docs/superpowers/specs/2026-04-21-autonomous-ml-runner-design.md` §8.3 items 1–8). If ANY triggers,
-   verdict = `malformed` and STOP here (skip steps 2–8; still do step 9).
+   verdict = `malformed` and STOP here (skip steps 2–10; still do step 11).
 2. Parse metrics from `run.log`. If parse fails: verdict = `crash`.
 3. Run `tools/anomaly` on the latest result. If fires: verdict = `anomaly` → emit **C1**.
 4. For each tool named mandatory in `EVAL_PROTOCOL.md §Mandatory tools`: run it against
@@ -25,12 +25,16 @@ You do not edit `train.py`, contracts, or helpers.
 5. Compute Δ = val_<primary_metric> − best_prior. Decide:
    - `keep`   if Δ > 0 AND no mandatory tool flagged regression AND not anomaly
    - `discard` otherwise
-6. If `discard`: append a one-liner to `state/DEAD_ENDS.md` (only if the pattern is
+6. **Driver handoff (operator / automation):** When calling `run_round.sh review-finalize`, you MUST:
+   - Pass `--tools-ran` as a JSON array listing every mandatory tool you actually executed (e.g. `["runner.tools.anomaly","runner.tools.bootstrap_ci"]`). The driver normalizes names so they match `EVAL_PROTOCOL.mandatory_tools`; omitting `--tools-ran` skips mechanical enforcement (legacy path). For **`keep`**, missing a mandatory tool → driver forces `malformed`.
+   - Optionally pass `--bootstrap-se <float>` with the `se` from `bootstrap_ci` output so the driver can set `c3_advisory` when the success-criterion gap is within `2×` that SE (STRATEGY_GUIDE §1).
+7. **Execute-finalize (operator):** After `RUN_COMPLETE`, the operator SHOULD pass `--commit-diff-files` (JSON array of paths from `git diff --name-only <parent>..<commit>`) so the driver rejects read-only path touches. See `runner/README.md` (step 4, Execute finalize).
+8. If `discard`: append a one-liner to `state/DEAD_ENDS.md` (only if the pattern is
    structurally different from existing entries).
-7. If the result contains a **surprising but not dead-end** observation: append a
+9. If the result contains a **surprising but not dead-end** observation: append a
    bullet to `state/NOTEBOOK.md`.
-8. Append the current round block to `state/REVIEW.md` per schema §2.3.5.
-9. Emit stdout: `VERDICT: <keep|discard|anomaly|crash|malformed> <commit>`.
+10. Append the current round block to `state/REVIEW.md` per schema §2.3.5.
+11. Emit stdout: `VERDICT: <keep|discard|anomaly|crash|malformed> <commit>`.
 
 ## 4. Outputs
 - Append block in `runner/state/REVIEW.md`.
