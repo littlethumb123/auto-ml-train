@@ -30,7 +30,12 @@ elif stage == "plan-check":
 elif stage == "execute-finalize":
     stdout_file = args["stdout_file"]
     text = open(stdout_file).read()
-    res = runner_driver.execute_finalize(text, campaign_dir=args.get("campaign_dir", "runner/"))
+    diff_files = json.loads(args["commit_diff_files"]) if "commit_diff_files" in args else None
+    res = runner_driver.execute_finalize(
+        text,
+        campaign_dir=args.get("campaign_dir", "runner/"),
+        commit_diff_files=diff_files,
+    )
     print(json.dumps(res))
 elif stage == "review-finalize":
     metrics = json.loads(args["metrics_json"])
