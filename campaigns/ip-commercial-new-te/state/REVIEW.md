@@ -590,3 +590,27 @@ val_lift_1pct: 22.762431
 delta_vs_best: -0.411989
 bootstrap_se: 0.4888
 review_note: XGB Optuna seed=7 found worse HPs (standalone 21.372 vs seed=42's 22.127). Ensemble 22.762 vs best 23.174. CONFIRMED: round 25 seed=42 found the global optimum for XGB AUC-ROC tuning. 23.174 is the practical ceiling for this technique. 3 consecutive discards → C2 approaches. Next: try wider XGB search space or accept ceiling.
+
+## Round 29
+
+commit: 0b5c8fc
+verdict: discard
+action_type: A_diagnose
+val_lift_1pct: 23.174420
+bootstrap_ci_lo: 22.0919
+bootstrap_ci_hi: 24.1011
+bootstrap_se: 0.5033
+target_gap: 0.8256
+c3_advisory: True
+review_note: A_diagnose reproduces round 25 champion EXACTLY (23.174, same weights). CI=[22.09,24.10], SE=0.503. Target gap (0.826) < 2×SE (1.007) → C3 ADVISORY FIRES: bottleneck is measurement, not modeling. Upgrading to k-fold CV would reduce SE from 0.503 to ~0.25 (halving with 4-fold). With tighter CI, further experimentation could reliably detect real gains. Current single holdout cannot distinguish 23.174 from 24.0 with confidence.
+
+### CI check
+- target=24.0, best=23.174, gap=0.826
+- 2×SE=1.007 → gap < 2×SE → C3 advisory
+- Recommendation: C3 to upgrade to stratified k-fold CV before further experiments
+
+### Escalation
+
+### For C3
+
+Target gap (0.826 lift@1%) < 2×bootstrap_se (1.007). Measurement is the bottleneck: the single digit-8 holdout (752K rows, 0.77% prevalence) gives SE=0.503, which is larger than the remaining gap to the 24.0 target. Any experiment claiming to close this gap with single-holdout evaluation has insufficient statistical power. Recommend C3 to upgrade cv_scheme to stratified k-fold (n_splits=4 or 5) before further HP tuning rounds.
