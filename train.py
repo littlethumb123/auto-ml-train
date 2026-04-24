@@ -133,10 +133,19 @@ training_time = time.time() - t_train_start
 metrics = evaluate(model, X_val, y_val)
 
 y_prob_val = model.predict_proba(val_pool)[:, 1]
+
+# Save scores as .npy so bootstrap_ci can be computed without parsing run.log
+_scores_dir = Path("campaigns/ip-commercial-new-te/state")
+np.save(_scores_dir / "current_val_scores.npy", np.asarray(y_prob_val, dtype=float))
+np.save(_scores_dir / "current_val_labels.npy", np.asarray(y_val, dtype=int))
+print(f"Saved val scores/labels → {_scores_dir}/current_val_*.npy")
+
+# Also emit compact JSON for log parsing (truncated to 1000 samples for log size)
+_sample = np.random.default_rng(42).choice(len(y_prob_val), min(1000, len(y_prob_val)), replace=False)
 print("val_scores_json: " + json.dumps(
-    np.asarray(y_prob_val, dtype=float).round(8).tolist(), separators=(",", ":")))
+    np.asarray(y_prob_val[_sample], dtype=float).round(8).tolist(), separators=(",", ":")))
 print("val_labels_json: " + json.dumps(
-    np.asarray(y_val, dtype=int).tolist(), separators=(",", ":")))
+    np.asarray(y_val.iloc[_sample], dtype=int).tolist(), separators=(",", ":")))
 
 total_time = time.time() - t_start
 print_summary(metrics, training_time, total_time, X_train.shape[1], DESCRIPTION)
