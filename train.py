@@ -2,11 +2,8 @@
 Auto-train experiment script for campaign: ip-commercial-new-te
 Single-file ML pipeline — the ONLY file the Executor edits.
 
-Data: 10.3M rows × 824 columns (256 embedding_* + 568 tabular/structural).
-Efficient loading: column-selective parquet read based on FEATURE_SET
-  tabular_only → skip 256 embedding cols (~60% smaller read)
-  hybrid       → read all 824 cols
-  embedding_only → read structural + embedding cols only
+Split cache at campaigns/ip-commercial-new-te/.cache/splits_<feature_set>_<cutoff>.npz
+  Loads in ~27s. Cat columns integer-encoded (cast to int on load).
 
 Usage: python3 train.py
 """
@@ -15,7 +12,6 @@ import os
 import signal
 import time
 import warnings
-import json
 from pathlib import Path
 
 import numpy as np
@@ -24,15 +20,10 @@ import pyarrow.parquet as pq
 
 warnings.filterwarnings("ignore")
 
-from prepare import (
-    TIME_BUDGET, RANDOM_SEED, OOT_CUTOFF_DATE, CACHE_PATH, EXCLUDE_COLUMNS,
-    get_splits, evaluate, print_summary,
-)
+from prepare import RANDOM_SEED, OOT_CUTOFF_DATE, CACHE_PATH, get_splits
+from shared.metrics import compute_split_metrics, lift_at_percentage
 
-# Hard timeout — overrides prepare.py TIME_BUDGET+60 because this dataset
-# (10.3M rows × 824 cols) needs more data-load headroom than the initial
-# 150s contract estimate. EVAL_PROTOCOL updated to hard_timeout_s: 600.
-HARD_TIMEOUT = 1200
+HARD_TIMEOUT = 1800
 
 
 def _timeout_handler(signum, frame):
@@ -48,138 +39,132 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_hp: Optuna wide CatBoost HP search on hybrid — first systematic tune"
-FEATURE_SET = "hybrid"   # locked to hybrid (confirmed best in round 2)
+DESCRIPTION = "A_model: LightGBM default params on hybrid — second family baseline"
+FEATURE_SET = "hybrid"
 
 # ---------------------------------------------------------------------------
-# Column-selective parquet load — avoids reading unused embedding columns
+# Split cache
 # ---------------------------------------------------------------------------
 
 t_start = time.time()
+_cache_dir = Path("campaigns/ip-commercial-new-te/.cache")
+_cache_dir.mkdir(parents=True, exist_ok=True)
+_split_cache = _cache_dir / f"splits_{FEATURE_SET}_{OOT_CUTOFF_DATE.replace('-', '')}.npz"
 
-schema = pq.read_schema(CACHE_PATH)          # metadata only, ~instant
-all_parquet_cols = schema.names
 
-embedding_cols = {c for c in all_parquet_cols if c.startswith("embedding_")}
-# Artifact columns from SQL pipeline (not real features, not in EXCLUDE_COLUMNS)
-_pipeline_artifacts = {"exp_name", "model_type"}
+def _rebuild_cache():
+    print(f"Building split cache for {FEATURE_SET}...")
+    schema = pq.read_schema(CACHE_PATH)
+    all_cols = schema.names
+    emb_set = {c for c in all_cols if c.startswith("embedding_")}
+    artifacts = {"exp_name", "model_type"}
+    if FEATURE_SET == "tabular_only":
+        cols = [c for c in all_cols if c not in emb_set and c not in artifacts]
+    elif FEATURE_SET == "embedding_only":
+        struct = {"individual_id", "index_dt", "ind_id_last_digit", "ip6"}
+        cols = [c for c in all_cols if c in struct or c in emb_set]
+    else:
+        cols = [c for c in all_cols if c not in artifacts]
+    df = pd.read_parquet(CACHE_PATH, columns=cols, filters=[("index_dt", "<=", OOT_CUTOFF_DATE)])
+    df[df.select_dtypes(include=[np.number]).columns] = df.select_dtypes(include=[np.number]).fillna(0)
+    df[df.select_dtypes(include=["object", "category"]).columns] = \
+        df.select_dtypes(include=["object", "category"]).fillna("missing")
+    Xt, Xv, Xte, yt, yv, yte = get_splits(feature_set=FEATURE_SET, df=df)
+    del df
+    for _df_p in [Xt, Xv, Xte]:
+        _dt = [c for c in _df_p.columns if "_index_dt" in c or _df_p[c].dtype.kind == "M"]
+        _df_p.drop(columns=_dt, inplace=True, errors="ignore")
+    cat_names = Xt.select_dtypes(include=["object", "category"]).columns.tolist()
+    for col in cat_names:
+        vals = sorted({str(v) for df_p in [Xt, Xv, Xte] for v in df_p[col].unique()})
+        le = {v: i for i, v in enumerate(vals)}
+        for df_p in [Xt, Xv, Xte]:
+            df_p[col] = df_p[col].map(lambda v: le.get(str(v), -1)).astype(np.int16)
+    np.savez_compressed(
+        _split_cache,
+        X_train=Xt.values.astype(np.float32), X_val=Xv.values.astype(np.float32),
+        X_test=Xte.values.astype(np.float32),
+        y_train=yt.values, y_val=yv.values, y_test=yte.values,
+        feature_names=np.array(Xt.columns.tolist()), cat_cols=np.array(cat_names),
+    )
+    print(f"  Saved → {_split_cache}  ({time.time()-t_start:.1f}s)")
+    return Xt, Xv, Xte, yt, yv, yte, cat_names
 
-if FEATURE_SET == "tabular_only":
-    cols_to_read = [c for c in all_parquet_cols
-                    if c not in embedding_cols and c not in _pipeline_artifacts]
-elif FEATURE_SET == "embedding_only":
-    _structural = {"individual_id", "index_dt", "ind_id_last_digit", "ip6"}
-    cols_to_read = [c for c in all_parquet_cols
-                    if c in _structural or c in embedding_cols]
-else:  # hybrid
-    cols_to_read = [c for c in all_parquet_cols if c not in _pipeline_artifacts]
 
-# Row filter: in-time only (skip OOT ~2.5M rows, ~25% smaller load + process)
-df = pd.read_parquet(CACHE_PATH, columns=cols_to_read,
-                     filters=[("index_dt", "<=", OOT_CUTOFF_DATE)])
-print(f"Parquet loaded: {len(df):,} rows × {len(df.columns)} cols  ({time.time()-t_start:.1f}s)")
+if _split_cache.exists():
+    print(f"Loading splits from cache: {_split_cache.name}")
+    _d = np.load(_split_cache, allow_pickle=True)
+    _feat_names = _d["feature_names"].tolist()
+    _cat_cols_names = _d["cat_cols"].tolist()
+    X_train = pd.DataFrame(_d["X_train"], columns=_feat_names)
+    X_val   = pd.DataFrame(_d["X_val"],   columns=_feat_names)
+    X_test  = pd.DataFrame(_d["X_test"],  columns=_feat_names)
+    y_train = pd.Series(_d["y_train"].astype(int))
+    y_val   = pd.Series(_d["y_val"].astype(int))
+    y_test  = pd.Series(_d["y_test"].astype(int))
+    for col in _cat_cols_names:
+        if col in X_train.columns:
+            X_train[col] = X_train[col].astype(int)
+            X_val[col]   = X_val[col].astype(int)
+            X_test[col]  = X_test[col].astype(int)
+    print(f"  {len(X_train):,} train | {len(X_val):,} val | {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
+else:
+    X_train, X_val, X_test, y_train, y_val, y_test, _cat_cols_names = _rebuild_cache()
 
-# Pre-fill NaN once on the full df before splitting — prepare.py's _xy() then
-# gets a pre-filled df so its own fillna is a near-instant no-op on each split.
-_num_cols = df.select_dtypes(include=[np.number]).columns
-df[_num_cols] = df[_num_cols].fillna(0)
-_cat_cols_df = df.select_dtypes(include=["object", "category"]).columns
-df[_cat_cols_df] = df[_cat_cols_df].fillna("missing")
-print(f"Pre-filled NaN  ({time.time()-t_start:.1f}s)")
+print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 
 # ---------------------------------------------------------------------------
-# Splits (digit-based, 10:1 downsampling on train, in-time only)
+# Model: LightGBM default params — second family baseline
 # ---------------------------------------------------------------------------
 
-X_train, X_val, X_test, y_train, y_val, y_test = get_splits(
-    feature_set=FEATURE_SET, df=df
-)
-del df   # free memory before model training
-
-print(f"Dataset: {X_train.shape[0]:,} train, {X_val.shape[0]:,} val, {X_test.shape[0]:,} test")
-print(f"Features: {X_train.shape[1]} ({FEATURE_SET})")
-print(f"IP6 rate (train, post-downsample): {y_train.mean():.4%}")
-print(f"Elapsed: {time.time()-t_start:.1f}s")
-
-# ---------------------------------------------------------------------------
-# Detect categorical features for CatBoost Pool
-# ---------------------------------------------------------------------------
-
-from catboost import CatBoostClassifier, Pool
-
-cat_cols = X_train.select_dtypes(include=["object", "category"]).columns.tolist()
-cat_idx = [X_train.columns.get_loc(c) for c in cat_cols]
-if cat_cols:
-    print(f"Cat features ({len(cat_cols)}): {cat_cols[:5]}{'...' if len(cat_cols) > 5 else ''}")
-
-train_pool = Pool(X_train, y_train, cat_features=cat_idx)
-val_pool   = Pool(X_val,   y_val,   cat_features=cat_idx)
-
-# ---------------------------------------------------------------------------
-# Model (Executor replaces this block per plan — one controlled change only)
-# ---------------------------------------------------------------------------
-
-import optuna
-optuna.logging.set_verbosity(optuna.logging.WARNING)
+import lightgbm as lgb
+from sklearn.metrics import roc_auc_score
 
 t_train_start = time.time()
-elapsed_data = t_train_start - t_start
-optuna_budget = max(200, int(HARD_TIMEOUT - elapsed_data - 200))  # leave 200s for full retrain
 
-def objective(trial):
-    params = {
-        "depth":             trial.suggest_int("depth", 5, 9),
-        "learning_rate":     trial.suggest_float("learning_rate", 0.01, 0.15, log=True),
-        "l2_leaf_reg":       trial.suggest_float("l2_leaf_reg", 1.0, 15.0, log=True),
-        "subsample":         trial.suggest_float("subsample", 0.5, 1.0),
-        "colsample_bylevel": trial.suggest_float("colsample_bylevel", 0.5, 1.0),
-        "min_data_in_leaf":  trial.suggest_int("min_data_in_leaf", 5, 50, log=True),
-    }
-    proxy = CatBoostClassifier(
-        iterations=200, od_wait=30, use_best_model=True,
-        grow_policy="SymmetricTree", auto_class_weights="Balanced",
-        random_seed=RANDOM_SEED, verbose=0, **params,
-    )
-    proxy.fit(train_pool, eval_set=val_pool)
-    y_prob = proxy.predict_proba(val_pool)[:, 1]
-    from shared.metrics import lift_at_percentage
-    return lift_at_percentage(np.asarray(y_val), y_prob, 0.01)
-
-study = optuna.create_study(direction="maximize",
-                             sampler=optuna.samplers.TPESampler(seed=RANDOM_SEED))
-study.optimize(objective, timeout=optuna_budget)
-best = study.best_params
-print(f"Optuna: {len(study.trials)} trials, best lift@1%={study.best_value:.4f} in {optuna_budget}s budget")
-print(f"  best_params={best}")
-
-model = CatBoostClassifier(
-    iterations=500, od_wait=60, use_best_model=True,
-    grow_policy="SymmetricTree", auto_class_weights="Balanced",
-    random_seed=RANDOM_SEED, verbose=0, **best,
+model = lgb.LGBMClassifier(
+    n_estimators=1000,
+    learning_rate=0.05,
+    num_leaves=127,
+    class_weight="balanced",    # NOT is_unbalance=True (known dead-end: inverts probabilities)
+    subsample=0.8,
+    subsample_freq=1,
+    colsample_bytree=0.8,
+    min_child_samples=20,
+    random_state=RANDOM_SEED,
+    n_jobs=-1,
+    verbose=-1,
 )
-model.fit(train_pool, eval_set=val_pool)
+
+model.fit(
+    X_train, y_train,
+    eval_set=[(X_val, y_val)],
+    eval_metric="auc",
+    callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)],
+)
+print(f"LightGBM best iteration: {model.best_iteration_}")
 training_time = time.time() - t_train_start
 
 # ---------------------------------------------------------------------------
 # Evaluation
 # ---------------------------------------------------------------------------
 
-metrics = evaluate(model, X_val, y_val)
+y_prob_val = model.predict_proba(X_val)[:, 1]
+metrics = compute_split_metrics(np.asarray(y_val), y_prob_val, prefix="val")
 
-y_prob_val = model.predict_proba(val_pool)[:, 1]
-
-# Save scores as .npy so bootstrap_ci can be computed without parsing run.log
 _scores_dir = Path("campaigns/ip-commercial-new-te/state")
 np.save(_scores_dir / "current_val_scores.npy", np.asarray(y_prob_val, dtype=float))
 np.save(_scores_dir / "current_val_labels.npy", np.asarray(y_val, dtype=int))
-print(f"Saved val scores/labels → {_scores_dir}/current_val_*.npy")
-
-# Also emit compact JSON for log parsing (truncated to 1000 samples for log size)
-_sample = np.random.default_rng(42).choice(len(y_prob_val), min(1000, len(y_prob_val)), replace=False)
-print("val_scores_json: " + json.dumps(
-    np.asarray(y_prob_val[_sample], dtype=float).round(8).tolist(), separators=(",", ":")))
-print("val_labels_json: " + json.dumps(
-    np.asarray(y_val.iloc[_sample], dtype=int).tolist(), separators=(",", ":")))
 
 total_time = time.time() - t_start
-print_summary(metrics, training_time, total_time, X_train.shape[1], DESCRIPTION)
+print("---")
+print(f"val_lift_1pct:    {metrics.get('val_lift_1pct', 0.0):.6f}")
+print(f"val_auc_roc:      {metrics.get('val_auc_roc', 0.0):.6f}")
+print(f"val_lift_5pct:    {metrics.get('val_lift_5pct', 0.0):.6f}")
+print(f"val_lift_10pct:   {metrics.get('val_lift_10pct', 0.0):.6f}")
+print(f"val_auc_pr:       {metrics.get('val_auc_pr', 0.0):.6f}")
+print(f"training_seconds: {training_time:.1f}")
+print(f"total_seconds:    {total_time:.1f}")
+print(f"n_features:       {X_train.shape[1]}")
+print(f"description:      {DESCRIPTION}")
+print("---")
