@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 9
-planner_invocation_at: "2026-04-24T08:45:00Z"
+round: 11
+planner_invocation_at: "2026-04-24T09:05:00Z"
 action_type: "A_hp"
-hypothesis: "Optuna HP search on LightGBM will outperform the default-param LightGBM (22.316) by finding a better combination of num_leaves, learning_rate, and regularization. LightGBM's fast training enables many more reliable proxy trials than CatBoost."
-expected_effect_size: "Δval_lift_1pct: +0.3 to +1.5 (first systematic tune of new champion family)"
-base_commit: "fa7411b"
+hypothesis: "LightGBM Optuna search with constrained num_leaves (31-127) enables fast proxy (~8s/trial) giving 60+ trials in 500s, finding parameters that outperform the default LightGBM (22.316) and the stacking best (22.333)."
+expected_effect_size: "Δval_lift_1pct: +0.3 to +1.5 (first adequate LightGBM HP search)"
+base_commit: "e55014f"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -14,33 +14,28 @@ escalation: null
 
 ## 1. Context
 
-Round 9. Best: LightGBM default 22.316 (round 8). consecutive_discards=0. STRATEGY_GUIDE: "Champion family selected; no systematic HP search → A_hp highest ROI." LightGBM trains much faster than CatBoost — a 50-iter proxy takes ~2-5s/trial vs 17s, enabling 100+ Optuna trials in 500s.
+Round 11. Best: stacking 22.333 (practical LightGBM 22.316, round 8). consecutive_discards=0. Round 9 A_hp LightGBM failed because num_leaves=351 made proxy 71s/trial (only 7 trials). Fix: num_leaves ≤ 127, 50-iter proxy with early_stopping=20 → ~8s/trial → 60+ trials in 500s.
 
 ## 2. Evidence from memory
 
-- **Round 8**: LightGBM default (num_leaves=127, lr=0.05, 1000 iter early-stop@251) → 22.316.
-- **PRIORS known_bad**: is_unbalance=True inverts probs. Use class_weight='balanced'.
-- **Round 7 lesson**: CatBoost 50-iter proxy unreliable (proxy and full model uncorrelated). For LightGBM, training is much faster so proxy iterations need not be as reduced.
+- **Round 8**: LightGBM default (num_leaves=127, lr=0.05, early_stop@251) → 22.316
+- **Round 9 failure**: num_leaves sampled up to 351 → 71s/trial, only 7 trials, found 22.179
+- **Key insight**: num_leaves=127 is the default and gave the best result. Search below and around it.
 
 ## 3. Plan
 
-Optuna TPE on LightGBM. Proxy: 200-iter with early stopping (fast for LGBM). Full model: 2000 iter with early stopping. Search space:
-- num_leaves: 31–511 (log)
-- learning_rate: 0.01–0.3 (log)
-- min_child_samples: 10–200 (log)
-- feature_fraction: 0.5–1.0
-- bagging_fraction: 0.5–1.0
-- lambda_l1: 0.0–10.0
-- lambda_l2: 0.0–10.0
+Optuna on LightGBM, num_leaves constrained to 31-255, 50-iter proxy with early_stopping(20). Full model 2000 iter early_stopping(80).
 
 ## 4. Helpers
 
 None.
 
-## 5. How this differs
+## 5. How this differs from current train.py
 
-Replace model block with LightGBM Optuna study (proxy 200-iter + full 2000-iter).
+Replace model block: LightGBM Optuna study with num_leaves 31-255, 50-iter proxy early_stop(20), full model 2000-iter early_stop(80).
 
 ## 6. Escalation
 
 ### No escalation
+
+Normal A_hp progression after keep.

@@ -160,3 +160,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** In-sample stacking (meta trained+evaluated on val) gave 0.017 lift improvement — well within measurement noise. The stacking weights favor LightGBM (3.15 vs CatBoost 2.61). val_lift_10pct showed larger gain (+0.07), suggesting ensemble helps on the harder lower-risk cases more than the very high-risk ones. For honest evaluation, stacking must be done out-of-fold or with a separate holdout for the meta-learner. The in-sample result is optimistic and likely overstates true gain.
 
 ---
+
+## Round 11 — 2026-04-24
+
+**Action:** A_hp — LightGBM Optuna narrow search (num_leaves 31-255, 50-iter proxy)
+**Expected Δ:** +0.3 to +1.5
+**Actual val_lift_1pct:** 22.162 (Δ = -0.172)
+**Verdict:** discard
+
+**Key finding:** Confirmed: lift@1% is too noisy as Optuna proxy at low iterations. Proxy estimated 21.90; full model gave 22.16 — 0.26-point gap makes the proxy misleading. LightGBM default params (num_leaves=127, lr=0.05) appear near-optimal. **Strategy shift**: (1) try XGBoost to complete the three-family comparison, (2) if XGBoost also underperforms, do proper OOF stacking, (3) if HP search needed, use AUC-ROC as proxy (smoother, more reliable at low iterations).
+
+---
