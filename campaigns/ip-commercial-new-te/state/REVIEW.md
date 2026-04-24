@@ -580,3 +580,13 @@ val_lift_1pct: 23.157254
 delta_vs_best: -0.017166
 bootstrap_se: 0.5037
 review_note: LGBM AUC-ROC tuning didn't help (-0.017). Tuned LGBM gets same 0.046 weight as default LGBM. The AUC-ROC approach only works when the model has HIGH ensemble weight (XGB had 0.456 leverage; LGBM has only 0.046). Next: try XGB Optuna with PR-AUC proxy (more related to lift@1%), or try XGB with different seed to explore different HP landscape.
+
+## Round 28
+
+commit: d4ce1fc
+verdict: discard
+action_type: A_hp
+val_lift_1pct: 22.762431
+delta_vs_best: -0.411989
+bootstrap_se: 0.4888
+review_note: XGB Optuna seed=7 found worse HPs (standalone 21.372 vs seed=42's 22.127). Ensemble 22.762 vs best 23.174. CONFIRMED: round 25 seed=42 found the global optimum for XGB AUC-ROC tuning. 23.174 is the practical ceiling for this technique. 3 consecutive discards → C2 approaches. Next: try wider XGB search space or accept ceiling.
