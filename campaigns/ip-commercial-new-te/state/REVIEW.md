@@ -570,3 +570,13 @@ val_lift_1pct: 23.088589
 delta_vs_best: -0.085831
 bootstrap_se: 0.5029
 review_note: Tuning CB with AUC-ROC proxy hurt (-0.086). Both XGB and CB tuned for AUC-ROC → similar predictions → less diversity. Round 25 (tuned XGB only) remains the best. Next: try AUC-ROC Optuna on LGBM (currently gets only 0.046-0.126 weight — low contribution, so tuning it for AUC-ROC might create truly new diversity).
+
+## Round 27
+
+commit: 74e87bc
+verdict: discard
+action_type: A_hp
+val_lift_1pct: 23.157254
+delta_vs_best: -0.017166
+bootstrap_se: 0.5037
+review_note: LGBM AUC-ROC tuning didn't help (-0.017). Tuned LGBM gets same 0.046 weight as default LGBM. The AUC-ROC approach only works when the model has HIGH ensemble weight (XGB had 0.456 leverage; LGBM has only 0.046). Next: try XGB Optuna with PR-AUC proxy (more related to lift@1%), or try XGB with different seed to explore different HP landscape.
