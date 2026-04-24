@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-last_round: 1
+last_round: 2
 last_verdict: "keep"
 ---
 
@@ -45,3 +45,36 @@ review_note: First baseline. val_lift_1pct=21.58 is the campaign floor. Any futu
 ### Escalation
 
 None. Round 1 baseline established successfully.
+
+## Round 2
+
+commit: 1171906
+verdict: keep
+action_type: A_validate
+hypothesis: Adding 256 new TE embedding features (hybrid) to the tabular_only baseline measures the embedding lift.
+model_family: catboost
+feature_set: hybrid
+val_lift_1pct: 22.213111
+val_auc_roc: 0.858616
+val_lift_5pct: 9.509337
+val_lift_10pct: 6.153524
+val_auc_pr: 0.108586
+n_features: 790
+training_seconds: 170.4
+total_seconds: 498.8
+delta_vs_best: +0.635151
+anomaly_fired: false
+anomaly_reason: val_lift_1pct=22.213 within expected range (threshold=10.789)
+bootstrap_ci_lo: 21.2581
+bootstrap_ci_hi: 23.1556
+bootstrap_se: 0.4950
+review_note: Hybrid beats tabular by +0.635 lift points (> noise_floor=0.3). Embeddings confirmed additive. SUCCESS CRITERIA MET (target>=4.5, current=22.21). Campaign continues to maximize further. Strategy: commit to hybrid for all A_hp rounds.
+
+### Tool outputs
+
+- anomaly: not fired
+- bootstrap_ci: metric=22.2131 ci=[21.2581, 23.1556] se=0.4950 n_boot=1000
+
+### Escalation
+
+None. Hybrid confirmed better than tabular. Next: A_hp on hybrid feature set.
