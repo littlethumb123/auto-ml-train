@@ -461,3 +461,18 @@ training_seconds: 663.1
 delta_vs_best: +0.017166
 bootstrap_se: 0.4934
 review_note: NEW BEST. LGBM_emb corr=0.874 (lowest yet). Optimal weights: LGBM_h=0.135 (lowest!), LGBM_t=0.260, LGBM_e=0.057, CB=0.277, XGB=0.271. LGBM_hybrid is now diluted by the tabular/emb/CB/XGB diversity. Gains: +0.017 (0.03 SE) — noise but positive. Ensemble ceiling approaching.
+
+## Round 19
+
+commit: eb2305d
+verdict: keep
+action_type: A_feature
+model_family: ensemble
+val_lift_1pct: 22.676599
+val_auc_roc: 0.858072
+training_seconds: 604.0
+total_seconds: 1228.7
+engineered_features: eng_ip_score, eng_chronic_score, eng_lab_score, eng_age_x_ip, eng_mm_ip_ratio
+delta_vs_best: +0.017166
+bootstrap_se: 0.4939
+review_note: NEW BEST with +5 engineered features. Cache built (623s first run, will load in ~27s). val_lift_1pct=22.677, Δ=+0.017 (0.03 SE) — noise but positive. LGBM_hybrid dropped to 22.162 individually (194 features changed interaction) but ensemble still better. XGB highest weight (0.379). Gains continue shrinking.

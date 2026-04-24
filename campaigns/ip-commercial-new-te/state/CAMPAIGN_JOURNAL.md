@@ -247,3 +247,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** 5-model ensemble keeps improving but gains are vanishing (0.243→0.052→0.034→0.017 per round). LGBM_emb (corr=0.874 with hybrid) adds real diversity but is too weak (18.6) to contribute much. Optimal weights give LGBM_hybrid only 0.135 — the diverse weaker models dilute it. This is approaching a pure diversity ceiling: further ensemble additions will hit diminishing returns without stronger diverse models. **Strategy pivot**: shift from ensemble expansion to feature engineering — create interaction features or time-based features that could add genuinely new signal.
 
 ---
+
+## Round 19 — 2026-04-24
+
+**Action:** A_feature — +5 engineered interaction features (IP utilization, chronic burden, lab abnormality, age×IP, mm/IP ratio)
+**Actual val_lift_1pct:** 22.677 (Δ = **+0.017 — NEW BEST**)
+**Verdict:** keep (0.03 SE — noise)
+
+**Key finding:** Engineered features add marginal signal (+0.017). The gains continue to shrink (0.243→0.052→0.034→0.017→0.017). We may be at the Bayes rate ceiling for this feature set and model family. 19 rounds completed, budget_used=19/100. Strategy for remaining rounds: (1) try more aggressive feature engineering (polynomial interactions, count-based risk scores); (2) accept the 22.677 ceiling and focus on robustness; (3) diversify ensemble further with different data subsets.
+
+---
