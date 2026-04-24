@@ -19,3 +19,7 @@ last_updated: "2026-04-24"
 - Round 5 result (22.162) is within 0.1 SE of prior best (22.213) — noise, not regression.
 
 - **C2 resolved (round 5):** consecutive_discards reset from 3 to 0. Resolution: 3 discards were informative baselines and infrastructure fixes, not a true plateau. Root cause: Optuna proxy too slow (71s/trial). Resolution: use 50-iter proxy and/or LightGBM for faster HP search. A_diagnose follows as protocol requires.
+
+- Round 6 SHAP: 50/50 embedding/tabular split in top-50 features. Embeddings and tabular are complementary, not redundant. Hybrid is confirmed right feature set.
+- Round 6 error analysis: 75.5% of positives below neg-p99. Task is inherently hard for lower-risk positives. Model is well-calibrated overall.
+- CI check: target gap 1.787 > 2×SE=0.990. Gap is detectable. No CV upgrade needed.

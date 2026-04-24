@@ -97,3 +97,16 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** INFRASTRUCTURE WIN: split cache loaded in 27s (vs 250s first run). Only 7 Optuna trials completed in 500s because each 200-iter CatBoost proxy takes ~71s on 789 features × 508K rows. The result (-0.051, 0.1 SE below prior best) is statistically indistinguishable from the default-param best (22.213). This is not a true plateau — the HP search was severely under-sampled. **Fix**: use 50-iter proxy instead of 200-iter (17s/trial → 28 trials in 500s), OR switch to LightGBM (5× faster per iteration). C2 fires mechanically; A_diagnose follows per protocol.
 
 ---
+
+## Round 6 — 2026-04-24
+
+**Action:** A_diagnose — SHAP analysis on hybrid best + error analysis (mandatory after C2)
+**Trigger:** c2_pending_diagnose=True (C2 protocol requires A_diagnose before structural changes)
+**Expected Δ:** ~0 (diagnostic only)
+
+**Actual val_lift_1pct:** 22.213 (Δ = 0.0 — reproduces round 2 champion exactly)
+**Verdict:** discard (Δ not > 0, but expected for diagnostic round)
+
+**Key finding:** SHAP shows near-perfect 50/50 split between embedding and tabular features in top-50 (26 emb vs 24 tab). Embeddings are NOT redundant with tabular — they are COMPLEMENTARY. This confirms hybrid is the right feature set and suggests stacking (diverse feature subsets) could add value. Error analysis: 75.5% of positives are "hard" (score below neg-p99) — inherent task difficulty. Model is well-calibrated. Target gap (1.787 lift pts) is detectable (gap = 1.80× SE). No measurement bottleneck. C2 cleared. Root cause of 3 discards: infrastructure bugs + too-slow Optuna proxy (71s/trial). Fix: 50-iter proxy (17s/trial → 28 trials in 500s).
+
+---
