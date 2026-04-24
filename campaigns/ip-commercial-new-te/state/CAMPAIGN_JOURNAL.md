@@ -81,3 +81,19 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Top-150 numeric captures 98% of hybrid performance but just misses the noise floor. Training 1.8× faster (93s vs 170s). 73/256 embeddings selected — signal concentrated. Bug: _index_dt_parsed (prepare.py internal variable) in top-10 importances — temporal leakage risk. Strategy for round 5: A_hp Optuna on hybrid full features (with _index_dt_parsed excluded), leveraging the knowledge that default params lose 0.446 lift — HP search should recover this.
 
 ---
+
+## Round 5 — 2026-04-24
+
+**Action:** A_hp — Optuna wide HP search on full hybrid (first systematic HP tune)
+**Trigger:** STRATEGY_GUIDE §1 "Champion family; no systematic HP search → A_hp highest ROI"
+**Alternatives rejected:**
+- A_model (LightGBM): CatBoost should be tuned first before comparing families
+
+**Expected Δ (lift@1%):** +0.5 to +2.5
+
+**Actual val_lift_1pct:** 22.162 (Δ = **-0.051** — noise level, within 0.1 SE)
+**Verdict:** discard (3rd consecutive → C2 plateau fires)
+
+**Key finding:** INFRASTRUCTURE WIN: split cache loaded in 27s (vs 250s first run). Only 7 Optuna trials completed in 500s because each 200-iter CatBoost proxy takes ~71s on 789 features × 508K rows. The result (-0.051, 0.1 SE below prior best) is statistically indistinguishable from the default-param best (22.213). This is not a true plateau — the HP search was severely under-sampled. **Fix**: use 50-iter proxy instead of 200-iter (17s/trial → 28 trials in 500s), OR switch to LightGBM (5× faster per iteration). C2 fires mechanically; A_diagnose follows per protocol.
+
+---

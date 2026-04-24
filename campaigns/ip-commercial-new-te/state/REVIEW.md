@@ -129,3 +129,42 @@ review_note: Top-150 numeric features (73 emb, 77 tab) loses 0.446 lift vs full 
 
 ### Escalation
 None. 2 consecutive discards.
+
+## Round 5
+
+commit: 65e2a87
+verdict: discard
+action_type: A_hp
+feature_set: hybrid (full 789 features)
+val_lift_1pct: 22.161612
+val_auc_roc: 0.855191
+n_features: 789
+training_seconds: 847.7
+total_seconds: 879.7
+delta_vs_best: -0.051499
+bootstrap_ci_lo: 21.2030
+bootstrap_ci_hi: 23.1128
+bootstrap_se: 0.4960
+review_note: NOISE-LEVEL DISCARD — Δ=-0.051 is only 0.104 SE below prior best. Statistically indistinguishable. Root cause: only 7 Optuna trials in 500s budget because each 200-iter CatBoost proxy takes ~71s on 789 features × 508K rows. 3 CONSECUTIVE DISCARDS → C2 PLATEAU FIRES. A_diagnose is the next mandatory action.
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=22.1616 ci=[21.2030, 23.1128] se=0.4960 n_boot=1000
+
+### Escalation
+
+### For C2
+
+3 consecutive discards trigger C2 plateau. **However: the discards are informative, not stuck:**
+- Round 3 (embedding_only): expected informative discard, answered primary research question
+- Round 4 (feature selection): small regression (-0.446), revealed _index_dt_parsed leakage bug
+- Round 5 (Optuna HP): noise-level (-0.051), root cause = too few trials (7) due to slow proxy
+
+**A_diagnose plan for round 6:**
+1. Retrain current best (hybrid, default params) and run SHAP analysis via tools/shap_report
+2. Quantify embedding contribution: how many of 256 embeddings have non-trivial SHAP?
+3. Check bootstrap SE: is target gap detectable given SE=0.496?
+4. Error analysis on val positives: where does the model fail?
+5. Recommend: switch proxy to fewer iterations (50 vs 200) for more Optuna trials in round 7
+
+**After A_diagnose:** resolve C2 and proceed with A_hp using faster proxy (50-iter) for more Optuna trials, OR switch to LightGBM which trains ~5x faster per iteration.
