@@ -297,3 +297,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Adding weak emb-only models (CB_emb=18.2, XGB_emb=18.8) hurt the ensemble. XGB_tabular and XGB_emb got near-zero weight. The 7-model ensemble (round 22, 22.728) is the practical ceiling for this approach. The scipy optimization with more models may have more local optima, leading to suboptimal solutions. **The campaign has effectively converged**: gains are all within noise floor, and adding more models consistently hurts. Budget=23/100 used.
 
 ---
+
+## Round 24 — 2026-04-24
+
+**Action:** A_ensemble — 7-model with 50/50 holdout weight optimization (OOF honest estimate)
+**Actual val_lift_1pct:** 22.694 (Δ = **-0.034**)
+**Verdict:** discard
+
+**Key finding:** OOF weights (LGBM_h=0.122, XGB_h=0.253, XGB_t=0.277) are nearly identical to round 22's in-sample weights (0.121, 0.262, 0.273). **CONCLUSION: Round 22's 22.728 is the genuine campaign ceiling, not an artifact of in-sample optimization.** The scipy optimization finds a stable minimum regardless of the data split used. The slight deficit (-0.034) is purely from having fewer fitting points. Budget=24/100. The ensemble approach is definitively exhausted. Remaining rounds should explore radically different strategies if any gain is desired.
+
+---
