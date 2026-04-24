@@ -123,3 +123,18 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** 50-iter proxy runs 54 trials but is too fast to reliably rank HPs for lift@1% (proxy best=21.05, but full model at those params gives 21.99). The proxy and full model don't correlate well for this noisy metric at low iteration counts. Default CatBoost params (depth=6, lr=0.05) appear near-optimal for lift@1% — Optuna keeps finding slightly different params that don't outperform them. Next: try LightGBM (different family, different bias, faster iteration → more reliable proxy). If LightGBM beats CatBoost, HP tune that; if not, return to ensemble.
 
 ---
+
+## Round 8 — 2026-04-24
+
+**Action:** A_model — LightGBM default params on hybrid (second family baseline)
+**Trigger:** STRATEGY_GUIDE §1 "Only CatBoost tried; 2+ rounds → try alternative family"
+**Alternatives rejected:**
+- A_hp on CatBoost: 54 trials failed to beat default; different family more likely to find improvement
+**Expected Δ:** -1.0 to +1.5
+
+**Actual val_lift_1pct:** 22.316 (Δ = **+0.103 — NEW BEST**)
+**Verdict:** keep
+
+**Key finding:** LightGBM outperforms CatBoost default by +0.103 (within noise floor but positive). Training 206s with early stopping at iter 251. LGBM's leaf-wise growth strategy finds a different optimum than CatBoost's symmetric trees. The margin is small — HP tuning is the clear next step since LGBM is fast per iteration and will give more reliable Optuna trials. Target gap narrowed to 1.684 lift points (still 1.74 SE — detectable).
+
+---
