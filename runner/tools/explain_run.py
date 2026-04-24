@@ -35,24 +35,29 @@ def explain_run(
     if next_exp.exists():
         next_exp_excerpt = next_exp.read_text()[:2000]
 
+    # Structural columns that are not metrics
+    _non_metric = {
+        "commit", "status", "n_features", "model_family",
+        "action_type", "hypothesis", "description",
+    }
+    metric_cols = [c for c in df.columns if c not in _non_metric]
+
     lines = [
         f"# Run card — {commit}",
         "",
         f"- action_type: `{row.get('action_type', '?')}`",
         f"- model_family: `{row.get('model_family', '?')}`",
         f"- status: `{row.get('status', '?')}`",
+        f"- n_features: {row.get('n_features', '?')}",
         f"- hypothesis: {row.get('hypothesis', '')}",
         f"- description: {row.get('description', '')}",
         "",
         "## Metrics",
         "",
-        f"- val_pr_auc: {row.get('val_pr_auc', '?')}",
-        f"- lift_at_10: {row.get('lift_at_10', '?')}",
-        f"- macro_f1: {row.get('macro_f1', '?')}",
-        f"- val_f1: {row.get('val_f1', '?')}",
-        f"- n_features: {row.get('n_features', '?')}",
-        "",
     ]
+    for col in metric_cols:
+        lines.append(f"- {col}: {row.get(col, '?')}")
+    lines.append("")
     if next_exp_excerpt:
         lines += ["## NEXT_EXPERIMENT.md (at time of run)", "", "```", next_exp_excerpt, "```", ""]
     out = Path(output_path)
