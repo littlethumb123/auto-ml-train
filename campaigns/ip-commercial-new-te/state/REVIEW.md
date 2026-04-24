@@ -168,3 +168,46 @@ review_note: NOISE-LEVEL DISCARD — Δ=-0.051 is only 0.104 SE below prior best
 5. Recommend: switch proxy to fewer iterations (50 vs 200) for more Optuna trials in round 7
 
 **After A_diagnose:** resolve C2 and proceed with A_hp using faster proxy (50-iter) for more Optuna trials, OR switch to LightGBM which trains ~5x faster per iteration.
+
+## Round 6
+
+commit: f915343
+verdict: discard
+action_type: A_diagnose
+feature_set: hybrid (full 789 features, default CatBoost params)
+val_lift_1pct: 22.213111
+val_auc_roc: 0.858616
+n_features: 790
+training_seconds: 168.8
+total_seconds: 577.2
+delta_vs_best: 0.0 (diagnostic — reproduces round 2 champion exactly)
+bootstrap_ci_lo: 21.2581
+bootstrap_ci_hi: 23.1556
+bootstrap_se: 0.4950
+review_note: A_diagnose as mandated by C2 protocol. Reproduces round 2 champion (Δ=0). c2_pending_diagnose cleared after this round.
+
+### SHAP Analysis
+- Top-10: 5 embedding (50%), 5 tabular (50%)
+- Top-20: 11 embedding (55%), 9 tabular (45%)
+- Top-50: 26 embedding (52%), 24 tabular (48%)
+- CONCLUSION: Embeddings and tabular are COMPLEMENTARY with near-equal importance. Not redundant. Hybrid is clearly the right feature set.
+
+### Error Analysis
+- Val positives (n=5826): mean_prob=0.687, median=0.751, p10=0.289, p90=0.965
+- Val negatives (n=746K): mean_prob=0.308, median=0.244, p10=0.088, p90=0.644
+- Hard cases: 75.5% of positives score below neg-p99 — task is inherently hard for lower-risk positives
+- Model is well-calibrated: positives score clearly higher than negatives on average
+
+### CI Check
+- bootstrap_se=0.495, target gap=1.787 lift points (to reach 24.0 target)
+- 1.787 > 2×0.495=0.990 → gap IS detectable with current measurement scheme
+- No C3 needed to upgrade CV scheme
+
+### Key findings for round 7
+1. Keep full hybrid (50/50 embedding/tabular SHAP split — don't drop either set)
+2. Use 50-iter proxy for Optuna (~17s/trial vs 71s → 3-4× more trials in same budget)
+3. Or try LightGBM which trains faster
+4. The "75% hard positives" suggests ensemble with diversity would help (stacking)
+
+### Escalation
+None. C2 resolved by this A_diagnose round. Proceed with A_hp (faster proxy) in round 7.
