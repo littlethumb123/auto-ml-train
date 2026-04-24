@@ -67,3 +67,17 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Embedding_only does NOT beat tabular_only (18.16 vs 21.58). Gap is real (CIs don't overlap). Embeddings add value only in combination (hybrid +0.635). All three baselines now established. embedding_only trains 6× faster — useful for future ablations.
 
 ---
+
+## Round 4 — 2026-04-24
+
+**Action:** A_feature — CatBoost native importance top-150 numeric features from hybrid 790
+**Trigger:** STRATEGY_GUIDE §1 "All 3 baselines done; feature selection not done"
+**Alternatives rejected:**
+- A_hp on full hybrid: 150 features → 3× more Optuna trials per budget
+**Expected Δ:** 0.0 to +1.0
+**Actual val_lift_1pct:** 21.767 (Δ = −0.446 vs hybrid best)
+**Verdict:** discard
+
+**Key finding:** Top-150 numeric captures 98% of hybrid performance but just misses the noise floor. Training 1.8× faster (93s vs 170s). 73/256 embeddings selected — signal concentrated. Bug: _index_dt_parsed (prepare.py internal variable) in top-10 importances — temporal leakage risk. Strategy for round 5: A_hp Optuna on hybrid full features (with _index_dt_parsed excluded), leveraging the knowledge that default params lose 0.446 lift — HP search should recover this.
+
+---
