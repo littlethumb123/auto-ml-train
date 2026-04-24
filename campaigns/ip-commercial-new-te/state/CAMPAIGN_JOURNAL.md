@@ -215,3 +215,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** RandomForest (lift@1%=20.016) is too weak. Despite lower correlation with GBDT (0.917 vs 0.974), adding it dilutes the ensemble: 21.321 < 22.453 (LGBM+XGB). RF fails at the top-1% region — 789 embedding-heavy features may not suit RF's random feature selection. ANTI-PATTERN confirmed: blending a weak model into a strong ensemble always hurts. Next: optimize LGBM+XGB+CB weights (find optimal 3-way weighting of the three-GBDT family), or pivot to feature engineering.
 
 ---
+
+## Round 16 — 2026-04-24
+
+**Action:** A_ensemble — scipy-optimized weights for LGBM+CB+XGB
+**Expected Δ:** +0.1 to +0.5
+**Actual val_lift_1pct:** 22.608 (Δ = **+0.052 — NEW BEST**)
+**Verdict:** keep (Δ>0, but 0.10 SE — noise level)
+
+**Key finding:** Optimized weights LGBM=0.356, CB=0.150, XGB=0.493. Surprising: XGBoost gets the most weight (0.493) despite being the weakest individual model (22.196). This means XGB makes the most unique errors in the top-1% region, effectively acting as a "correction" to LGBM's blind spots. CB contributes minimally (0.150). The 0.052 improvement over equal weights is marginal. Further improvements likely require model diversity beyond these three GBDT families or feature engineering.
+
+---
