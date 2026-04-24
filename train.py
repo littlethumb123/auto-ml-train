@@ -39,7 +39,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_ensemble: 7-model scipy (LGBM/CB/XGB hybrid+tabular+LGBM_emb) max tabular diversity"
+DESCRIPTION = "A_hp: Optuna XGBoost (AUC-ROC proxy, 25 trials) in 7-model ensemble — XGB gets 0.535 weight"
 FEATURE_SET = "hybrid"
 _USE_ENGINEERED = True
 
@@ -218,17 +218,47 @@ cb_t.fit(Pool(X_train_tab, y_train, cat_features=cat_idx_tab),
 p_cb_t = cb_t.predict_proba(Pool(X_val_tab, cat_features=cat_idx_tab))[:, 1]
 print(f"CB_tabular: lift@1%={lift_at_percentage(y_val_arr, p_cb_t, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# Model 4: XGBoost
+# Model 4: XGBoost — tuned with Optuna (AUC-ROC proxy for reliability)
 n_pos = int(y_train.sum()); n_neg = len(y_train) - n_pos
+import optuna
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+from sklearn.metrics import roc_auc_score
+
+elapsed_so_far = time.time() - t_start
+optuna_budget = max(100, min(450, HARD_TIMEOUT - int(elapsed_so_far) - 400))
+print(f"XGB Optuna budget: {optuna_budget}s  (elapsed: {elapsed_so_far:.0f}s)")
+
+def xgb_objective(trial):
+    p = {
+        "max_depth":         trial.suggest_int("max_depth", 4, 10),
+        "learning_rate":     trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+        "subsample":         trial.suggest_float("subsample", 0.6, 1.0),
+        "colsample_bytree":  trial.suggest_float("colsample_bytree", 0.5, 1.0),
+        "min_child_weight":  trial.suggest_int("min_child_weight", 1, 50, log=True),
+        "gamma":             trial.suggest_float("gamma", 0.0, 5.0),
+        "scale_pos_weight":  trial.suggest_float("scale_pos_weight", 5.0, 20.0),
+    }
+    proxy = xgb.XGBClassifier(
+        n_estimators=50, tree_method="hist", eval_metric="auc",
+        early_stopping_rounds=20, random_state=RANDOM_SEED, n_jobs=-1, verbosity=0, **p,
+    )
+    proxy.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
+    return float(roc_auc_score(y_val_arr, proxy.predict_proba(X_val)[:, 1]))
+
+xgb_study = optuna.create_study(direction="maximize",
+                                  sampler=optuna.samplers.TPESampler(seed=RANDOM_SEED))
+xgb_study.optimize(xgb_objective, timeout=optuna_budget)
+best_xgb = xgb_study.best_params
+print(f"XGB Optuna: {len(xgb_study.trials)} trials  best AUC-ROC={xgb_study.best_value:.4f}")
+print(f"  best_params={best_xgb}")
+
 xgbm = xgb.XGBClassifier(
-    n_estimators=1000, learning_rate=0.05, max_depth=6,
-    subsample=0.8, colsample_bytree=0.8, scale_pos_weight=round(n_neg/n_pos, 1),
-    tree_method="hist", eval_metric="auc", early_stopping_rounds=50,
-    random_state=RANDOM_SEED, n_jobs=-1, verbosity=0,
+    n_estimators=2000, tree_method="hist", eval_metric="auc",
+    early_stopping_rounds=80, random_state=RANDOM_SEED, n_jobs=-1, verbosity=0, **best_xgb,
 )
 xgbm.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
 p_xgb = xgbm.predict_proba(X_val)[:, 1]
-print(f"XGB_hybrid (iter={xgbm.best_iteration}): lift@1%={lift_at_percentage(y_val_arr, p_xgb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
+print(f"XGB_hybrid tuned (iter={xgbm.best_iteration}): lift@1%={lift_at_percentage(y_val_arr, p_xgb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
 # Model 5b: XGBoost on tabular-only features
 xgbm_t = xgb.XGBClassifier(
