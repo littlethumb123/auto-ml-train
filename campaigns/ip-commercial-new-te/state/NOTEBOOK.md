@@ -23,3 +23,5 @@ last_updated: "2026-04-24"
 - Round 6 SHAP: 50/50 embedding/tabular split in top-50 features. Embeddings and tabular are complementary, not redundant. Hybrid is confirmed right feature set.
 - Round 6 error analysis: 75.5% of positives below neg-p99. Task is inherently hard for lower-risk positives. Model is well-calibrated overall.
 - CI check: target gap 1.787 > 2×SE=0.990. Gap is detectable. No CV upgrade needed.
+
+- **C2 resolved (round 13):** consecutive_discards reset from 3 to 0. Resolution: HP search cannot outperform LGBM defaults (same params found repeatedly). Abandoning proxy-based HP search. Next: three-family mean ensemble (LGBM+CatBoost+XGBoost, no meta-learner) to avoid in-sample leakage.
