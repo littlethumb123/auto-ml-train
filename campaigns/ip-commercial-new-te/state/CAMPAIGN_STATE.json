@@ -5,14 +5,14 @@
     "primary_metric": 22.333275
   },
   "budget_total": 100,
-  "budget_used": 11,
+  "budget_used": 12,
   "c2_pending_diagnose": false,
   "campaign_id": "ip-commercial-new-te",
-  "consecutive_discards": 1,
+  "consecutive_discards": 2,
   "created_at": "2026-04-24T03:17:59Z",
-  "exp_id_counter": 11,
-  "last_commit": "4b2729c",
+  "exp_id_counter": 12,
+  "last_commit": "b6992fc",
   "last_verdict": "discard",
-  "round": 11,
-  "updated_at": "2026-04-24T09:17:17Z"
+  "round": 12,
+  "updated_at": "2026-04-24T09:24:53Z"
 }

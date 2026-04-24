@@ -171,3 +171,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Confirmed: lift@1% is too noisy as Optuna proxy at low iterations. Proxy estimated 21.90; full model gave 22.16 — 0.26-point gap makes the proxy misleading. LightGBM default params (num_leaves=127, lr=0.05) appear near-optimal. **Strategy shift**: (1) try XGBoost to complete the three-family comparison, (2) if XGBoost also underperforms, do proper OOF stacking, (3) if HP search needed, use AUC-ROC as proxy (smoother, more reliable at low iterations).
 
 ---
+
+## Round 12 — 2026-04-24
+
+**Action:** A_model — XGBoost hist default params (third family baseline)
+**Expected Δ:** -1.0 to +1.0
+**Actual val_lift_1pct:** 22.196 (Δ = -0.137)
+**Verdict:** discard
+
+**Key finding:** Three-family comparison complete: LightGBM(22.316) > CatBoost(22.213) ≈ XGBoost(22.196). XGBoost is fastest (144s vs 206s LGBM) — good for Optuna proxies. LightGBM is confirmed champion. **Strategy**: try LightGBM HP search using AUC-ROC as Optuna metric (smoother than lift@1% at low iterations). XGBoost's speed makes it valuable for ensemble diversity even if weaker standalone.
+
+---
