@@ -140,10 +140,8 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
 
     results = state_dir / "results.tsv"
     if not results.exists():
-        results.write_text(
-            "commit\tval_pr_auc\tlift_at_10\tmacro_f1\tval_f1\tstatus\tn_features\t"
-            "model_family\taction_type\thypothesis\tdescription\n"
-        )
+        results_columns = list(eval_fm.get("results_columns") or []) or None
+        results.write_text(log.make_header(results_columns))
     return state
 
 
