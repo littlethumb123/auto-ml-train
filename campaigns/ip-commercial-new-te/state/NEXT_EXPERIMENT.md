@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 20
-planner_invocation_at: "2026-04-24T11:20:00Z"
+round: 21
+planner_invocation_at: "2026-04-24T12:00:00Z"
 action_type: "A_feature"
-hypothesis: "Adding 5 more targeted domain features (IP days severity, recency ratio, ER utilization, ER×chronic interaction, and stay severity) to the existing 5 will improve lift@1% by encoding more clinical risk signal that the base features don't directly capture."
-expected_effect_size: "Δval_lift_1pct: +0.05 to +0.3 (incremental domain features)"
-base_commit: "daaa604"
+hypothesis: "Adding only ER utilization features (er_clm_cnt_1yr and er_clm_cnt_1yr × chronic_score) to the round-19 baseline (5 features) tests whether ER pathway is a net-positive signal without the noise from IP recency/severity features that hurt in round 20."
+expected_effect_size: "Δval_lift_1pct: +0.02 to +0.15"
+base_commit: "a17a4a3"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -14,25 +14,17 @@ escalation: null
 
 ## 1. Context
 
-Round 20. Best: 5-model ensemble + 5 eng features = 22.677 (round 19). Gains of +0.018 suggest signal is present but marginal. Adding 5 more domain features targeting IP severity (days per admission), recency (1yr vs 2yr utilization ratio), ER pathway (ER visits predict IP), and combined risk (ER × chronic disease burden).
+Round 21. Best: 22.677 (round 19, 5 eng features). Round 20 added 5 more features including ER but also noisy features (recency, severity) and discarded (-0.052). This round isolates ER features to test if they add net signal.
 
 ## 2. Evidence from memory
 
-- Round 19: 5 features (IP score, chronic score, lab score, age×IP, mm/IP ratio) added +0.018.
-- ER visits are a known IP precursor — `er_clm_cnt_1yr` exists in columns.
-- IP MDC days columns (`ipmdc*_2yr_days`) capture stay severity, not just count.
-- 1yr/2yr IP recency ratio captures acceleration of utilization.
+- Round 20: 10-feature set regressed (-0.052). ER features were bundled with noisy ones.
+- ER visits are a well-established clinical precursor to IP admissions.
+- `er_clm_cnt_1yr` exists in the column set.
 
 ## 3. Plan
 
-Extend `_engineer()` in train.py to add 5 more features:
-1. `eng_ip_days_score` = sum(ipmdc*_2yr_days) — total IP days in 2yr
-2. `eng_ip_recency` = sum(ipmdc*_1yr_cnt) / (sum(ipmdc*_2yr_cnt) + 0.1) — recent vs total ratio
-3. `eng_er_total` = er_clm_cnt_1yr
-4. `eng_er_x_chronic` = er_clm_cnt_1yr × chronic_score
-5. `eng_severity` = eng_ip_days / (eng_ip_score + 0.1) — average IP stay length
-
-No new cache rebuild needed (features added post-cache-load).
+Extend `_engineer()` to 7 features (5 from r19 + er_total + er_x_chronic). Keep IP days/recency/severity out.
 
 ## 4. Helpers
 
@@ -40,7 +32,7 @@ None.
 
 ## 5. How this differs from current train.py
 
-Extend `_engineer()` function body: add 5 more computed columns (10 total). The rest of the pipeline (5-model ensemble, scipy optimization) is unchanged.
+Add only `eng_er_total` and `eng_er_x_chronic` to the `_engineer()` function (2 more, total 7). The rest unchanged.
 
 ## 6. Escalation
 

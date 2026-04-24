@@ -267,3 +267,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Adding 5 more features hurt (-0.052). The IP recency ratio and severity features are likely noisy (high variance at low IP count). ER features (er_total, er_x_chronic) may have signal but were overwhelmed by the noisy features. Optimal weights abandoned LGBM_hybrid entirely (0.019). Lesson: more features ≠ better; targeted single features work better. Next round: try only ER features on top of round 19's baseline.
 
 ---
+
+## Round 21 — 2026-04-24
+
+**Action:** A_feature — +2 ER features on top of round-19 baseline
+**Actual val_lift_1pct:** 22.591 (Δ = **-0.086**)
+**Verdict:** discard → 2 consecutive discards
+
+**Key finding:** ER features also hurt (-0.086). The pattern across rounds 20-21 is consistent: adding ANY features beyond round-19's 5 makes things worse. Round-19's {ip_score, chronic_score, lab_score, age×ip, mm/ip_ratio} is a local optimum in this feature engineering space. The LGBM_hybrid model collapses to near-zero weight when extra features are added, suggesting the extra features distort the embedding signal. Feature engineering has hit its ceiling at 22.677. Budget_used=21/100. Remaining strategy: try different training configurations on the eng-5 dataset, then accept the ceiling.
+
+---
