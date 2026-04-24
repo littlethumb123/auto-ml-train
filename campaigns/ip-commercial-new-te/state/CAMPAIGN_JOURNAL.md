@@ -204,3 +204,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Three-family mean ensemble (no meta-learner) gives 22.556 — honest estimate (no in-sample leakage). Prediction correlations are very high (0.97) but ensemble still adds +0.24 lift at the top-1% threshold. **Critical insight**: CatBoost adds ZERO when combined with LGBM (too similar). XGBoost adds +0.137 (makes different top-1% errors). All three = best. Next: commit this three-family ensemble as the champion via a proper A_ensemble round (round 15), then investigate whether any other models can increase diversity further.
 
 ---
+
+## Round 15 — 2026-04-24
+
+**Action:** A_ensemble — LGBM+XGB+RandomForest mean
+**Expected Δ:** +0.1 to +0.5
+**Actual val_lift_1pct:** 21.321 (Δ = **-1.236**)
+**Verdict:** discard
+
+**Key finding:** RandomForest (lift@1%=20.016) is too weak. Despite lower correlation with GBDT (0.917 vs 0.974), adding it dilutes the ensemble: 21.321 < 22.453 (LGBM+XGB). RF fails at the top-1% region — 789 embedding-heavy features may not suit RF's random feature selection. ANTI-PATTERN confirmed: blending a weak model into a strong ensemble always hurts. Next: optimize LGBM+XGB+CB weights (find optimal 3-way weighting of the three-GBDT family), or pivot to feature engineering.
+
+---
