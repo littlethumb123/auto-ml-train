@@ -26,8 +26,12 @@ The driver (`runner/run_round.sh`) tells you which role to play.
 
 1. G1–G3 signed before any experiment (driver refuses to init otherwise).
 2. `runner/tools/anomaly.py` runs before any `keep` verdict.
-3. Mandatory tools named in `EVAL_PROTOCOL.md §mandatory_tools` run before accepting small Δ.
+3. Mandatory tools named in `EVAL_PROTOCOL.md §mandatory_tools` run before accepting small Δ; when `review-finalize` is called with `--tools-ran`, the driver mechanically rejects **`keep`** if any mandatory tool is missing from that list.
 4. One git commit per experiment — driver enforces.
+5. **Campaign branch:** Create a dedicated branch (e.g., `campaign/<campaign_id>`)
+   before running `init`. All experiment commits happen on this branch. On **discard**,
+   `git reset --hard HEAD~1` rolls back cleanly without affecting `main`. Merge the
+   final best commit to `main` only after the campaign concludes.
 5. Two repair attempts cap — Executor enforces.
 6. Contracts are sticky — change only via C3 (approved diff).
 

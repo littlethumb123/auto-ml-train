@@ -244,6 +244,8 @@ def validate_campaign_state(path: Path) -> list[str]:
     for k in ("round", "exp_id_counter", "consecutive_discards", "budget_used", "budget_total"):
         if k in data and not isinstance(data[k], int):
             errors.append(f"{k} must be int, got {type(data[k]).__name__}")
+    if "c2_pending_diagnose" in data and not isinstance(data["c2_pending_diagnose"], bool):
+        errors.append("c2_pending_diagnose must be bool if present")
     return errors
 
 
@@ -261,4 +263,106 @@ def validate_review(path: Path) -> list[str]:
         errors.append(
             f"last_verdict {fm.get('last_verdict')!r} not in {sorted(_ALLOWED_VERDICTS)}"
         )
+    return errors
+
+
+_DE_REQUIRED = ["schema_version", "campaign_id", "count", "last_updated"]
+_DE_BODY_RE = re.compile(r"^-\s+\S", re.MULTILINE)
+
+
+def validate_dead_ends(path: Path) -> list[str]:
+    try:
+        fm, body = parse_frontmatter(Path(path))
+    except FrontmatterError as exc:
+        return [str(exc)]
+    errors = _required_keys(fm, _DE_REQUIRED)
+    count = fm.get("count")
+    if count is not None and not isinstance(count, int):
+        errors.append("count must be an integer")
+    actual_entries = len(_DE_BODY_RE.findall(body))
+    if isinstance(count, int) and actual_entries != count:
+        errors.append(
+            f"count={count} but found {actual_entries} bullet entries in body"
+        )
+    return errors
+
+
+_NB_REQUIRED = ["schema_version", "campaign_id", "count", "last_updated"]
+_NB_BODY_RE = re.compile(r"^-\s+\S", re.MULTILINE)
+
+
+def validate_notebook(path: Path) -> list[str]:
+    try:
+        fm, body = parse_frontmatter(Path(path))
+    except FrontmatterError as exc:
+        return [str(exc)]
+    errors = _required_keys(fm, _NB_REQUIRED)
+    count = fm.get("count")
+    if count is not None and not isinstance(count, int):
+        errors.append("count must be an integer")
+    actual_entries = len(_NB_BODY_RE.findall(body))
+    if isinstance(count, int) and actual_entries != count:
+        errors.append(
+            f"count={count} but found {actual_entries} bullet entries in body"
+        )
+    return errors
+
+
+_PR_REQUIRED = ["schema_version", "problem_id", "last_campaign", "updated_at"]
+_PR_SECTIONS = [
+    (1, "Known good"),
+    (2, "Known bad"),
+    (3, "Known ceilings"),
+]
+
+
+def validate_priors(path: Path) -> list[str]:
+    try:
+        fm, body = parse_frontmatter(Path(path))
+    except FrontmatterError as exc:
+        return [str(exc)]
+    errors = _required_keys(fm, _PR_REQUIRED)
+    # PRIORS uses plain ## H2 (not numbered), so check by title substring
+    body_lower = body.lower()
+    for _, title in _PR_SECTIONS:
+        if f"## {title.lower()}" not in body_lower:
+            errors.append(f"missing required section: ## {title}")
+    return errors
+
+
+_FR_REQUIRED = [
+    "schema_version",
+    "campaign_id",
+    "final_commit",
+    "final_primary_metric",
+    "final_ci",
+    "baseline_primary_metric",
+    "n_experiments",
+    "n_keeps",
+    "n_discards",
+]
+_FR_SECTIONS = [
+    (1, "Headline"),
+    (2, "What worked"),
+    (3, "What did not work"),
+    (4, "Statistical"),
+    (5, "Recommended"),
+    (6, "Open questions"),
+]
+
+
+def validate_final_report(path: Path) -> list[str]:
+    try:
+        fm, body = parse_frontmatter(Path(path))
+    except FrontmatterError as exc:
+        return [str(exc)]
+    errors = _required_keys(fm, _FR_REQUIRED)
+    ci = fm.get("final_ci")
+    if ci is not None and (not isinstance(ci, list) or len(ci) != 2):
+        errors.append("final_ci must be a 2-element list [lo, hi]")
+    for k in ("n_experiments", "n_keeps", "n_discards"):
+        v = fm.get(k)
+        if v is not None and not isinstance(v, int):
+            errors.append(f"{k} must be an integer")
+    errors += _check_numbered_sections(body, _FR_SECTIONS)
     return errors

@@ -2,7 +2,7 @@
 # runner/run_round.sh — thin CLI wrapper over runner_driver.py.
 set -euo pipefail
 
-STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize"}
+STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize|resolve-c2"}
 shift || true
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -30,10 +30,19 @@ elif stage == "plan-check":
 elif stage == "execute-finalize":
     stdout_file = args["stdout_file"]
     text = open(stdout_file).read()
-    res = runner_driver.execute_finalize(text, campaign_dir=args.get("campaign_dir", "runner/"))
+    diff_files = json.loads(args["commit_diff_files"]) if "commit_diff_files" in args else None
+    res = runner_driver.execute_finalize(
+        text,
+        campaign_dir=args.get("campaign_dir", "runner/"),
+        commit_diff_files=diff_files,
+    )
     print(json.dumps(res))
 elif stage == "review-finalize":
     metrics = json.loads(args["metrics_json"])
+    tools_ran = json.loads(args["tools_ran"]) if "tools_ran" in args else None
+    bootstrap_se = None
+    if "bootstrap_se" in args and str(args.get("bootstrap_se", "")).strip():
+        bootstrap_se = float(args["bootstrap_se"])
     res = runner_driver.review_finalize(
         verdict=args["verdict"],
         commit=args["commit"],
@@ -43,6 +52,14 @@ elif stage == "review-finalize":
         description=args["description"],
         model_family=args["model_family"],
         n_features=int(args["n_features"]),
+        campaign_dir=args.get("campaign_dir", "runner/"),
+        tools_ran=tools_ran,
+        bootstrap_se=bootstrap_se,
+    )
+    print(json.dumps(res))
+elif stage == "resolve-c2":
+    res = runner_driver.resolve_c2(
+        resolution=args.get("resolution", ""),
         campaign_dir=args.get("campaign_dir", "runner/"),
     )
     print(json.dumps(res))

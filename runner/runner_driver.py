@@ -38,6 +38,61 @@ _STDOUT_RE = re.compile(
     re.MULTILINE,
 )
 
+_SUCCESS_METRIC_RE = re.compile(r"(\w+)\s*>=?\s*([\d.]+)", re.IGNORECASE)
+
+
+def _parse_success_target(problem_contract_path: Path, primary_metric_name: str) -> float | None:
+    """Best-effort parse of the first success_criteria entry for a numeric target."""
+    try:
+        fm, _ = parse_frontmatter(problem_contract_path)
+    except (FrontmatterError, OSError):
+        return None
+    criteria = fm.get("success_criteria") or []
+    for crit in criteria:
+        m = _SUCCESS_METRIC_RE.search(str(crit))
+        if m and m.group(1).lower() == primary_metric_name.lower():
+            return float(m.group(2))
+    return None
+
+
+_READ_ONLY_PREFIXES = (
+    "prepare.py",
+    "data/",
+    "runner/contracts/",
+    "runner/roles/",
+    "runner/tools/",
+    "log.py",
+)
+
+
+def _path_in_write_scope(path: str, allowed: set[str]) -> bool:
+    if path == "train.py":
+        return True
+    if path in allowed:
+        return True
+    return any(path.startswith(a + "/") for a in allowed if a != "train.py")
+
+
+def _normalize_mandatory_tool_name(name: str) -> str:
+    """Map contract entries (e.g. tools/anomaly.py) to dotted module form for comparison."""
+    n = name.strip()
+    if not n:
+        return ""
+    if n.endswith(".py"):
+        n = n[:-3]
+    n = n.replace("\\", "/")
+    if n.startswith("runner.tools."):
+        return n
+    if n.startswith("runner/tools/"):
+        rest = n[len("runner/tools/") :].replace("/", ".")
+        return "runner.tools." + rest
+    if n.startswith("tools/"):
+        rest = n[len("tools/") :].replace("/", ".")
+        return "runner.tools." + rest
+    if "/" in n:
+        return n.replace("/", ".")
+    return n
+
 
 def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     camp = Path(campaign_dir)
@@ -73,6 +128,7 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
         "last_verdict": None,
         "best_so_far": {"commit": None, "primary_metric": None},
         "consecutive_discards": 0,
+        "c2_pending_diagnose": False,
         "budget_used": 0,
         "budget_total": int(budgets.get("max_experiments", 100)),
         "created_at": now,
@@ -84,10 +140,8 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
 
     results = state_dir / "results.tsv"
     if not results.exists():
-        results.write_text(
-            "commit\tval_pr_auc\tlift_at_10\tmacro_f1\tval_f1\tstatus\tn_features\t"
-            "model_family\taction_type\thypothesis\tdescription\n"
-        )
+        results_columns = list(eval_fm.get("results_columns") or []) or None
+        results.write_text(log.make_header(results_columns))
     return state
 
 
@@ -103,16 +157,26 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
 
     state = json.loads((camp / "state" / "CAMPAIGN_STATE.json").read_text())
     trigger = int((eval_fm.get("plateau_trigger") or {}).get("consecutive_discards", 3))
+    fm_plan: dict[str, Any] | None = None
+    escalation = None
     try:
-        fm, _ = parse_frontmatter(plan_path)
-        escalation = fm.get("escalation")
+        fm_plan, _ = parse_frontmatter(plan_path)
+        escalation = fm_plan.get("escalation")
     except FrontmatterError:
-        escalation = None
+        pass
     if state.get("consecutive_discards", 0) >= trigger and escalation != "C2":
         errors.append(
             f"consecutive_discards={state['consecutive_discards']} >= trigger={trigger} "
             f"but escalation!=C2 (required per spec §8.3 item 5)"
         )
+
+    if state.get("c2_pending_diagnose") and escalation is None:
+        plan_action = fm_plan.get("action_type") if fm_plan else None
+        if plan_action != "A_diagnose":
+            errors.append(
+                "c2_pending_diagnose is active — next plan must be A_diagnose "
+                f"(STRATEGY_GUIDE §3.7), got {plan_action!r}"
+            )
 
     if errors:
         return {"status": "malformed", "errors": errors}
@@ -123,9 +187,71 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
     return {"status": "ok", "errors": []}
 
 
+def resolve_c2(
+    resolution: str,
+    campaign_dir: str = "runner/",
+) -> dict[str, Any]:
+    """Acknowledge a C2 plateau pause and reset consecutive_discards.
+
+    Called after the human/agent reviews the C2 escalation, decides
+    a new direction, and wants to resume normal planning.
+
+    Args:
+        resolution: Free-text description of the decided strategy shift
+                    (e.g., "switching from XGBoost to LightGBM family").
+        campaign_dir: Path to runner directory.
+
+    Returns:
+        Updated state dict with consecutive_discards reset to 0.
+    """
+    camp = Path(campaign_dir)
+    state_path = camp / "state" / "CAMPAIGN_STATE.json"
+    if not state_path.exists():
+        raise DriverError("CAMPAIGN_STATE.json not found — run init first")
+    state = json.loads(state_path.read_text())
+
+    eval_fm, _ = parse_frontmatter(camp / "contracts" / "EVAL_PROTOCOL.md")
+    trigger = int((eval_fm.get("plateau_trigger") or {}).get("consecutive_discards", 3))
+
+    if state.get("consecutive_discards", 0) < trigger:
+        return {
+            "status": "no_plateau",
+            "message": f"consecutive_discards={state['consecutive_discards']} < trigger={trigger}; "
+                       "no C2 plateau active — nothing to resolve",
+        }
+
+    import datetime as _dt
+
+    prior_discards = state["consecutive_discards"]
+    state["consecutive_discards"] = 0
+    state["c2_pending_diagnose"] = True
+    state["updated_at"] = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+    # Append resolution to NOTEBOOK.md for audit trail
+    notebook_path = camp / "state" / "NOTEBOOK.md"
+    entry = (
+        f"\n- **C2 resolved (round {state['round']}):** "
+        f"consecutive_discards reset from {prior_discards} to 0. "
+        f"Resolution: {resolution}\n"
+    )
+    if notebook_path.exists():
+        with open(notebook_path, "a") as f:
+            f.write(entry)
+    else:
+        notebook_path.write_text(entry)
+
+    return {
+        "status": "resolved",
+        "prior_consecutive_discards": prior_discards,
+        "resolution": resolution,
+    }
+
+
 def execute_finalize(
     executor_stdout: str,
     campaign_dir: str = "runner/",
+    commit_diff_files: list[str] | None = None,
 ) -> dict[str, Any]:
     matches = list(_STDOUT_RE.finditer(executor_stdout))
     if not matches:
@@ -141,6 +267,33 @@ def execute_finalize(
 
     if channel == "RUN_COMPLETE":
         commit = rest.split()[0] if rest else None
+
+        if commit_diff_files is not None:
+            camp = Path(campaign_dir)
+            plan_path = camp / "state" / "NEXT_EXPERIMENT.md"
+            allowed: set[str] = {"train.py"}
+            try:
+                fm, _ = parse_frontmatter(plan_path)
+                for h in fm.get("helpers_declared") or []:
+                    if h:
+                        allowed.add(str(h))
+            except (FrontmatterError, OSError):
+                pass
+            violations = [f for f in commit_diff_files if not _path_in_write_scope(f, allowed)]
+            if violations:
+                read_hits = [
+                    f
+                    for f in violations
+                    if any(f == p or f.startswith(p) for p in _READ_ONLY_PREFIXES)
+                ]
+                detail = read_hits if read_hits else violations
+                return {
+                    "channel": channel,
+                    "commit": commit,
+                    "synthetic_verdict": "malformed",
+                    "reason": f"write_scope_violation: {detail}",
+                }
+
         return {"channel": channel, "commit": commit, "synthetic_verdict": None, "reason": ""}
     if channel == "RUN_FAILED":
         parts = rest.split(maxsplit=1)
@@ -162,6 +315,8 @@ def review_finalize(
     model_family: str,
     n_features: int,
     campaign_dir: str = "runner/",
+    tools_ran: list[str] | None = None,
+    bootstrap_se: float | None = None,
 ) -> dict[str, Any]:
     camp = Path(campaign_dir)
     state_path = camp / "state" / "CAMPAIGN_STATE.json"
@@ -171,6 +326,18 @@ def review_finalize(
     pm = (eval_fm.get("primary_metric") or {})
     metric_name = pm.get("name", "val_pr_auc")
     direction = pm.get("direction", "maximize")
+
+    mandatory_gate_reason = ""
+    mandatory_raw = list(eval_fm.get("mandatory_tools") or [])
+    if tools_ran is not None and mandatory_raw and verdict == "keep":
+        mandatory_norm = {_normalize_mandatory_tool_name(m) for m in mandatory_raw if m}
+        ran_norm = {_normalize_mandatory_tool_name(t) for t in tools_ran if t}
+        missing = mandatory_norm - ran_norm
+        if missing:
+            verdict = "malformed"
+            mandatory_gate_reason = (
+                f"mandatory_tools: missing normalized tool(s) {sorted(missing)} (spec §8.3 item 8)"
+            )
 
     log.append_result(
         commit=commit if commit else "none",
@@ -187,6 +354,10 @@ def review_finalize(
     )
     state_after = json.loads(state_path.read_text())
 
+    if action_type == "A_diagnose" and state_after.get("c2_pending_diagnose"):
+        state_after["c2_pending_diagnose"] = False
+        state_path.write_text(json.dumps(state_after, indent=2, sort_keys=True) + "\n")
+
     should_rollback = verdict in {"discard", "crash", "malformed"}
     pause_loop = verdict == "anomaly"
 
@@ -195,14 +366,39 @@ def review_finalize(
     if verdict == "malformed" and prior_verdict == "malformed":
         halt_loop = True
         halt_reason = "two consecutive malformed verdicts — BUG: role producing malformed artifacts"
+    elif mandatory_gate_reason:
+        halt_reason = mandatory_gate_reason
     if state_after.get("round", 0) >= state_after.get("budget_total", 0):
         halt_loop = True
         halt_reason = halt_reason or "budget_exhausted"
 
-    return {
+    c3_advisory = False
+    c3_advisory_reason = ""
+    if (
+        bootstrap_se is not None
+        and bootstrap_se > 0
+        and verdict in ("keep", "discard")
+    ):
+        problem_path = camp / "contracts" / "PROBLEM_CONTRACT.md"
+        success_target = _parse_success_target(problem_path, metric_name)
+        best_metric = (state_after.get("best_so_far") or {}).get("primary_metric")
+        if success_target is not None and best_metric is not None:
+            target_gap = success_target - best_metric
+            if target_gap > 0 and target_gap <= 2 * bootstrap_se:
+                c3_advisory = True
+                c3_advisory_reason = (
+                    f"target_gap={target_gap:.4f} <= 2*bootstrap_se={2 * bootstrap_se:.4f} — "
+                    "bottleneck is measurement, not modeling; consider C3 to upgrade CV scheme"
+                )
+
+    result: dict[str, Any] = {
         "verdict": verdict,
         "should_rollback": should_rollback,
         "pause_loop": pause_loop,
         "halt_loop": halt_loop,
         "halt_reason": halt_reason,
     }
+    if c3_advisory:
+        result["c3_advisory"] = True
+        result["c3_advisory_reason"] = c3_advisory_reason
+    return result

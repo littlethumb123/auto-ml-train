@@ -12,7 +12,7 @@ data/
 
 # Reference implementation (read-only copy)
 autoresearch-master/
-
+other_repos/
 # IDE
 .vscode/
 .idea/

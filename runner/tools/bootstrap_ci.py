@@ -11,6 +11,15 @@ from sklearn.metrics import (
 )
 
 
+def _lift_at_pct(pct: float):
+    def fn(y, s):
+        k = max(1, int(len(y) * pct))
+        top_k = np.argsort(np.asarray(s))[::-1][:k]
+        base = np.asarray(y).mean()
+        return float(np.asarray(y)[top_k].mean() / base) if base > 0 else 0.0
+    return fn
+
+
 def _metric_fn(name: str):
     if name == "pr_auc":
         return lambda y, s: float(average_precision_score(y, s))
@@ -18,6 +27,12 @@ def _metric_fn(name: str):
         return lambda y, s: float(roc_auc_score(y, s))
     if name == "f1":
         return lambda y, s: float(f1_score(y, (np.asarray(s) >= 0.5).astype(int), zero_division=0))
+    if name == "lift_1pct":
+        return _lift_at_pct(0.01)
+    if name == "lift_5pct":
+        return _lift_at_pct(0.05)
+    if name == "lift_10pct":
+        return _lift_at_pct(0.10)
     raise ValueError(f"unknown metric: {name!r}")
 
 

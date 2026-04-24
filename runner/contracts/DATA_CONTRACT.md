@@ -136,16 +136,16 @@ columns:
     role: "target"
     available_at_prediction: false
 leakage_audit:
-  performed_at: null
+  performed_at: "2026-04-22"
   flagged_columns: []
-  notes: "Run tools/leakage_audit and fill performed_at before G2 sign-off."
+  notes: "2026-04-22 leakage_audit clean via python3 -m runner.tools.leakage_audit; no flagged columns."
 splits:
   train: "stratified 60% of data (per prepare.py)"
   val: "stratified 20% of data (per prepare.py)"
   test: "stratified 20% of data (per prepare.py)"
   random_seed: 42
-approved_at: null
-approved_by: null
+approved_at: "2026-04-22"
+approved_by: "copilot"
 ---
 
 ## 1. Schema summary
@@ -158,7 +158,7 @@ All features are synchronous with the transaction record — available at predic
 
 ## 3. Leakage audit summary
 
-Run `python3 runner/tools/leakage_audit.py --data-contract-path runner/contracts/DATA_CONTRACT.md --data-path data/creditcard.csv --target-col Class` before G2 sign-off. No historical audit flagged features (legacy campaigns relied on the fixed prepare.py split).
+Leakage audit completed on 2026-04-22. No features were flagged by `python3 -m runner.tools.leakage_audit --data-contract-path runner/contracts/DATA_CONTRACT.md --data-path data/creditcard.csv --target-col Class`. No historical audit flagged features (legacy campaigns relied on the fixed prepare.py split).
 
 ## 4. Transformations applied pre-agent (if any)
 

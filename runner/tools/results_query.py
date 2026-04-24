@@ -18,16 +18,22 @@ from runner.tools._common import (
     emit_json,
 )
 
-EXPECTED_COLUMNS = [
-    "commit", "val_pr_auc", "lift_at_10", "macro_f1", "val_f1",
-    "status", "n_features", "model_family", "action_type",
-    "hypothesis", "description",
-]
-_NUMERIC = {"val_pr_auc", "lift_at_10", "macro_f1", "val_f1", "n_features"}
+# Columns every campaign's results.tsv must contain (structural, not metric-specific).
+# Campaigns may add any number of additional columns; the schema check only
+# enforces the minimum required set so results_query works for any campaign.
+_MINIMUM_COLUMNS = {
+    "commit", "status", "n_features", "model_family",
+    "action_type", "hypothesis", "description",
+}
+
+# Columns that should not be coerced to numeric (keep as strings).
+_STRING_COLUMNS = {
+    "commit", "status", "model_family", "action_type", "hypothesis", "description",
+}
 
 
 class SchemaMismatchError(Exception):
-    """results.tsv header does not match the expected schema."""
+    """results.tsv is missing required structural columns."""
 
 
 def results_query(
@@ -41,13 +47,15 @@ def results_query(
     if not path.exists():
         return []
     df = pd.read_csv(path, sep="\t")
-    if list(df.columns) != EXPECTED_COLUMNS:
+    missing = _MINIMUM_COLUMNS - set(df.columns)
+    if missing:
         raise SchemaMismatchError(
-            f"results.tsv columns do not match expected schema. "
-            f"Expected {EXPECTED_COLUMNS}, got {list(df.columns)}"
+            f"results.tsv is missing required columns: {sorted(missing)}. "
+            f"Found: {list(df.columns)}"
         )
-    for col in _NUMERIC:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+    for col in df.columns:
+        if col not in _STRING_COLUMNS:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
     if filter_expr:
         df = df.query(filter_expr)
     if order_by in df.columns:
@@ -60,7 +68,7 @@ def results_query(
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Query runner/state/results.tsv.")
     p.add_argument("--filter", default="status != 'crash'", dest="filter_expr")
-    p.add_argument("--order-by", default="val_pr_auc")
+    p.add_argument("--order-by", default="val_pr_auc", help="Column to sort by (use primary metric name for the campaign)")
     p.add_argument("--limit", type=int, default=10)
     p.add_argument("--ascending", action="store_true")
     p.add_argument("--campaign-dir", default="runner/")
