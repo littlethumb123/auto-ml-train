@@ -32,7 +32,7 @@ from prepare import (
 # Hard timeout — overrides prepare.py TIME_BUDGET+60 because this dataset
 # (10.3M rows × 824 cols) needs more data-load headroom than the initial
 # 150s contract estimate. EVAL_PROTOCOL updated to hard_timeout_s: 600.
-HARD_TIMEOUT = 600
+HARD_TIMEOUT = 1200
 
 
 def _timeout_handler(signum, frame):
@@ -48,8 +48,8 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_validate: CatBoost hybrid (tabular+256 embeddings) — measure embedding lift"
-FEATURE_SET = "hybrid"   # options: 'tabular_only' | 'embedding_only' | 'hybrid'
+DESCRIPTION = "A_hp: Optuna wide CatBoost HP search on hybrid — first systematic tune"
+FEATURE_SET = "hybrid"   # locked to hybrid (confirmed best in round 2)
 
 # ---------------------------------------------------------------------------
 # Column-selective parquet load — avoids reading unused embedding columns
@@ -74,8 +74,18 @@ elif FEATURE_SET == "embedding_only":
 else:  # hybrid
     cols_to_read = [c for c in all_parquet_cols if c not in _pipeline_artifacts]
 
-df = pd.read_parquet(CACHE_PATH, columns=cols_to_read)
+# Row filter: in-time only (skip OOT ~2.5M rows, ~25% smaller load + process)
+df = pd.read_parquet(CACHE_PATH, columns=cols_to_read,
+                     filters=[("index_dt", "<=", OOT_CUTOFF_DATE)])
 print(f"Parquet loaded: {len(df):,} rows × {len(df.columns)} cols  ({time.time()-t_start:.1f}s)")
+
+# Pre-fill NaN once on the full df before splitting — prepare.py's _xy() then
+# gets a pre-filled df so its own fillna is a near-instant no-op on each split.
+_num_cols = df.select_dtypes(include=[np.number]).columns
+df[_num_cols] = df[_num_cols].fillna(0)
+_cat_cols_df = df.select_dtypes(include=["object", "category"]).columns
+df[_cat_cols_df] = df[_cat_cols_df].fillna("missing")
+print(f"Pre-filled NaN  ({time.time()-t_start:.1f}s)")
 
 # ---------------------------------------------------------------------------
 # Splits (digit-based, 10:1 downsampling on train, in-time only)
@@ -109,20 +119,44 @@ val_pool   = Pool(X_val,   y_val,   cat_features=cat_idx)
 # Model (Executor replaces this block per plan — one controlled change only)
 # ---------------------------------------------------------------------------
 
+import optuna
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+
 t_train_start = time.time()
+elapsed_data = t_train_start - t_start
+optuna_budget = max(200, int(HARD_TIMEOUT - elapsed_data - 200))  # leave 200s for full retrain
+
+def objective(trial):
+    params = {
+        "depth":             trial.suggest_int("depth", 5, 9),
+        "learning_rate":     trial.suggest_float("learning_rate", 0.01, 0.15, log=True),
+        "l2_leaf_reg":       trial.suggest_float("l2_leaf_reg", 1.0, 15.0, log=True),
+        "subsample":         trial.suggest_float("subsample", 0.5, 1.0),
+        "colsample_bylevel": trial.suggest_float("colsample_bylevel", 0.5, 1.0),
+        "min_data_in_leaf":  trial.suggest_int("min_data_in_leaf", 5, 50, log=True),
+    }
+    proxy = CatBoostClassifier(
+        iterations=200, od_wait=30, use_best_model=True,
+        grow_policy="SymmetricTree", auto_class_weights="Balanced",
+        random_seed=RANDOM_SEED, verbose=0, **params,
+    )
+    proxy.fit(train_pool, eval_set=val_pool)
+    y_prob = proxy.predict_proba(val_pool)[:, 1]
+    from shared.metrics import lift_at_percentage
+    return lift_at_percentage(np.asarray(y_val), y_prob, 0.01)
+
+study = optuna.create_study(direction="maximize",
+                             sampler=optuna.samplers.TPESampler(seed=RANDOM_SEED))
+study.optimize(objective, timeout=optuna_budget)
+best = study.best_params
+print(f"Optuna: {len(study.trials)} trials, best lift@1%={study.best_value:.4f} in {optuna_budget}s budget")
+print(f"  best_params={best}")
 
 model = CatBoostClassifier(
-    iterations=500,
-    depth=6,
-    learning_rate=0.05,
-    grow_policy="SymmetricTree",
-    auto_class_weights="Balanced",
-    od_wait=50,
-    use_best_model=True,
-    random_seed=RANDOM_SEED,
-    verbose=0,
+    iterations=500, od_wait=60, use_best_model=True,
+    grow_policy="SymmetricTree", auto_class_weights="Balanced",
+    random_seed=RANDOM_SEED, verbose=0, **best,
 )
-
 model.fit(train_pool, eval_set=val_pool)
 training_time = time.time() - t_train_start
 
