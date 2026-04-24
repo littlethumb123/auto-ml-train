@@ -110,3 +110,16 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** SHAP shows near-perfect 50/50 split between embedding and tabular features in top-50 (26 emb vs 24 tab). Embeddings are NOT redundant with tabular — they are COMPLEMENTARY. This confirms hybrid is the right feature set and suggests stacking (diverse feature subsets) could add value. Error analysis: 75.5% of positives are "hard" (score below neg-p99) — inherent task difficulty. Model is well-calibrated. Target gap (1.787 lift pts) is detectable (gap = 1.80× SE). No measurement bottleneck. C2 cleared. Root cause of 3 discards: infrastructure bugs + too-slow Optuna proxy (71s/trial). Fix: 50-iter proxy (17s/trial → 28 trials in 500s).
 
 ---
+
+## Round 7 — 2026-04-24
+
+**Action:** A_hp — Optuna 50-iter proxy on full hybrid (28-54 trials)
+**Trigger:** STRATEGY_GUIDE §1 "First systematic HP search after A_diagnose"
+**Expected Δ:** +0.5 to +2.0
+
+**Actual val_lift_1pct:** 21.990 (Δ = **-0.223 vs best**, -0.45 SE)
+**Verdict:** discard
+
+**Key finding:** 50-iter proxy runs 54 trials but is too fast to reliably rank HPs for lift@1% (proxy best=21.05, but full model at those params gives 21.99). The proxy and full model don't correlate well for this noisy metric at low iteration counts. Default CatBoost params (depth=6, lr=0.05) appear near-optimal for lift@1% — Optuna keeps finding slightly different params that don't outperform them. Next: try LightGBM (different family, different bias, faster iteration → more reliable proxy). If LightGBM beats CatBoost, HP tune that; if not, return to ensemble.
+
+---
