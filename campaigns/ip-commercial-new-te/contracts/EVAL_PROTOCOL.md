@@ -41,8 +41,8 @@ results_columns:
   - "val_lift_10pct"
   - "val_auc_pr"
 budgets:
-  time_budget_s: 300
-  hard_timeout_s: 600
+  time_budget_s: 600
+  hard_timeout_s: 1200
   max_experiments: 100
   max_repair_attempts: 2
 plateau_trigger:
