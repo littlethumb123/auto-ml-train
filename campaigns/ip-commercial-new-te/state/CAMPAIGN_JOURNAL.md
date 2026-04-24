@@ -277,3 +277,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** ER features also hurt (-0.086). The pattern across rounds 20-21 is consistent: adding ANY features beyond round-19's 5 makes things worse. Round-19's {ip_score, chronic_score, lab_score, age×ip, mm/ip_ratio} is a local optimum in this feature engineering space. The LGBM_hybrid model collapses to near-zero weight when extra features are added, suggesting the extra features distort the embedding signal. Feature engineering has hit its ceiling at 22.677. Budget_used=21/100. Remaining strategy: try different training configurations on the eng-5 dataset, then accept the ceiling.
 
 ---
+
+## Round 22 — 2026-04-24
+
+**Action:** A_ensemble — 7-model scipy (LGBM_h+LGBM_t+LGBM_e+CB_h+CB_t+XGB_h+XGB_t)
+**Actual val_lift_1pct:** 22.728 (Δ = **+0.051 — NEW BEST**)
+**Verdict:** keep (0.10 SE — noise but positive)
+
+**Key finding:** Adding CB_tabular and XGB_tabular to the 5-model ensemble breaks through the 22.677 ceiling. XGBoost pair (hybrid+tabular) gets 0.535 combined weight — highest of any family. The tabular-only XGB (21.595 standalone) contributes more diversity than expected. The pattern: as we add more tabular-only variants, they collectively dominate the optimal blend, while the hybrid LGBM gradually loses influence (0.121 weight). This suggests the tabular features + engineered features contain most of the predictable signal, and embeddings add marginal value in the full ensemble context.
+
+---
