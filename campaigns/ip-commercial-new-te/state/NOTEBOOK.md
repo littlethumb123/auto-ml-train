@@ -17,3 +17,5 @@ last_updated: "2026-04-24"
 - Round 5 A_hp: Optuna had only 7 trials in 500s (71s/trial with 200-iter CatBoost on 789 feats × 508K rows). Fix: use 50-iter proxy (~17s/trial → 28+ trials). Or switch to LightGBM proxy for faster iteration.
 - Split cache loads in 27s (down from 250s data pipeline). Major infrastructure win for rounds 6-100.
 - Round 5 result (22.162) is within 0.1 SE of prior best (22.213) — noise, not regression.
+
+- **C2 resolved (round 5):** consecutive_discards reset from 3 to 0. Resolution: 3 discards were informative baselines and infrastructure fixes, not a true plateau. Root cause: Optuna proxy too slow (71s/trial). Resolution: use 50-iter proxy and/or LightGBM for faster HP search. A_diagnose follows as protocol requires.
