@@ -286,3 +286,28 @@ review_note: Same 7-trial Optuna problem as CatBoost. num_leaves=351 makes proxy
 ### Tool outputs
 - anomaly: not fired
 - bootstrap_ci: metric=22.1788 ci=[21.1953, 23.1443] se=0.4896 n_boot=1000
+
+## Round 10
+
+commit: 161f4f6
+verdict: keep
+action_type: A_ensemble
+model_family: ensemble
+feature_set: hybrid
+val_lift_1pct: 22.333275
+val_auc_roc: 0.856948
+val_lift_5pct: 9.591729
+val_lift_10pct: 6.179271
+val_auc_pr: 0.110456
+n_features: 789
+training_seconds: 279.6
+total_seconds: 308.3
+lgbm_weight: 3.154
+catboost_weight: 2.606
+delta_vs_best: +0.017167
+bootstrap_se: 0.4909
+review_note: MARGINAL KEEP. Δ=+0.017 (0.035 SE) — pure noise level. Verdict=keep because Δ>0 and no anomaly. CAVEAT: meta-learner trained+evaluated on same val set (in-sample stacking) — true generalization likely flat vs LightGBM baseline. val_lift_10pct improved more (6.179 vs 6.111) — stacking helps lower-risk tail.
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=22.3333 ci=[21.3869, 23.3290] se=0.4909 n_boot=1000
