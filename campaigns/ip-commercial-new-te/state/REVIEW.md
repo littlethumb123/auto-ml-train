@@ -430,3 +430,21 @@ optimal_weights: LGBM=0.356 CB=0.150 XGB=0.493
 delta_vs_best: +0.051498
 bootstrap_se: 0.4929
 review_note: NEW BEST via scipy-optimized weights. XGB gets highest weight (0.493) despite weakest standalone (22.196) — confirms XGB adds the most useful diversity. CB gets lowest weight (0.150) consistent with its low contribution. Δ=+0.052 is within noise floor (0.3) and only 0.10 SE — marginal but Δ>0 → keep. Note: in-sample weight optimization (3 params on val) — slightly optimistic but minimal overfitting with only 3 degrees of freedom.
+
+## Round 17
+
+commit: 44d4043
+verdict: keep
+action_type: A_ensemble
+model_family: ensemble
+val_lift_1pct: 22.642267
+val_auc_roc: 0.857729
+val_lift_5pct: 9.667254
+val_lift_10pct: 6.191286
+val_auc_pr: 0.112652
+training_seconds: 606.9
+total_seconds: 635.2
+optimal_weights: LGBM_h=0.317 LGBM_t=0.120 CB=0.254 XGB=0.310
+delta_vs_best: +0.034333
+bootstrap_se: 0.4968
+review_note: NEW BEST. Tabular-only LGBM adds structural diversity (corr=0.909 with hybrid LGBM). CB gets weight 0.254 (up from 0.150 in r16) and LGBM_tabular gets 0.120. XGB drops from 0.493 to 0.310. val_lift_10pct improved (6.191 vs 6.164). Δ=+0.034 is 0.07 SE — noise level but positive → keep per rule. Gains are very small. Next: add more tabular-only models or try feature engineering.
