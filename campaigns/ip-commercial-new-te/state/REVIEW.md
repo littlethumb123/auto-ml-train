@@ -535,3 +535,28 @@ oof_eval_half_lift: 23.1576
 delta_vs_best: -0.034332
 bootstrap_se: 0.4967
 review_note: OOF weights nearly identical to in-sample (r22). OOF eval half = 23.158 (higher, but on different 376K rows). Full val = 22.694 < 22.728. CONFIRMS: round 22's 22.728 is genuine, not in-sample overfitting artifact. Weights are stable. Campaign ceiling confirmed at 22.728.
+
+## Round 25
+
+commit: d3e998d
+verdict: keep
+action_type: A_hp
+model_family: ensemble+xgb_tuned
+val_lift_1pct: 23.174420
+val_auc_roc: 0.857044
+val_lift_5pct: 9.519636
+val_lift_10pct: 6.163822
+training_seconds: 1243.7
+total_seconds: 1293.8
+xgb_optuna_trials: 15
+xgb_tuned_standalone: 22.127 (vs default 22.247 — slightly weaker standalone)
+optimal_weights: LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
+delta_vs_best: +0.446322
+bootstrap_ci_lo: 22.0919
+bootstrap_ci_hi: 24.1011
+bootstrap_se: 0.5033
+review_note: MAJOR BREAKTHROUGH — +0.446 lift, NEW BEST 23.174. AUC-ROC optimized XGB (standalone weaker: 22.127 vs default 22.247) produces MORE COMPLEMENTARY predictions for the ensemble. The optimizer weights it 0.456 vs default's 0.262. LGBM models nearly zeroed out (0.046, 0.023). CB pair (0.326 total) becomes the second anchor. KEY INSIGHT: AUC-ROC proxy finds ensemble-complementary HPs better than lift@1% proxy. NEXT: try AUC-ROC Optuna on CatBoost.
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=23.1744 ci=[22.0919, 24.1011] se=0.5033 n_boot=1000

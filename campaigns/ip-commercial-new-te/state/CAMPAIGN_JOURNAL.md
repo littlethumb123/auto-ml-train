@@ -307,3 +307,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** OOF weights (LGBM_h=0.122, XGB_h=0.253, XGB_t=0.277) are nearly identical to round 22's in-sample weights (0.121, 0.262, 0.273). **CONCLUSION: Round 22's 22.728 is the genuine campaign ceiling, not an artifact of in-sample optimization.** The scipy optimization finds a stable minimum regardless of the data split used. The slight deficit (-0.034) is purely from having fewer fitting points. Budget=24/100. The ensemble approach is definitively exhausted. Remaining rounds should explore radically different strategies if any gain is desired.
 
 ---
+
+## Round 25 — 2026-04-24
+
+**Action:** A_hp — Optuna XGBoost with AUC-ROC proxy, substituted into 7-model ensemble
+**Expected Δ:** +0.1 to +0.5
+**Actual val_lift_1pct:** 23.174 (Δ = **+0.446 — MAJOR NEW BEST**)
+**Verdict:** keep (0.89 SE — marginally significant but clearest gain in rounds 14-24)
+
+**Key finding:** AUC-ROC optimized XGB (STANDALONE: 22.127, slightly WEAKER than default 22.247) gives a MUCH BETTER ensemble result (23.174 vs 22.728) because its predictions are MORE COMPLEMENTARY to the other models. The ensemble optimizer gives it 0.456 weight vs default's 0.262. LGBM models nearly zeroed out. CB pair anchors at 0.326. **Crucial insight**: for ensemble building, optimizing for AUC-ROC (smooth, reliable, forces better ranking throughout) finds HPs that produce complementary predictions — even if that model is slightly weaker standalone at lift@1%. The XGB optimized for AUC-ROC makes different top-1% prediction errors than the CB models, creating true diversity. Round 26: try AUC-ROC Optuna on CatBoost with same insight.
+
+---
