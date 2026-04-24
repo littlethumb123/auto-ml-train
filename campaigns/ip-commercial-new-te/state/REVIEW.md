@@ -399,3 +399,16 @@ review_note: NEW BEST via three-family mean ensemble (no meta-learner, no in-sam
 ### Tool outputs
 - anomaly: not fired
 - bootstrap_ci: metric=22.5564 ci=[21.5414, 23.4920] se=0.4905 n_boot=1000
+
+## Round 15
+
+commit: f215434
+verdict: discard
+action_type: A_ensemble
+model_family: ensemble
+val_lift_1pct: 21.320467
+val_auc_roc: 0.854973
+training_seconds: 345.7
+delta_vs_best: -1.235969
+bootstrap_se: 0.4752
+review_note: RF alone=20.016 is too weak. Adding it to LGBM+XGB mean pulls ensemble DOWN to 21.321 (from 22.453). Anti-pattern: Corr(LGBM,RF)=0.917 is lower diversity but RF is too weak at top-1% to compensate. STRATEGY_GUIDE §4: "Ensembling when one model dominates" — RF is 2.3 lift below LGBM. Next: LGBM+XGB with optimized weights, or accept 22.556 as ceiling.
