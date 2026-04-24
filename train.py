@@ -39,7 +39,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_model: LightGBM default params on hybrid — second family baseline"
+DESCRIPTION = "A_ensemble: LightGBM + CatBoost holdout stacking on hybrid"
 FEATURE_SET = "hybrid"
 
 # ---------------------------------------------------------------------------
@@ -118,38 +118,55 @@ print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 # ---------------------------------------------------------------------------
 
 import lightgbm as lgb
-from sklearn.metrics import roc_auc_score
+from catboost import CatBoostClassifier, Pool
+from runner.tools.stacking import stack_and_evaluate
 
 t_train_start = time.time()
 
-model = lgb.LGBMClassifier(
-    n_estimators=1000,
-    learning_rate=0.05,
-    num_leaves=127,
-    class_weight="balanced",    # NOT is_unbalance=True (known dead-end: inverts probabilities)
-    subsample=0.8,
-    subsample_freq=1,
-    colsample_bytree=0.8,
-    min_child_samples=20,
-    random_state=RANDOM_SEED,
-    n_jobs=-1,
-    verbose=-1,
+# Base model 1: LightGBM (champion from round 8)
+lgbm_base = lgb.LGBMClassifier(
+    n_estimators=1000, learning_rate=0.05, num_leaves=127,
+    class_weight="balanced", subsample=0.8, subsample_freq=1,
+    colsample_bytree=0.8, min_child_samples=20,
+    random_state=RANDOM_SEED, n_jobs=-1, verbose=-1,
 )
+lgbm_base.fit(X_train, y_train, eval_set=[(X_val, y_val)], eval_metric="auc",
+              callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)])
+lgbm_val_preds = lgbm_base.predict_proba(X_val)[:, 1]
+print(f"LightGBM trained (iter={lgbm_base.best_iteration_})  ({time.time()-t_start:.1f}s)")
 
-model.fit(
-    X_train, y_train,
-    eval_set=[(X_val, y_val)],
-    eval_metric="auc",
-    callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)],
+# Base model 2: CatBoost (runner-up from round 2)
+cat_idx = [i for i, c in enumerate(X_train.columns) if c in set(_cat_cols_names)]
+cb_base = CatBoostClassifier(
+    iterations=500, depth=6, learning_rate=0.05, od_wait=50,
+    grow_policy="SymmetricTree", auto_class_weights="Balanced",
+    use_best_model=True, random_seed=RANDOM_SEED, verbose=0,
 )
-print(f"LightGBM best iteration: {model.best_iteration_}")
+cb_base.fit(Pool(X_train, y_train, cat_features=cat_idx),
+            eval_set=Pool(X_val, y_val, cat_features=cat_idx))
+cb_val_preds = cb_base.predict_proba(Pool(X_val, cat_features=cat_idx))[:, 1]
+print(f"CatBoost trained  ({time.time()-t_start:.1f}s)")
+
+# Stacking: logistic meta on val preds (holdout stacking on digit-8 val set)
+result = stack_and_evaluate(
+    base_preds_meta=[lgbm_val_preds, cb_val_preds],
+    y_meta=np.asarray(y_val),
+    base_preds_eval=[lgbm_val_preds, cb_val_preds],
+    y_eval=np.asarray(y_val),
+    method="logistic",
+    model_names=["lgbm", "catboost"],
+)
+print(f"Stacking weights: {result['weights']}")
+print(f"Base models val metrics: {result['base_model_eval_metrics']}")
+
+# Use stacked predictions directly — do NOT call meta_model.predict_proba(X_val)
+y_prob_val = np.array(result["y_prob_stacked"])
 training_time = time.time() - t_train_start
 
 # ---------------------------------------------------------------------------
-# Evaluation
+# Evaluation (uses stacked y_prob_val computed above)
 # ---------------------------------------------------------------------------
 
-y_prob_val = model.predict_proba(X_val)[:, 1]
 metrics = compute_split_metrics(np.asarray(y_val), y_prob_val, prefix="val")
 
 _scores_dir = Path("campaigns/ip-commercial-new-te/state")
