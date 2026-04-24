@@ -348,3 +348,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Seed=7 XGB found inferior HPs (standalone 21.372 vs 22.127 from seed=42). This CONFIRMS that round 25's seed=42 optimum (standalone 22.127, ensemble 23.174) is a genuine optimum, not a lucky fluke. The AUC-ROC XGB landscape has a clear best configuration that the seed=42 trajectory found. 3 consecutive discards (rounds 26-28). **The AUC-ROC XGB approach is definitively exhausted.** Budget=28/100. Remaining strategy: try wider XGB search space, or accept 23.174 as the campaign ceiling and focus on final reporting.
 
 ---
+
+## Round 29 — 2026-04-24
+
+**Action:** A_diagnose — reproduce round 25 champion, verify CI and target gap
+**Actual val_lift_1pct:** 23.174 (Δ = 0, reproduces exactly)
+**Verdict:** discard (Δ not > 0)
+
+**Key finding:** **C3 ADVISORY FIRES.** Target gap (0.826 lift pts to reach 24.0) < 2×SE (1.007). Measurement is the bottleneck. With SE=0.503 on the single digit-8 holdout, we cannot reliably distinguish 23.174 from 24.0. Further HP tuning rounds with this evaluation scheme will produce unreliable decisions. **To continue meaningfully, C3 is needed to upgrade cv_scheme to k-fold.** Budget=29/100 used. With k-fold (n_splits=4), SE would drop from 0.503 to ~0.252, making the remaining gap clearly detectable. Without the upgrade, any round claiming >23.5 might just be noise.
+
+---
