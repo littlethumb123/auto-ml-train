@@ -10,6 +10,7 @@ You are running an autonomous ML experiment campaign. **Read this file first, th
 - Current state: `runner/state/CAMPAIGN_STATE.json`
 - History: `runner/state/results.tsv`, `runner/state/REVIEW.md`
 - Memory: `runner/state/DEAD_ENDS.md`, `runner/state/NOTEBOOK.md`
+- Retrospective: `runner/state/CAMPAIGN_JOURNAL.md` — planned reasoning vs actual outcome per round
 - Priors (cross-campaign): `runner/contracts/PRIORS.md`
 
 ## 1. Your role for this turn
