@@ -486,3 +486,13 @@ val_lift_1pct: 22.625101
 delta_vs_best: -0.051498
 bootstrap_se: 0.4976
 review_note: Extra 5 features (IP days, recency, ER, severity) HURT performance (-0.052). Weights collapsed to LGBM_t=0.433, LGBM_h=0.019 — the hybrid model was diluted. The 5 new features add noise. Round 19's 5 features were better. Next: try just adding ER-only features (er_clm_cnt_1yr, er_x_chronic) on top of round 19's 5 to test if ER alone is the missing signal.
+
+## Round 21
+
+commit: 6b58690
+verdict: discard
+action_type: A_feature
+val_lift_1pct: 22.590768
+delta_vs_best: -0.085831
+bootstrap_se: 0.4952
+review_note: ER features also hurt (-0.086). LGBM_hybrid weight collapsed to 0.021 again. Round 19's 5 features appear to be the local optimum — any additions (rounds 20, 21) make things worse. 2 consecutive discards. Feature engineering has reached its ceiling with these domain features. Next: accept 22.677 as the ceiling and try XGBoost on the eng-5 feature set (the only unexplored combination).
