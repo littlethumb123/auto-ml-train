@@ -39,7 +39,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_ensemble: LightGBM + CatBoost holdout stacking on hybrid"
+DESCRIPTION = "A_diagnose: three-family prediction diversity + mean ensemble test (LGBM+CB+XGB)"
 FEATURE_SET = "hybrid"
 
 # ---------------------------------------------------------------------------
@@ -119,52 +119,66 @@ print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 
 import lightgbm as lgb
 from catboost import CatBoostClassifier, Pool
-from runner.tools.stacking import stack_and_evaluate
+import xgboost as xgb
+from sklearn.metrics import roc_auc_score
 
 t_train_start = time.time()
 
-# Base model 1: LightGBM (champion from round 8)
-lgbm_base = lgb.LGBMClassifier(
-    n_estimators=1000, learning_rate=0.05, num_leaves=127,
-    class_weight="balanced", subsample=0.8, subsample_freq=1,
-    colsample_bytree=0.8, min_child_samples=20,
+# Train all three families with default params for diversity analysis
+cat_idx = [i for i, c in enumerate(X_train.columns) if c in set(_cat_cols_names)]
+
+lgbm = lgb.LGBMClassifier(
+    n_estimators=1000, learning_rate=0.05, num_leaves=127, class_weight="balanced",
+    subsample=0.8, subsample_freq=1, colsample_bytree=0.8, min_child_samples=20,
     random_state=RANDOM_SEED, n_jobs=-1, verbose=-1,
 )
-lgbm_base.fit(X_train, y_train, eval_set=[(X_val, y_val)], eval_metric="auc",
-              callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)])
-lgbm_val_preds = lgbm_base.predict_proba(X_val)[:, 1]
-print(f"LightGBM trained (iter={lgbm_base.best_iteration_})  ({time.time()-t_start:.1f}s)")
+lgbm.fit(X_train, y_train, eval_set=[(X_val, y_val)], eval_metric="auc",
+         callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)])
+p_lgbm = lgbm.predict_proba(X_val)[:, 1]
+print(f"LightGBM (iter={lgbm.best_iteration_}): lift@1%={lift_at_percentage(np.asarray(y_val), p_lgbm, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# Base model 2: CatBoost (runner-up from round 2)
-cat_idx = [i for i, c in enumerate(X_train.columns) if c in set(_cat_cols_names)]
-cb_base = CatBoostClassifier(
+cb = CatBoostClassifier(
     iterations=500, depth=6, learning_rate=0.05, od_wait=50,
     grow_policy="SymmetricTree", auto_class_weights="Balanced",
     use_best_model=True, random_seed=RANDOM_SEED, verbose=0,
 )
-cb_base.fit(Pool(X_train, y_train, cat_features=cat_idx),
-            eval_set=Pool(X_val, y_val, cat_features=cat_idx))
-cb_val_preds = cb_base.predict_proba(Pool(X_val, cat_features=cat_idx))[:, 1]
-print(f"CatBoost trained  ({time.time()-t_start:.1f}s)")
+cb.fit(Pool(X_train, y_train, cat_features=cat_idx),
+       eval_set=Pool(X_val, y_val, cat_features=cat_idx))
+p_cb = cb.predict_proba(Pool(X_val, cat_features=cat_idx))[:, 1]
+print(f"CatBoost: lift@1%={lift_at_percentage(np.asarray(y_val), p_cb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# Stacking: logistic meta on val preds (holdout stacking on digit-8 val set)
-result = stack_and_evaluate(
-    base_preds_meta=[lgbm_val_preds, cb_val_preds],
-    y_meta=np.asarray(y_val),
-    base_preds_eval=[lgbm_val_preds, cb_val_preds],
-    y_eval=np.asarray(y_val),
-    method="logistic",
-    model_names=["lgbm", "catboost"],
+n_pos = int(y_train.sum()); n_neg = len(y_train) - n_pos
+xgbm = xgb.XGBClassifier(
+    n_estimators=1000, learning_rate=0.05, max_depth=6,
+    subsample=0.8, colsample_bytree=0.8, scale_pos_weight=round(n_neg/n_pos,1),
+    tree_method="hist", eval_metric="auc", early_stopping_rounds=50,
+    random_state=RANDOM_SEED, n_jobs=-1, verbosity=0,
 )
-print(f"Stacking weights: {result['weights']}")
-print(f"Base models val metrics: {result['base_model_eval_metrics']}")
+xgbm.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
+p_xgb = xgbm.predict_proba(X_val)[:, 1]
+print(f"XGBoost (iter={xgbm.best_iteration}): lift@1%={lift_at_percentage(np.asarray(y_val), p_xgb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# Use stacked predictions directly — do NOT call meta_model.predict_proba(X_val)
-y_prob_val = np.array(result["y_prob_stacked"])
+# Pairwise prediction correlations (Pearson on val scores)
+print(f"\n=== Prediction Diversity ===")
+print(f"Corr(LGBM,CB):  {np.corrcoef(p_lgbm, p_cb)[0,1]:.4f}")
+print(f"Corr(LGBM,XGB): {np.corrcoef(p_lgbm, p_xgb)[0,1]:.4f}")
+print(f"Corr(CB,XGB):   {np.corrcoef(p_cb,   p_xgb)[0,1]:.4f}")
+
+# Mean ensembles
+p_mean2  = (p_lgbm + p_cb) / 2
+p_mean3  = (p_lgbm + p_cb + p_xgb) / 3
+p_lgbm_xgb = (p_lgbm + p_xgb) / 2
+print(f"\nMean ensemble lift@1%:")
+print(f"  LGBM+CB:      {lift_at_percentage(np.asarray(y_val), p_mean2, 0.01):.4f}")
+print(f"  LGBM+XGB:     {lift_at_percentage(np.asarray(y_val), p_lgbm_xgb, 0.01):.4f}")
+print(f"  LGBM+CB+XGB:  {lift_at_percentage(np.asarray(y_val), p_mean3, 0.01):.4f}")
+
+# Use best ensemble as the reported metric (LGBM+CB+XGB mean)
+y_prob_val = p_mean3
 training_time = time.time() - t_train_start
 
 # ---------------------------------------------------------------------------
-# Evaluation (uses stacked y_prob_val computed above)
+# Evaluation
 # ---------------------------------------------------------------------------
 
 metrics = compute_split_metrics(np.asarray(y_val), y_prob_val, prefix="val")
