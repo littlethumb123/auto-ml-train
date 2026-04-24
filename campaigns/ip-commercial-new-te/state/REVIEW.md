@@ -236,3 +236,32 @@ review_note: 54 Optuna trials ran (vs 7 in round 5 — proxy speed fix worked). 
 
 ### Escalation
 None. 2 consecutive discards (rounds 6-7). Not yet at C2 threshold.
+
+## Round 8
+
+commit: ea4de79
+verdict: keep
+action_type: A_model
+model_family: lightgbm
+feature_set: hybrid (789 features)
+val_lift_1pct: 22.316108
+val_auc_roc: 0.855274
+val_lift_5pct: 9.598595
+val_lift_10pct: 6.110612
+val_auc_pr: 0.109363
+n_features: 789
+training_seconds: 206.2
+total_seconds: 240.4
+lgbm_best_iteration: 251
+delta_vs_best: +0.102997
+bootstrap_ci_lo: 21.3881
+bootstrap_ci_hi: 23.2600
+bootstrap_se: 0.4850
+review_note: NEW BEST. LightGBM default beats CatBoost default by +0.103 lift points. Δ is within noise_floor (0.3) and only 0.21 SE — marginal but positive, so keep per rule. LightGBM trains faster (206s vs 168s for CatBoost 500-iter at same quality). Stopped at iteration 251/1000 via early stopping. Next: A_hp Optuna on LightGBM (LGBM is faster per iteration → more reliable proxy → more trials).
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=22.3161 ci=[21.3881, 23.2600] se=0.4850 n_boot=1000
+
+### Escalation
+None. New best established. 0 consecutive discards after this keep.
