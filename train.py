@@ -39,8 +39,10 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_ensemble: 5-model scipy (LGBM_hybrid+LGBM_tab+LGBM_emb+CB+XGB) — max structural diversity"
+DESCRIPTION = "A_feature: +5 engineered features (IP utilization, chronic burden, lab abnormality, interactions)"
 FEATURE_SET = "hybrid"
+# Feature engineering round: augment X_train/X_val with 5 domain-derived interaction features
+_USE_ENGINEERED = True
 
 # ---------------------------------------------------------------------------
 # Split cache
@@ -49,7 +51,8 @@ FEATURE_SET = "hybrid"
 t_start = time.time()
 _cache_dir = Path("campaigns/ip-commercial-new-te/.cache")
 _cache_dir.mkdir(parents=True, exist_ok=True)
-_split_cache = _cache_dir / f"splits_{FEATURE_SET}_{OOT_CUTOFF_DATE.replace('-', '')}.npz"
+_feat_suffix = "_eng5" if _USE_ENGINEERED else ""
+_split_cache = _cache_dir / f"splits_{FEATURE_SET}{_feat_suffix}_{OOT_CUTOFF_DATE.replace('-', '')}.npz"
 
 
 def _rebuild_cache():
@@ -110,6 +113,35 @@ if _split_cache.exists():
     print(f"  {len(X_train):,} train | {len(X_val):,} val | {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 else:
     X_train, X_val, X_test, y_train, y_val, y_test, _cat_cols_names = _rebuild_cache()
+
+if _USE_ENGINEERED:
+    def _engineer(X: pd.DataFrame) -> pd.DataFrame:
+        X = X.copy()
+        _ipmdc_cnt = [c for c in X.columns if c.startswith("ipmdc") and c.endswith("_2yr_cnt")]
+        _chronic_flags = ["Heart_Failure","Diabetes_Mellitus","Chronic_Renal_Failure",
+                          "Chronic_Obstructive_Pulmonary_Disease","Cerebrovascular_Disease",
+                          "Hypertension","Ischemic_Heart_Disease","Depression"]
+        _lab_elev = [c for c in X.columns if c.startswith("lab_elev_") or c.startswith("lab_low_")]
+        _age_col = "age" if "age" in X.columns else None
+        _mm2 = "mm_2yr_cnt" if "mm_2yr_cnt" in X.columns else None
+
+        ip_score = X[_ipmdc_cnt].sum(axis=1) if _ipmdc_cnt else pd.Series(0, index=X.index)
+        chron_score = X[[c for c in _chronic_flags if c in X.columns]].sum(axis=1)
+        lab_score = X[[c for c in _lab_elev if c in X.columns]].sum(axis=1)
+        X["eng_ip_score"]     = ip_score
+        X["eng_chronic_score"] = chron_score
+        X["eng_lab_score"]    = lab_score
+        if _age_col:
+            X["eng_age_x_ip"] = X[_age_col] * ip_score
+        if _mm2:
+            X["eng_mm_ip_ratio"] = ip_score / (X[_mm2] + 1)
+        return X
+
+    X_train = _engineer(X_train)
+    X_val   = _engineer(X_val)
+    X_test  = _engineer(X_test)
+    new_cols = [c for c in X_train.columns if c.startswith("eng_")]
+    print(f"Engineered features added: {new_cols}")
 
 print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 
