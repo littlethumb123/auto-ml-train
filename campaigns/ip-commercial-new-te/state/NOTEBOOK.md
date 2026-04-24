@@ -13,3 +13,7 @@ last_updated: "2026-04-24"
 - embedding_only trains 6× faster than tabular_only (24s vs 143s) — useful for rapid ablations.
 
 - Round 4: top-150 feature selection (73 emb, 77 tab) gives lift@1%=21.767 vs full hybrid 22.213. Training 1.8× faster. _index_dt_parsed appeared in top-10 — temporal leakage risk, exclude in future rounds.
+
+- Round 5 A_hp: Optuna had only 7 trials in 500s (71s/trial with 200-iter CatBoost on 789 feats × 508K rows). Fix: use 50-iter proxy (~17s/trial → 28+ trials). Or switch to LightGBM proxy for faster iteration.
+- Split cache loads in 27s (down from 250s data pipeline). Major infrastructure win for rounds 6-100.
+- Round 5 result (22.162) is within 0.1 SE of prior best (22.213) — noise, not regression.
