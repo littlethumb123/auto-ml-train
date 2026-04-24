@@ -25,3 +25,5 @@ last_updated: "2026-04-24"
 - CI check: target gap 1.787 > 2×SE=0.990. Gap is detectable. No CV upgrade needed.
 
 - **C2 resolved (round 13):** consecutive_discards reset from 3 to 0. Resolution: HP search cannot outperform LGBM defaults (same params found repeatedly). Abandoning proxy-based HP search. Next: three-family mean ensemble (LGBM+CatBoost+XGBoost, no meta-learner) to avoid in-sample leakage.
+
+- **C2 resolved (round 28):** consecutive_discards reset from 3 to 0. Resolution: 3 discards were exploratory XGB HP experiments (seeds 42/7, CB/LGBM AUC-ROC). All confirm 23.174 is the genuine ceiling for this 7-model ensemble approach. A_diagnose will verify CI and target gap. Next: try wider XGB search space.
