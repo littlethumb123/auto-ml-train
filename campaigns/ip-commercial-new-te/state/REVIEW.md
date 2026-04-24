@@ -311,3 +311,19 @@ review_note: MARGINAL KEEP. Δ=+0.017 (0.035 SE) — pure noise level. Verdict=k
 ### Tool outputs
 - anomaly: not fired
 - bootstrap_ci: metric=22.3333 ci=[21.3869, 23.3290] se=0.4909 n_boot=1000
+
+## Round 11
+
+commit: 4b2729c
+verdict: discard
+action_type: A_hp
+model_family: lightgbm
+val_lift_1pct: 22.161612
+val_auc_roc: 0.853127
+n_features: 789
+training_seconds: 582.3
+total_seconds: 614.7
+optuna_trials: 13
+delta_vs_best: -0.171663
+bootstrap_se: 0.4952
+review_note: 13 trials in 500s (38s/trial even with num_leaves≤255). Proxy metric lift@1% is too noisy for Optuna — gap between proxy (21.90) and full model (22.16) is 0.26 lift points. Default LightGBM params appear near-optimal. Next: A_model XGBoost, then consider AUC-ROC as proxy metric.
