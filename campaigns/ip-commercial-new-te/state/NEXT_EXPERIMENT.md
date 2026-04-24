@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 11
-planner_invocation_at: "2026-04-24T09:05:00Z"
-action_type: "A_hp"
-hypothesis: "LightGBM Optuna search with constrained num_leaves (31-127) enables fast proxy (~8s/trial) giving 60+ trials in 500s, finding parameters that outperform the default LightGBM (22.316) and the stacking best (22.333)."
-expected_effect_size: "Δval_lift_1pct: +0.3 to +1.5 (first adequate LightGBM HP search)"
-base_commit: "e55014f"
+round: 12
+planner_invocation_at: "2026-04-24T10:00:00Z"
+action_type: "A_model"
+hypothesis: "XGBoost default params on hybrid completes the three-family comparison (CatBoost 22.213, LightGBM 22.316). XGBoost uses histogram-based splitting like LightGBM but with different regularization, potentially finding a different optimum."
+expected_effect_size: "Δval_lift_1pct: -1.0 to +1.0 (unknown — third family baseline)"
+base_commit: "3f78e70"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -14,17 +14,17 @@ escalation: null
 
 ## 1. Context
 
-Round 11. Best: stacking 22.333 (practical LightGBM 22.316, round 8). consecutive_discards=0. Round 9 A_hp LightGBM failed because num_leaves=351 made proxy 71s/trial (only 7 trials). Fix: num_leaves ≤ 127, 50-iter proxy with early_stopping=20 → ~8s/trial → 60+ trials in 500s.
+Round 12. Best: stacking 22.333 (practical LightGBM 22.316). Consecutive_discards=1. Three-family comparison in progress: CatBoost(22.213), LightGBM(22.316). XGBoost is the third canonical GBDT family with different regularization (L1/L2 vs LightGBM's lambda).
 
 ## 2. Evidence from memory
 
-- **Round 8**: LightGBM default (num_leaves=127, lr=0.05, early_stop@251) → 22.316
-- **Round 9 failure**: num_leaves sampled up to 351 → 71s/trial, only 7 trials, found 22.179
-- **Key insight**: num_leaves=127 is the default and gave the best result. Search below and around it.
+- CatBoost default: 22.213 (symmetric trees, auto_class_weights)
+- LightGBM default: 22.316 (leaf-wise, class_weight='balanced') — current champion
+- XGBoost: histogram method, scale_pos_weight for imbalance, known depth canonical 5-7
 
 ## 3. Plan
 
-Optuna on LightGBM, num_leaves constrained to 31-255, 50-iter proxy with early_stopping(20). Full model 2000 iter early_stopping(80).
+XGBoost hist with default-equivalent params. scale_pos_weight = n_neg/n_pos ≈ 10 (matches the 10:1 downsampling ratio — effectively double-weighting positives, but standard for XGBoost imbalance). Use tree_method='hist' for speed.
 
 ## 4. Helpers
 
@@ -32,10 +32,8 @@ None.
 
 ## 5. How this differs from current train.py
 
-Replace model block: LightGBM Optuna study with num_leaves 31-255, 50-iter proxy early_stop(20), full model 2000-iter early_stop(80).
+Replace model block: swap LightGBM for XGBoost hist with scale_pos_weight=10.
 
 ## 6. Escalation
 
 ### No escalation
-
-Normal A_hp progression after keep.

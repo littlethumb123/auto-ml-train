@@ -327,3 +327,19 @@ optuna_trials: 13
 delta_vs_best: -0.171663
 bootstrap_se: 0.4952
 review_note: 13 trials in 500s (38s/trial even with num_leaves≤255). Proxy metric lift@1% is too noisy for Optuna — gap between proxy (21.90) and full model (22.16) is 0.26 lift points. Default LightGBM params appear near-optimal. Next: A_model XGBoost, then consider AUC-ROC as proxy metric.
+
+## Round 12
+
+commit: b6992fc
+verdict: discard
+action_type: A_model
+model_family: xgboost
+val_lift_1pct: 22.195945
+val_auc_roc: 0.854487
+n_features: 789
+training_seconds: 144.8
+total_seconds: 173.1
+xgb_best_iteration: 380
+delta_vs_best: -0.137330
+bootstrap_se: 0.4939
+review_note: Three-family comparison complete. Rankings: LightGBM(22.316) > CatBoost(22.213) ≈ XGBoost(22.196). XGBoost is fastest (144s, early_stop@380). Δ=-0.137 vs stacking best, -0.28 SE. LightGBM is confirmed champion family. Next: LightGBM HP search using AUC-ROC as proxy (smoother, more reliable at low iterations).
