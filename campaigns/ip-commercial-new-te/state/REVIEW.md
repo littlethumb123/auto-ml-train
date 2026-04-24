@@ -496,3 +496,21 @@ val_lift_1pct: 22.590768
 delta_vs_best: -0.085831
 bootstrap_se: 0.4952
 review_note: ER features also hurt (-0.086). LGBM_hybrid weight collapsed to 0.021 again. Round 19's 5 features appear to be the local optimum — any additions (rounds 20, 21) make things worse. 2 consecutive discards. Feature engineering has reached its ceiling with these domain features. Next: accept 22.677 as the ceiling and try XGBoost on the eng-5 feature set (the only unexplored combination).
+
+## Round 22
+
+commit: be17049
+verdict: keep
+action_type: A_ensemble
+model_family: ensemble
+val_lift_1pct: 22.728098
+val_auc_roc: 0.858233
+val_lift_5pct: 9.643223
+val_lift_10pct: 6.180987
+val_auc_pr: 0.112506
+training_seconds: 879.3
+total_seconds: 926.5
+optimal_weights: LGBM_h=0.121 LGBM_t=0.067 LGBM_e=0.061 CB_h=0.161 CB_t=0.055 XGB_h=0.262 XGB_t=0.273
+delta_vs_best: +0.051499
+bootstrap_se: 0.4987
+review_note: NEW BEST. 7-model ensemble breaks through 22.677 ceiling. XGB dominates (XGB_h=0.262+XGB_t=0.273=0.535). CB_h=0.161. LGBM_hybrid only 0.121. XGB_tabular (21.595 standalone) contributes high weight — its tabular-only errors are highly complementary to hybrid models. Δ=+0.051 (0.10 SE) — noise but positive → keep. Budget=22/100 used.
