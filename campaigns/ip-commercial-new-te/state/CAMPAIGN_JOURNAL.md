@@ -226,3 +226,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Optimized weights LGBM=0.356, CB=0.150, XGB=0.493. Surprising: XGBoost gets the most weight (0.493) despite being the weakest individual model (22.196). This means XGB makes the most unique errors in the top-1% region, effectively acting as a "correction" to LGBM's blind spots. CB contributes minimally (0.150). The 0.052 improvement over equal weights is marginal. Further improvements likely require model diversity beyond these three GBDT families or feature engineering.
 
 ---
+
+## Round 17 — 2026-04-24
+
+**Action:** A_ensemble — 4-model (LGBM_hybrid+LGBM_tabular+CB+XGB) scipy-optimized weights
+**Expected Δ:** +0.1 to +0.4
+**Actual val_lift_1pct:** 22.642 (Δ = **+0.034 — NEW BEST**)
+**Verdict:** keep (Δ>0 but 0.07 SE — noise)
+
+**Key finding:** Tabular-only LGBM (corr=0.909 with hybrid LGBM) adds real structural diversity vs the same-seed variants that would correlate at 0.997+. The 4-model ensemble weights distribute more evenly (LGBM_h=0.317, LGBM_t=0.120, CB=0.254, XGB=0.310). The pattern continues: gains are shrinking (22.556 → 22.608 → 22.642). We may be approaching the ensemble ceiling. val_lift_10pct improved (6.191 vs 6.164) — ensemble is improving the tail, not just the top. Next iteration: add more structural diversity (embedding-only LGBM, or different tabular subsets) OR shift to feature engineering.
+
+---
