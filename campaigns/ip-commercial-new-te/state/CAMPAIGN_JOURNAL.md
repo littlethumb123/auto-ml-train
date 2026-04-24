@@ -149,3 +149,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Same Optuna bottleneck: only 7 trials in 500s because num_leaves=351 makes the 200-iter proxy as slow as CatBoost's. Full model (num_leaves=351, 2000 iter early-stop@124) took 711s — extremely slow. LightGBM HP search needs constrained num_leaves (≤127) to keep proxy fast. Alternative path: skip HP tuning and go directly to A_ensemble (stacking default LightGBM + default CatBoost) since both are near-optimal with defaults and SHAP showed complementary signals.
 
 ---
+
+## Round 10 — 2026-04-24
+
+**Action:** A_ensemble — LightGBM (22.316) + CatBoost (21.698) holdout stacking, logistic meta
+**Expected Δ:** +0.3 to +0.8
+**Actual val_lift_1pct:** 22.333 (Δ = **+0.017 — MARGINAL NEW BEST**)
+**Verdict:** keep (Δ>0 by rule, but practically noise)
+
+**Key finding:** In-sample stacking (meta trained+evaluated on val) gave 0.017 lift improvement — well within measurement noise. The stacking weights favor LightGBM (3.15 vs CatBoost 2.61). val_lift_10pct showed larger gain (+0.07), suggesting ensemble helps on the harder lower-risk cases more than the very high-risk ones. For honest evaluation, stacking must be done out-of-fold or with a separate holdout for the meta-learner. The in-sample result is optimistic and likely overstates true gain.
+
+---
