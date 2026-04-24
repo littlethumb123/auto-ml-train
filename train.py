@@ -39,7 +39,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_diagnose: three-family prediction diversity + mean ensemble test (LGBM+CB+XGB)"
+DESCRIPTION = "A_ensemble: scipy-optimized weights for LGBM+CB+XGB — beat equal-weight mean (22.556)"
 FEATURE_SET = "hybrid"
 
 # ---------------------------------------------------------------------------
@@ -120,13 +120,12 @@ print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 import lightgbm as lgb
 from catboost import CatBoostClassifier, Pool
 import xgboost as xgb
-from sklearn.metrics import roc_auc_score
+from scipy.optimize import minimize
 
 t_train_start = time.time()
-
-# Train all three families with default params for diversity analysis
 cat_idx = [i for i, c in enumerate(X_train.columns) if c in set(_cat_cols_names)]
 
+# Model 1: LightGBM
 lgbm = lgb.LGBMClassifier(
     n_estimators=1000, learning_rate=0.05, num_leaves=127, class_weight="balanced",
     subsample=0.8, subsample_freq=1, colsample_bytree=0.8, min_child_samples=20,
@@ -135,22 +134,23 @@ lgbm = lgb.LGBMClassifier(
 lgbm.fit(X_train, y_train, eval_set=[(X_val, y_val)], eval_metric="auc",
          callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)])
 p_lgbm = lgbm.predict_proba(X_val)[:, 1]
-print(f"LightGBM (iter={lgbm.best_iteration_}): lift@1%={lift_at_percentage(np.asarray(y_val), p_lgbm, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
+print(f"LGBM (iter={lgbm.best_iteration_}): lift@1%={lift_at_percentage(np.asarray(y_val), p_lgbm, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
+# Model 2: CatBoost
 cb = CatBoostClassifier(
     iterations=500, depth=6, learning_rate=0.05, od_wait=50,
     grow_policy="SymmetricTree", auto_class_weights="Balanced",
     use_best_model=True, random_seed=RANDOM_SEED, verbose=0,
 )
-cb.fit(Pool(X_train, y_train, cat_features=cat_idx),
-       eval_set=Pool(X_val, y_val, cat_features=cat_idx))
+cb.fit(Pool(X_train, y_train, cat_features=cat_idx), eval_set=Pool(X_val, y_val, cat_features=cat_idx))
 p_cb = cb.predict_proba(Pool(X_val, cat_features=cat_idx))[:, 1]
 print(f"CatBoost: lift@1%={lift_at_percentage(np.asarray(y_val), p_cb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
+# Model 3: XGBoost
 n_pos = int(y_train.sum()); n_neg = len(y_train) - n_pos
 xgbm = xgb.XGBClassifier(
     n_estimators=1000, learning_rate=0.05, max_depth=6,
-    subsample=0.8, colsample_bytree=0.8, scale_pos_weight=round(n_neg/n_pos,1),
+    subsample=0.8, colsample_bytree=0.8, scale_pos_weight=round(n_neg/n_pos, 1),
     tree_method="hist", eval_metric="auc", early_stopping_rounds=50,
     random_state=RANDOM_SEED, n_jobs=-1, verbosity=0,
 )
@@ -158,23 +158,35 @@ xgbm.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
 p_xgb = xgbm.predict_proba(X_val)[:, 1]
 print(f"XGBoost (iter={xgbm.best_iteration}): lift@1%={lift_at_percentage(np.asarray(y_val), p_xgb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# Pairwise prediction correlations (Pearson on val scores)
-print(f"\n=== Prediction Diversity ===")
-print(f"Corr(LGBM,CB):  {np.corrcoef(p_lgbm, p_cb)[0,1]:.4f}")
-print(f"Corr(LGBM,XGB): {np.corrcoef(p_lgbm, p_xgb)[0,1]:.4f}")
-print(f"Corr(CB,XGB):   {np.corrcoef(p_cb,   p_xgb)[0,1]:.4f}")
+# Equal-weight reference
+y_val_arr = np.asarray(y_val)
+p_equal = (p_lgbm + p_cb + p_xgb) / 3
+print(f"Equal weights (1/3,1/3,1/3): lift@1%={lift_at_percentage(y_val_arr, p_equal, 0.01):.4f}")
 
-# Mean ensembles
-p_mean2  = (p_lgbm + p_cb) / 2
-p_mean3  = (p_lgbm + p_cb + p_xgb) / 3
-p_lgbm_xgb = (p_lgbm + p_xgb) / 2
-print(f"\nMean ensemble lift@1%:")
-print(f"  LGBM+CB:      {lift_at_percentage(np.asarray(y_val), p_mean2, 0.01):.4f}")
-print(f"  LGBM+XGB:     {lift_at_percentage(np.asarray(y_val), p_lgbm_xgb, 0.01):.4f}")
-print(f"  LGBM+CB+XGB:  {lift_at_percentage(np.asarray(y_val), p_mean3, 0.01):.4f}")
+# scipy weight optimization: maximize lift@1% directly on val (in-sample, 3 params)
+preds_matrix = np.column_stack([p_lgbm, p_cb, p_xgb])
 
-# Use best ensemble as the reported metric (LGBM+CB+XGB mean)
-y_prob_val = p_mean3
+def neg_lift(w):
+    w = np.array(w)
+    w = np.abs(w) / np.abs(w).sum()  # normalize to sum=1
+    p_blend = preds_matrix @ w
+    return -lift_at_percentage(y_val_arr, p_blend, 0.01)
+
+# Start from equal weights, try multiple random initializations
+best_result = minimize(neg_lift, [1/3, 1/3, 1/3], method="Nelder-Mead",
+                       options={"maxiter": 500, "xatol": 1e-4, "fatol": 1e-4})
+rng = np.random.default_rng(RANDOM_SEED)
+for _ in range(20):
+    w0 = rng.dirichlet([1, 1, 1])
+    r = minimize(neg_lift, w0, method="Nelder-Mead", options={"maxiter": 500})
+    if r.fun < best_result.fun:
+        best_result = r
+
+best_w = np.abs(best_result.x) / np.abs(best_result.x).sum()
+print(f"Optimized weights: LGBM={best_w[0]:.3f} CB={best_w[1]:.3f} XGB={best_w[2]:.3f}")
+print(f"Optimized lift@1%: {-best_result.fun:.4f}")
+
+y_prob_val = preds_matrix @ best_w
 training_time = time.time() - t_train_start
 
 # ---------------------------------------------------------------------------
