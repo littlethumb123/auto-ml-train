@@ -287,3 +287,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Adding CB_tabular and XGB_tabular to the 5-model ensemble breaks through the 22.677 ceiling. XGBoost pair (hybrid+tabular) gets 0.535 combined weight — highest of any family. The tabular-only XGB (21.595 standalone) contributes more diversity than expected. The pattern: as we add more tabular-only variants, they collectively dominate the optimal blend, while the hybrid LGBM gradually loses influence (0.121 weight). This suggests the tabular features + engineered features contain most of the predictable signal, and embeddings add marginal value in the full ensemble context.
 
 ---
+
+## Round 23 — 2026-04-24
+
+**Action:** A_ensemble — 9-model (7-model + CB_emb + XGB_emb)
+**Actual val_lift_1pct:** 22.625 (Δ = **-0.103**)
+**Verdict:** discard
+
+**Key finding:** Adding weak emb-only models (CB_emb=18.2, XGB_emb=18.8) hurt the ensemble. XGB_tabular and XGB_emb got near-zero weight. The 7-model ensemble (round 22, 22.728) is the practical ceiling for this approach. The scipy optimization with more models may have more local optima, leading to suboptimal solutions. **The campaign has effectively converged**: gains are all within noise floor, and adding more models consistently hurts. Budget=23/100 used.
+
+---
