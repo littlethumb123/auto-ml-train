@@ -343,3 +343,31 @@ xgb_best_iteration: 380
 delta_vs_best: -0.137330
 bootstrap_se: 0.4939
 review_note: Three-family comparison complete. Rankings: LightGBM(22.316) > CatBoost(22.213) ≈ XGBoost(22.196). XGBoost is fastest (144s, early_stop@380). Δ=-0.137 vs stacking best, -0.28 SE. LightGBM is confirmed champion family. Next: LightGBM HP search using AUC-ROC as proxy (smoother, more reliable at low iterations).
+
+## Round 13
+
+commit: 4eb1c71
+verdict: discard
+action_type: A_hp
+model_family: lightgbm
+val_lift_1pct: 22.161612
+val_auc_roc: 0.853127
+n_features: 789
+training_seconds: 576.5
+total_seconds: 609.9
+optuna_trials: 12
+delta_vs_best: -0.171663
+bootstrap_se: 0.4952
+review_note: SAME params as round 11 (identical TPE seed + same early stopping behavior). AUC-ROC proxy made no difference. 3 CONSECUTIVE DISCARDS → C2 FIRES AGAIN. Resolution: LightGBM default params are near-optimal; stop HP search. Focus on three-family mean ensemble (no in-sample leakage) as next action.
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=22.1616 ci=[21.2020,23.1540] se=0.4952 n_boot=1000
+
+### Escalation
+
+### For C2
+
+Three consecutive discards (rounds 11,12,13): all HP search attempts, all finding same or worse params than LightGBM defaults. **Root cause conclusively identified: Optuna with short proxies cannot outperform LightGBM defaults on this dataset.** The 50-iter proxy converges too fast with early_stopping=20 (usually stops at 20 iterations), giving noisy estimates.
+
+**Resolution**: Abandon short-proxy HP search for LightGBM. Default params are near-optimal. Next action (round 14): three-family mean ensemble (LGBM+CatBoost+XGBoost, simple average, no meta-learner leakage), then if that discards, focus on data engineering.

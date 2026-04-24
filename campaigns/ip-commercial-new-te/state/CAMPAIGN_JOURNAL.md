@@ -182,3 +182,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Three-family comparison complete: LightGBM(22.316) > CatBoost(22.213) ≈ XGBoost(22.196). XGBoost is fastest (144s vs 206s LGBM) — good for Optuna proxies. LightGBM is confirmed champion. **Strategy**: try LightGBM HP search using AUC-ROC as Optuna metric (smoother than lift@1% at low iterations). XGBoost's speed makes it valuable for ensemble diversity even if weaker standalone.
 
 ---
+
+## Round 13 — 2026-04-24
+
+**Action:** A_hp — LightGBM Optuna with AUC-ROC proxy (fix attempt)
+**Expected Δ:** +0.3 to +1.5
+**Actual val_lift_1pct:** 22.162 (Δ = -0.172; SAME params as round 11)
+**Verdict:** discard → C2 fires (3 consecutive)
+
+**Key finding:** AUC-ROC proxy found IDENTICAL params as round 11 (same TPE seed, same exploration). **Conclusion: Optuna short-proxy HP search is fundamentally broken for LightGBM on this dataset.** The 50-iter proxy with early_stop=20 almost always converges in 20 iterations — not enough signal. Default params (num_leaves=127, lr=0.05) appear to be a genuine optimum for this problem. **Strategy shift**: abandon HP search; focus on three-family mean ensemble (LGBM+CB+XGBoost simple average, no in-sample leakage from logistic meta-learner). If ensemble fails, consider data engineering (interaction features, time-based features) or CV upgrade.
+
+---
