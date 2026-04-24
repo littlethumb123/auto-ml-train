@@ -448,3 +448,16 @@ optimal_weights: LGBM_h=0.317 LGBM_t=0.120 CB=0.254 XGB=0.310
 delta_vs_best: +0.034333
 bootstrap_se: 0.4968
 review_note: NEW BEST. Tabular-only LGBM adds structural diversity (corr=0.909 with hybrid LGBM). CB gets weight 0.254 (up from 0.150 in r16) and LGBM_tabular gets 0.120. XGB drops from 0.493 to 0.310. val_lift_10pct improved (6.191 vs 6.164). Δ=+0.034 is 0.07 SE — noise level but positive → keep per rule. Gains are very small. Next: add more tabular-only models or try feature engineering.
+
+## Round 18
+
+commit: a758f71
+verdict: keep
+action_type: A_ensemble
+model_family: ensemble
+val_lift_1pct: 22.659433
+val_auc_roc: 0.858092
+training_seconds: 663.1
+delta_vs_best: +0.017166
+bootstrap_se: 0.4934
+review_note: NEW BEST. LGBM_emb corr=0.874 (lowest yet). Optimal weights: LGBM_h=0.135 (lowest!), LGBM_t=0.260, LGBM_e=0.057, CB=0.277, XGB=0.271. LGBM_hybrid is now diluted by the tabular/emb/CB/XGB diversity. Gains: +0.017 (0.03 SE) — noise but positive. Ensemble ceiling approaching.
