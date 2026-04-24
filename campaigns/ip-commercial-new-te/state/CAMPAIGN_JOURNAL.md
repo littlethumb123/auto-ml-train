@@ -328,3 +328,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** When BOTH CB and XGB are optimized for AUC-ROC, they produce too-similar predictions and lose the diversity that made round 25 work. The tuned CB (standalone: 21.904) got nearly the same weight as default CB (0.173 vs 0.184), but the tuned XGB lost weight (0.262 vs 0.456). AUC-ROC optimization makes models more "accurate rankers" which may reduce complementarity between models. **Lesson**: only one model in the ensemble should be AUC-ROC optimized; the others provide diversity through their different objectives/biases. Next: try LGBM AUC-ROC tuning (LGBM currently zero-weight — its AUC-ROC optimum might be truly different from XGB's).
 
 ---
+
+## Round 27 — 2026-04-24
+
+**Action:** A_hp — Optuna LGBM (AUC-ROC proxy) + tuned XGB in 7-model ensemble
+**Actual val_lift_1pct:** 23.157 (Δ = **-0.017**)
+**Verdict:** discard
+
+**Key finding:** AUC-ROC tuning only works for HIGH-WEIGHT ensemble members. LGBM gets 0.046 weight → near-zero leverage → tuning it has negligible effect regardless of technique. The round 25 XGB breakthrough worked because XGB had 0.456 weight. Lesson: focus HP tuning energy on the dominant ensemble member (XGB). Next: try XGB Optuna with PR-AUC proxy (precision-recall AUC, more directly related to lift@1%), or try different XGB Optuna seed to explore a different HP landscape.
+
+---
