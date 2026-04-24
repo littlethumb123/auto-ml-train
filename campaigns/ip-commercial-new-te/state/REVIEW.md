@@ -105,3 +105,27 @@ review_note: CRITICAL — embedding_only (18.162) does NOT beat tabular floor (2
 
 ### Escalation
 None.
+
+## Round 4
+
+commit: 9a91a59
+verdict: discard
+action_type: A_feature
+feature_set: hybrid → top-150 numeric
+val_lift_1pct: 21.766789
+val_auc_roc: 0.855658
+n_features: 150
+training_seconds: 93.6
+total_seconds: 498.9
+delta_vs_best: -0.446322
+bootstrap_ci_lo: 20.8635
+bootstrap_ci_hi: 22.6972
+bootstrap_se: 0.4856
+review_note: Top-150 numeric features (73 emb, 77 tab) loses 0.446 lift vs full hybrid. Verdict: discard. Key insight: _index_dt_parsed (internal prepare.py variable) appeared in top-10 importances — potential temporal leakage. Training 1.8x faster with 150 features (93s vs 170s) — useful for HP search budget.
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=21.7668 ci=[20.8635, 22.6972] se=0.4856 n_boot=1000
+
+### Escalation
+None. 2 consecutive discards.
