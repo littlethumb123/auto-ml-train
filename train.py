@@ -39,7 +39,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_ensemble: 4-model scipy weights (LGBM_hybrid+LGBM_tabular+CB+XGB) — structural diversity"
+DESCRIPTION = "A_ensemble: 5-model scipy (LGBM_hybrid+LGBM_tab+LGBM_emb+CB+XGB) — max structural diversity"
 FEATURE_SET = "hybrid"
 
 # ---------------------------------------------------------------------------
@@ -137,7 +137,7 @@ lgbm_h.fit(X_train, y_train, eval_set=[(X_val, y_val)], eval_metric="auc",
 p_lgbm_h = lgbm_h.predict_proba(X_val)[:, 1]
 print(f"LGBM_hybrid (iter={lgbm_h.best_iteration_}): lift@1%={lift_at_percentage(y_val_arr, p_lgbm_h, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# Model 2: LGBM on tabular-only features (no embedding_ columns — structural diversity)
+# Model 2: LGBM on tabular-only features (no embedding_ columns)
 tab_cols = [c for c in X_train.columns if not c.startswith("embedding_")]
 X_train_tab = X_train[tab_cols]
 X_val_tab   = X_val[tab_cols]
@@ -150,7 +150,21 @@ lgbm_t.fit(X_train_tab, y_train, eval_set=[(X_val_tab, y_val)], eval_metric="auc
             callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)])
 p_lgbm_t = lgbm_t.predict_proba(X_val_tab)[:, 1]
 print(f"LGBM_tabular (iter={lgbm_t.best_iteration_}, {len(tab_cols)} feats): lift@1%={lift_at_percentage(y_val_arr, p_lgbm_t, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
-print(f"  Corr(LGBM_hybrid,LGBM_tabular): {np.corrcoef(p_lgbm_h, p_lgbm_t)[0,1]:.4f}")
+
+# Model 2b: LGBM on embedding-only features — most structurally diverse component
+emb_cols = [c for c in X_train.columns if c.startswith("embedding_")]
+X_train_emb = X_train[emb_cols]
+X_val_emb   = X_val[emb_cols]
+lgbm_e = lgb.LGBMClassifier(
+    n_estimators=1000, learning_rate=0.05, num_leaves=127, class_weight="balanced",
+    subsample=0.8, subsample_freq=1, colsample_bytree=0.8, min_child_samples=20,
+    random_state=RANDOM_SEED, n_jobs=-1, verbose=-1,
+)
+lgbm_e.fit(X_train_emb, y_train, eval_set=[(X_val_emb, y_val)], eval_metric="auc",
+            callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)])
+p_lgbm_e = lgbm_e.predict_proba(X_val_emb)[:, 1]
+print(f"LGBM_emb (iter={lgbm_e.best_iteration_}, {len(emb_cols)} feats): lift@1%={lift_at_percentage(y_val_arr, p_lgbm_e, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
+print(f"  Corr(LGBM_h,LGBM_t)={np.corrcoef(p_lgbm_h,p_lgbm_t)[0,1]:.3f}  Corr(LGBM_h,LGBM_e)={np.corrcoef(p_lgbm_h,p_lgbm_e)[0,1]:.3f}")
 
 # Model 3: CatBoost
 cb = CatBoostClassifier(
@@ -174,26 +188,26 @@ xgbm.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
 p_xgb = xgbm.predict_proba(X_val)[:, 1]
 print(f"XGBoost (iter={xgbm.best_iteration}): lift@1%={lift_at_percentage(y_val_arr, p_xgb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# scipy weight optimization on 4-model ensemble
-preds_matrix = np.column_stack([p_lgbm_h, p_lgbm_t, p_cb, p_xgb])
+# scipy weight optimization on 5-model ensemble
+preds_matrix = np.column_stack([p_lgbm_h, p_lgbm_t, p_lgbm_e, p_cb, p_xgb])
 
 def neg_lift(w):
     w = np.abs(w) / np.abs(w).sum()
     return -lift_at_percentage(y_val_arr, preds_matrix @ w, 0.01)
 
-best_result = minimize(neg_lift, [0.25]*4, method="Nelder-Mead",
-                       options={"maxiter": 1000, "xatol": 1e-5, "fatol": 1e-5})
+best_result = minimize(neg_lift, [0.2]*5, method="Nelder-Mead",
+                       options={"maxiter": 2000, "xatol": 1e-5, "fatol": 1e-5})
 rng = np.random.default_rng(RANDOM_SEED)
 for _ in range(30):
-    w0 = rng.dirichlet([1]*4)
-    r = minimize(neg_lift, w0, method="Nelder-Mead", options={"maxiter": 1000})
+    w0 = rng.dirichlet([1]*5)
+    r = minimize(neg_lift, w0, method="Nelder-Mead", options={"maxiter": 2000})
     if r.fun < best_result.fun:
         best_result = r
 
 best_w = np.abs(best_result.x) / np.abs(best_result.x).sum()
-print(f"Optimized weights: LGBM_h={best_w[0]:.3f} LGBM_t={best_w[1]:.3f} CB={best_w[2]:.3f} XGB={best_w[3]:.3f}")
+print(f"Optimized weights: LGBM_h={best_w[0]:.3f} LGBM_t={best_w[1]:.3f} LGBM_e={best_w[2]:.3f} CB={best_w[3]:.3f} XGB={best_w[4]:.3f}")
 print(f"Optimized lift@1%: {-best_result.fun:.4f}")
-print(f"Reference (round 16 opt): 22.608")
+print(f"Reference (round 17): 22.642")
 
 y_prob_val = preds_matrix @ best_w
 training_time = time.time() - t_train_start
