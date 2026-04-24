@@ -20,8 +20,8 @@ non_goals:
   - "No deployment or inference service."
   - "No Medicare IP model (separate campaign)."
   - "No fairness / subgroup analysis in this campaign."
-approved_at: ""
-approved_by: ""
+approved_at: "2026-04-24"
+approved_by: "Zhaopeng-Xing_cvsh"
 ---
 
 ## 1. Task

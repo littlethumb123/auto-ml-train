@@ -50,8 +50,8 @@ plateau_trigger:
 anomaly:
   floor: 1.5
   relative: 0.5
-approved_at: ""
-approved_by: ""
+approved_at: "2026-04-24"
+approved_by: "Zhaopeng-Xing_cvsh"
 ---
 
 ## 1. Rationale
