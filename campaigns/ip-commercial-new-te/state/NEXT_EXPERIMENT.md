@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 22
-planner_invocation_at: "2026-04-24T12:30:00Z"
+round: 24
+planner_invocation_at: "2026-04-24T13:00:00Z"
 action_type: "A_ensemble"
-hypothesis: "Adding tabular-only CB and XGB (2 more models) to the 5-model ensemble creates 7 models with more tabular diversity. The tabular LGBM already gets ~0.35 weight; adding tabular CB and XGB may capture different tabular patterns."
-expected_effect_size: "Δval_lift_1pct: +0.01 to +0.05 (diminishing returns expected)"
-base_commit: "b42916c"
+hypothesis: "Optimizing 7-model ensemble weights on a digit-6/7 holdout (separate from the digit-8 val set used for evaluation) gives weights that generalize better and avoids the in-sample bias that inflates round 22's 22.728 estimate."
+expected_effect_size: "Δval_lift_1pct: +0.05 to -0.10 (may be lower than round 22 due to removing in-sample bias)"
+base_commit: "eb62d51"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -14,17 +14,19 @@ escalation: null
 
 ## 1. Context
 
-Round 22. Best: 22.677 (round 19, 5 eng features + 5-model ensemble). Consecutive_discards=2. Feature engineering has reached ceiling. This is the last structural diversity experiment: adding tabular-only CB and XGB (in addition to existing tabular LGBM) to maximize tabular-family coverage.
+Round 24. Best: 22.728 (round 22, 7-model in-sample optimized). Rounds 20-23 all discard. The in-sample weight optimization uses the same val set for fitting AND evaluation — optimistic. Using digits 6-7 as a dedicated weight-fitting holdout gives honest weights.
 
 ## 2. Evidence from memory
 
-- In rounds 16-21, LGBM_tabular consistently gets 0.25-0.43 weight — higher than LGBM_hybrid.
-- Tabular signal is dominant in the ensemble. CB_tabular and XGB_tabular may add more tabular diversity.
-- If this fails, accept 22.677 as the campaign ceiling and write FINAL_REPORT.
+- Round 22: scipy weights optimized on digit-8 val (752K rows). May overfit the val split.
+- Digit-6-7 data is a subset of the training set in the current cache — need to load those rows.
+- True generalization to digit-8 val with out-of-fold weights may be slightly different.
 
 ## 3. Plan
 
-7-model ensemble: LGBM_hybrid + LGBM_tabular + LGBM_emb + CB_hybrid + CB_tabular (new) + XGB_hybrid + XGB_tabular (new). Scipy-optimize 7 weights. All on eng-5 feature set.
+Load the hybrid eng-5 split cache. Extract digits 6-7 from X_train (before downsampling) as meta-train holdout. Train 7 base models on digits 0-5 only. Optimize weights on digits 6-7. Evaluate on digit-8 val. This is proper holdout stacking.
+
+Note: this requires re-loading the data to get digits 6-7 (not in current cache). Load from the eng-5 npz cache and filter by original digit membership (need to reconstruct digit info from the data).
 
 ## 4. Helpers
 
@@ -32,7 +34,9 @@ None.
 
 ## 5. How this differs from current train.py
 
-Add CB_tabular and XGB_tabular models to the model block; increase scipy optimization to 7 dimensions.
+Major change to model block: train base models on a subset (simulated), optimize weights on a different holdout, evaluate on digit-8. But this requires digit information not in the cache.
+
+Simpler approach: use 50% random subsample of val as weight-fitting, remaining 50% for evaluation. This avoids the full in-sample issue with minimal code change.
 
 ## 6. Escalation
 

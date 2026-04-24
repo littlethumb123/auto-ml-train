@@ -524,3 +524,14 @@ val_lift_1pct: 22.625101
 delta_vs_best: -0.102997
 bootstrap_se: 0.4959
 review_note: Adding CB_emb and XGB_emb made it worse (-0.103). XGB_t=0.005, XGB_e=0.006 — both near-zero. 22.728 from round 22 (7-model) is the ensemble ceiling. Consecutive_discards=1. Next: try 100-restart scipy on the 7-model to confirm 22.728 is the true optimum, then accept ceiling.
+
+## Round 24
+
+commit: 0008102
+verdict: discard
+action_type: A_ensemble
+val_lift_1pct: 22.693766
+oof_eval_half_lift: 23.1576
+delta_vs_best: -0.034332
+bootstrap_se: 0.4967
+review_note: OOF weights nearly identical to in-sample (r22). OOF eval half = 23.158 (higher, but on different 376K rows). Full val = 22.694 < 22.728. CONFIRMS: round 22's 22.728 is genuine, not in-sample overfitting artifact. Weights are stable. Campaign ceiling confirmed at 22.728.
