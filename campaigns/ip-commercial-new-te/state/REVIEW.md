@@ -560,3 +560,13 @@ review_note: MAJOR BREAKTHROUGH — +0.446 lift, NEW BEST 23.174. AUC-ROC optimi
 ### Tool outputs
 - anomaly: not fired
 - bootstrap_ci: metric=23.1744 ci=[22.0919, 24.1011] se=0.5033 n_boot=1000
+
+## Round 26
+
+commit: 9bb7ba5
+verdict: discard
+action_type: A_hp
+val_lift_1pct: 23.088589
+delta_vs_best: -0.085831
+bootstrap_se: 0.5029
+review_note: Tuning CB with AUC-ROC proxy hurt (-0.086). Both XGB and CB tuned for AUC-ROC → similar predictions → less diversity. Round 25 (tuned XGB only) remains the best. Next: try AUC-ROC Optuna on LGBM (currently gets only 0.046-0.126 weight — low contribution, so tuning it for AUC-ROC might create truly new diversity).

@@ -318,3 +318,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** AUC-ROC optimized XGB (STANDALONE: 22.127, slightly WEAKER than default 22.247) gives a MUCH BETTER ensemble result (23.174 vs 22.728) because its predictions are MORE COMPLEMENTARY to the other models. The ensemble optimizer gives it 0.456 weight vs default's 0.262. LGBM models nearly zeroed out. CB pair anchors at 0.326. **Crucial insight**: for ensemble building, optimizing for AUC-ROC (smooth, reliable, forces better ranking throughout) finds HPs that produce complementary predictions — even if that model is slightly weaker standalone at lift@1%. The XGB optimized for AUC-ROC makes different top-1% prediction errors than the CB models, creating true diversity. Round 26: try AUC-ROC Optuna on CatBoost with same insight.
 
 ---
+
+## Round 26 — 2026-04-24
+
+**Action:** A_hp — Optuna CB (AUC-ROC proxy) + tuned XGB in 7-model ensemble
+**Actual val_lift_1pct:** 23.089 (Δ = **-0.086**)
+**Verdict:** discard
+
+**Key finding:** When BOTH CB and XGB are optimized for AUC-ROC, they produce too-similar predictions and lose the diversity that made round 25 work. The tuned CB (standalone: 21.904) got nearly the same weight as default CB (0.173 vs 0.184), but the tuned XGB lost weight (0.262 vs 0.456). AUC-ROC optimization makes models more "accurate rankers" which may reduce complementarity between models. **Lesson**: only one model in the ensemble should be AUC-ROC optimized; the others provide diversity through their different objectives/biases. Next: try LGBM AUC-ROC tuning (LGBM currently zero-weight — its AUC-ROC optimum might be truly different from XGB's).
+
+---
