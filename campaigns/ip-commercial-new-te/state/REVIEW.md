@@ -371,3 +371,31 @@ review_note: SAME params as round 11 (identical TPE seed + same early stopping b
 Three consecutive discards (rounds 11,12,13): all HP search attempts, all finding same or worse params than LightGBM defaults. **Root cause conclusively identified: Optuna with short proxies cannot outperform LightGBM defaults on this dataset.** The 50-iter proxy converges too fast with early_stopping=20 (usually stops at 20 iterations), giving noisy estimates.
 
 **Resolution**: Abandon short-proxy HP search for LightGBM. Default params are near-optimal. Next action (round 14): three-family mean ensemble (LGBM+CatBoost+XGBoost, simple average, no meta-learner leakage), then if that discards, focus on data engineering.
+
+## Round 14
+
+commit: daec9e7
+verdict: keep
+action_type: A_diagnose
+model_family: ensemble
+val_lift_1pct: 22.556436
+val_auc_roc: 0.856831
+val_lift_5pct: 9.577997
+val_lift_10pct: 6.179271
+val_auc_pr: 0.111708
+n_features: 789
+training_seconds: 405.0
+total_seconds: 432.9
+delta_vs_best: +0.223161
+bootstrap_se: 0.4905
+review_note: NEW BEST via three-family mean ensemble (no meta-learner, no in-sample leakage). Key finding: prediction correlations LGBM/CB/XGB all ~0.97. Despite this, ensemble adds +0.24 lift. Critically: CatBoost adds ZERO to LGBM alone (LGBM+CB=22.316, same as LGBM). XGBoost adds +0.137 (LGBM+XGB=22.453). All three gives 22.556. c2_pending_diagnose cleared.
+
+### Diversity Analysis
+- Corr(LGBM,CB)=0.9648, Corr(LGBM,XGB)=0.9743, Corr(CB,XGB)=0.9763
+- Individual: LGBM=22.316, CB=21.698, XGB=22.196
+- Mean(LGBM+CB)=22.316, Mean(LGBM+XGB)=22.453, Mean(LGBM+CB+XGB)=22.556
+- Insight: XGBoost makes different errors in the top-1% region than LGBM, despite 97.4% overall correlation.
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=22.5564 ci=[21.5414, 23.4920] se=0.4905 n_boot=1000
