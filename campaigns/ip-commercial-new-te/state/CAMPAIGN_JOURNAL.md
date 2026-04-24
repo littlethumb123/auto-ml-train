@@ -138,3 +138,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** LightGBM outperforms CatBoost default by +0.103 (within noise floor but positive). Training 206s with early stopping at iter 251. LGBM's leaf-wise growth strategy finds a different optimum than CatBoost's symmetric trees. The margin is small — HP tuning is the clear next step since LGBM is fast per iteration and will give more reliable Optuna trials. Target gap narrowed to 1.684 lift points (still 1.74 SE — detectable).
 
 ---
+
+## Round 9 — 2026-04-24
+
+**Action:** A_hp — Optuna LightGBM HP search on hybrid
+**Expected Δ:** +0.3 to +1.5
+**Actual val_lift_1pct:** 22.179 (Δ = **-0.137**)
+**Verdict:** discard
+
+**Key finding:** Same Optuna bottleneck: only 7 trials in 500s because num_leaves=351 makes the 200-iter proxy as slow as CatBoost's. Full model (num_leaves=351, 2000 iter early-stop@124) took 711s — extremely slow. LightGBM HP search needs constrained num_leaves (≤127) to keep proxy fast. Alternative path: skip HP tuning and go directly to A_ensemble (stacking default LightGBM + default CatBoost) since both are near-optimal with defaults and SHAP showed complementary signals.
+
+---

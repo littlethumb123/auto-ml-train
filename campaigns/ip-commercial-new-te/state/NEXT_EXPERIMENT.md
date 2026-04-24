@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 8
-planner_invocation_at: "2026-04-24T08:15:00Z"
-action_type: "A_model"
-hypothesis: "LightGBM default params on hybrid features will establish a second family baseline and potentially outperform CatBoost's 22.213 lift@1% due to different inductive bias and faster training (enabling more iterations within budget)."
-expected_effect_size: "Δval_lift_1pct: -1.0 to +1.5 (STRATEGY_GUIDE §2 A_model prior: 0.3-1.5 when early campaign)"
-base_commit: "5690f74"
+round: 9
+planner_invocation_at: "2026-04-24T08:45:00Z"
+action_type: "A_hp"
+hypothesis: "Optuna HP search on LightGBM will outperform the default-param LightGBM (22.316) by finding a better combination of num_leaves, learning_rate, and regularization. LightGBM's fast training enables many more reliable proxy trials than CatBoost."
+expected_effect_size: "Δval_lift_1pct: +0.3 to +1.5 (first systematic tune of new champion family)"
+base_commit: "fa7411b"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -14,26 +14,32 @@ escalation: null
 
 ## 1. Context
 
-Round 8. Best: hybrid CatBoost default 22.213 (round 2). consecutive_discards=2 (rounds 6-7 both informative/noise). STRATEGY_GUIDE §1: "Only CatBoost tried; 2+ rounds → A_model: try LightGBM." CatBoost HP search showed default params are near-optimal for CatBoost; LightGBM may find a different optimum with its leaf-wise growth strategy.
+Round 9. Best: LightGBM default 22.316 (round 8). consecutive_discards=0. STRATEGY_GUIDE: "Champion family selected; no systematic HP search → A_hp highest ROI." LightGBM trains much faster than CatBoost — a 50-iter proxy takes ~2-5s/trial vs 17s, enabling 100+ Optuna trials in 500s.
 
 ## 2. Evidence from memory
 
-- **rounds 5,7**: CatBoost HP search (7 and 54 trials) couldn't beat 22.213 default. Proxy unreliable.
-- **PRIORS known_bad**: `is_unbalance=True` inverts probabilities — use `class_weight='balanced'` instead.
-- **STRATEGY_GUIDE §3.1**: Try ≥1 alternative family before investing in tuning.
-- **Split cache**: 27s load. LightGBM trains ~5× faster per iteration than CatBoost on tabular data.
+- **Round 8**: LightGBM default (num_leaves=127, lr=0.05, 1000 iter early-stop@251) → 22.316.
+- **PRIORS known_bad**: is_unbalance=True inverts probs. Use class_weight='balanced'.
+- **Round 7 lesson**: CatBoost 50-iter proxy unreliable (proxy and full model uncorrelated). For LightGBM, training is much faster so proxy iterations need not be as reduced.
 
 ## 3. Plan
 
-Replace CatBoost with LightGBM default-parameter model. Same feature set (hybrid 789 features from split cache). Use `class_weight='balanced'` (NOT is_unbalance=True). Cat columns are integer-encoded in cache — treat as ordinal numeric for simplicity (LightGBM categorical handling requires values < 32 which may not hold for all cat columns).
+Optuna TPE on LightGBM. Proxy: 200-iter with early stopping (fast for LGBM). Full model: 2000 iter with early stopping. Search space:
+- num_leaves: 31–511 (log)
+- learning_rate: 0.01–0.3 (log)
+- min_child_samples: 10–200 (log)
+- feature_fraction: 0.5–1.0
+- bagging_fraction: 0.5–1.0
+- lambda_l1: 0.0–10.0
+- lambda_l2: 0.0–10.0
 
 ## 4. Helpers
 
 None.
 
-## 5. How this differs from current train.py
+## 5. How this differs
 
-Replace the model block: swap CatBoostClassifier/Pool for LightGBMClassifier. Load split cache as before.
+Replace model block with LightGBM Optuna study (proxy 200-iter + full 2000-iter).
 
 ## 6. Escalation
 

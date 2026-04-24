@@ -265,3 +265,24 @@ review_note: NEW BEST. LightGBM default beats CatBoost default by +0.103 lift po
 
 ### Escalation
 None. New best established. 0 consecutive discards after this keep.
+
+## Round 9
+
+commit: 9cb24b1
+verdict: discard
+action_type: A_hp
+model_family: lightgbm
+feature_set: hybrid
+val_lift_1pct: 22.178779
+val_auc_roc: 0.853538
+n_features: 789
+training_seconds: 711.5
+total_seconds: 745.4
+optuna_trials: 7
+delta_vs_best: -0.137329
+bootstrap_se: 0.4896
+review_note: Same 7-trial Optuna problem as CatBoost. num_leaves=351 makes proxy as slow as CatBoost. Fix: constrain num_leaves to 31-127. Full model (2000 iter, num_leaves=351, early-stop@124) took 711s — too slow. Next: XGBoost comparison, OR A_ensemble stacking LightGBM+CatBoost (SHAP showed different bias potential).
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=22.1788 ci=[21.1953, 23.1443] se=0.4896 n_boot=1000
