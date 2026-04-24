@@ -211,3 +211,28 @@ review_note: A_diagnose as mandated by C2 protocol. Reproduces round 2 champion 
 
 ### Escalation
 None. C2 resolved by this A_diagnose round. Proceed with A_hp (faster proxy) in round 7.
+
+## Round 7
+
+commit: d564b46
+verdict: discard
+action_type: A_hp
+feature_set: hybrid (789 features)
+val_lift_1pct: 21.989950
+val_auc_roc: 0.849134
+n_features: 789
+training_seconds: 945.0
+total_seconds: 976.8
+optuna_trials: 54
+delta_vs_best: -0.223161
+bootstrap_ci_lo: 20.9788
+bootstrap_ci_hi: 22.9148
+bootstrap_se: 0.4923
+review_note: 54 Optuna trials ran (vs 7 in round 5 — proxy speed fix worked). But lift@1%=21.990 < best 22.213 (Δ=-0.223, -0.45 SE). Root cause: 50-iter proxy is too fast to give reliable lift@1% signal (proxy best=21.05 but full model=21.99 — proxy underestimates by 5%). CatBoost default params may be near-optimal. Next: A_model with LightGBM (different family, faster per iteration, potentially different optima).
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=21.9899 ci=[20.9788, 22.9148] se=0.4923 n_boot=1000
+
+### Escalation
+None. 2 consecutive discards (rounds 6-7). Not yet at C2 threshold.

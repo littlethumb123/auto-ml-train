@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 6
-planner_invocation_at: "2026-04-24T08:00:00Z"
-action_type: "A_diagnose"
-hypothesis: "SHAP analysis on the current hybrid best (round 2) will reveal which embeddings contribute real signal, quantify the embedding-vs-tabular split, and confirm whether bootstrap SE allows reliable detection of HP improvements."
-expected_effect_size: "~0 (diagnostic only — informs next experiment strategy)"
-base_commit: "f916809"
+round: 7
+planner_invocation_at: "2026-04-24T08:30:00Z"
+action_type: "A_hp"
+hypothesis: "Using a 50-iter proxy (vs 200-iter) enables ~28 Optuna trials in the same 500s budget, giving systematic coverage of the HP space that round 5's 7-trial search could not provide."
+expected_effect_size: "Δval_lift_1pct: +0.5 to +2.0 (STRATEGY_GUIDE §2: first adequate HP search)"
+base_commit: "aca68fa"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -14,37 +14,32 @@ escalation: null
 
 ## 1. Context
 
-Round 6. c2_pending_diagnose=True (A_diagnose mandatory per STRATEGY_GUIDE §3.7 and RUNNER.md invariant). Three consecutive discards resolved:
-- Round 3: embedding_only baseline (informative, expected)
-- Round 4: feature selection (small regression, revealed _index_dt_parsed bug)
-- Round 5: Optuna HP (noise-level result, root cause = too few trials/too slow proxy)
+Round 7. Best: hybrid 22.213 (round 2). c2_pending_diagnose=False (A_diagnose completed). Round 5 A_hp failed because 200-iter proxy took 71s/trial → only 7 trials. Round 6 A_diagnose confirmed:
+1. Embeddings and tabular are complementary (50/50 SHAP split) — keep full hybrid
+2. Target gap (1.787) is detectable (1.8 SE) — HP search can find real improvement
+3. Root cause: too-slow proxy. Fix: 50-iter proxy → 17s/trial → ~28 trials in 500s
 
 ## 2. Evidence from memory
 
-- **Best model**: hybrid CatBoost default params, lift@1%=22.213, round 2 commit 1171906
-- **NOTEBOOK**: Optuna proxy takes ~71s/trial (200 iter × 0.35s/iter). Fix: 50-iter proxy → 17s/trial → ~28 trials/500s.
-- **NOTEBOOK**: Split cache ready — all future rounds load data in 27s.
-- **Bootstrap SE**: 0.496 consistently across rounds. Target gap to goal (24.0): 24.0 - 22.213 = 1.787. 1.787 / (2 × 0.496) = 1.80 — target gap is 1.80 SE, detectable but requires improvement > ~1.0 lift points to be reliable.
+- **Round 5 best proxy**: depth=7, lr=0.084 → full model 22.162 (noise-level discard)
+- **Round 5 problem**: 7 trials, no convergence
+- **Round 7 target**: 28+ trials, systematic coverage of 6D HP space
+- **SHAP**: 50/50 embedding/tabular. Don't use feature-selected subset — full 789 features.
+- **Split cache**: loaded in 27s. All future rounds fast.
 
 ## 3. Plan
 
-A_diagnose produces:
-1. **SHAP analysis**: retrain hybrid CatBoost (default, round 2 config) → run shap_report on X_val → get embedding vs tabular proportion in top-10/20/50. Key question: which of 256 embeddings drive predictions?
-2. **Feature importance ranking**: top-10 features by SHAP — informs round 7 feature selection strategy.
-3. **Bootstrap CI check**: SE=0.496, target gap=1.787 — confirm gap is detectable (yes, 1.80 SE > 1.0).
-4. **Error analysis**: score distribution on val positives vs negatives. Check for miscalibration.
-5. **Proxy speed recommendation**: document 50-iter proxy plan for round 7.
+Same HP search space as round 5. Only change: proxy `iterations=50` (was 200). Full model stays at 800 iterations. Auto-budget remains capped at 500s.
+Expected timing: 27s cache + 500s Optuna (28 trials × 17s/trial) + 200s full retrain = 727s ✓ within 1800s.
 
 ## 4. Helpers
 
-No helpers needed.
+None.
 
 ## 5. How this differs from current train.py
 
-Retrain round 2 model (FEATURE_SET="hybrid", default params: depth=6, lr=0.05, 500 iter). Run SHAP on X_val via tools/shap_report (Python API). Print SHAP summary. Evaluate model for error analysis.
+Single change in model block: proxy `iterations=200` → `iterations=50`.
 
 ## 6. Escalation
 
 ### No escalation
-
-A_diagnose round per protocol. After review, C2 cleared and round 7 proceeds with A_hp using faster 50-iter proxy.
