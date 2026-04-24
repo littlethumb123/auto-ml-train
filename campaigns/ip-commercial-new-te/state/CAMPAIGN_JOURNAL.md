@@ -338,3 +338,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** AUC-ROC tuning only works for HIGH-WEIGHT ensemble members. LGBM gets 0.046 weight → near-zero leverage → tuning it has negligible effect regardless of technique. The round 25 XGB breakthrough worked because XGB had 0.456 weight. Lesson: focus HP tuning energy on the dominant ensemble member (XGB). Next: try XGB Optuna with PR-AUC proxy (precision-recall AUC, more directly related to lift@1%), or try different XGB Optuna seed to explore a different HP landscape.
 
 ---
+
+## Round 28 — 2026-04-24
+
+**Action:** A_hp — XGB Optuna AUC-ROC seed=7 (different TPE trajectory)
+**Actual val_lift_1pct:** 22.762 (Δ = **-0.412**)
+**Verdict:** discard
+
+**Key finding:** Seed=7 XGB found inferior HPs (standalone 21.372 vs 22.127 from seed=42). This CONFIRMS that round 25's seed=42 optimum (standalone 22.127, ensemble 23.174) is a genuine optimum, not a lucky fluke. The AUC-ROC XGB landscape has a clear best configuration that the seed=42 trajectory found. 3 consecutive discards (rounds 26-28). **The AUC-ROC XGB approach is definitively exhausted.** Budget=28/100. Remaining strategy: try wider XGB search space, or accept 23.174 as the campaign ceiling and focus on final reporting.
+
+---
