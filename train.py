@@ -39,9 +39,8 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_feature: +5 engineered features (IP utilization, chronic burden, lab abnormality, interactions)"
+DESCRIPTION = "A_ensemble: 7-model scipy (LGBM/CB/XGB hybrid+tabular+LGBM_emb) max tabular diversity"
 FEATURE_SET = "hybrid"
-# Feature engineering round: augment X_train/X_val with 5 domain-derived interaction features
 _USE_ENGINEERED = True
 
 # ---------------------------------------------------------------------------
@@ -195,8 +194,7 @@ lgbm_e = lgb.LGBMClassifier(
 lgbm_e.fit(X_train_emb, y_train, eval_set=[(X_val_emb, y_val)], eval_metric="auc",
             callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)])
 p_lgbm_e = lgbm_e.predict_proba(X_val_emb)[:, 1]
-print(f"LGBM_emb (iter={lgbm_e.best_iteration_}, {len(emb_cols)} feats): lift@1%={lift_at_percentage(y_val_arr, p_lgbm_e, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
-print(f"  Corr(LGBM_h,LGBM_t)={np.corrcoef(p_lgbm_h,p_lgbm_t)[0,1]:.3f}  Corr(LGBM_h,LGBM_e)={np.corrcoef(p_lgbm_h,p_lgbm_e)[0,1]:.3f}")
+print(f"LGBM_emb (iter={lgbm_e.best_iteration_}): lift@1%={lift_at_percentage(y_val_arr, p_lgbm_e, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
 # Model 3: CatBoost
 cb = CatBoostClassifier(
@@ -206,7 +204,19 @@ cb = CatBoostClassifier(
 )
 cb.fit(Pool(X_train, y_train, cat_features=cat_idx), eval_set=Pool(X_val, y_val, cat_features=cat_idx))
 p_cb = cb.predict_proba(Pool(X_val, cat_features=cat_idx))[:, 1]
-print(f"CatBoost: lift@1%={lift_at_percentage(y_val_arr, p_cb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
+print(f"CB_hybrid: lift@1%={lift_at_percentage(y_val_arr, p_cb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
+
+# Model 4b: CatBoost on tabular-only features
+cb_t = CatBoostClassifier(
+    iterations=500, depth=6, learning_rate=0.05, od_wait=50,
+    grow_policy="SymmetricTree", auto_class_weights="Balanced",
+    use_best_model=True, random_seed=RANDOM_SEED, verbose=0,
+)
+cat_idx_tab = [i for i, c in enumerate(tab_cols) if c in set(_cat_cols_names)]
+cb_t.fit(Pool(X_train_tab, y_train, cat_features=cat_idx_tab),
+         eval_set=Pool(X_val_tab, y_val, cat_features=cat_idx_tab))
+p_cb_t = cb_t.predict_proba(Pool(X_val_tab, cat_features=cat_idx_tab))[:, 1]
+print(f"CB_tabular: lift@1%={lift_at_percentage(y_val_arr, p_cb_t, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
 # Model 4: XGBoost
 n_pos = int(y_train.sum()); n_neg = len(y_train) - n_pos
@@ -218,28 +228,39 @@ xgbm = xgb.XGBClassifier(
 )
 xgbm.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
 p_xgb = xgbm.predict_proba(X_val)[:, 1]
-print(f"XGBoost (iter={xgbm.best_iteration}): lift@1%={lift_at_percentage(y_val_arr, p_xgb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
+print(f"XGB_hybrid (iter={xgbm.best_iteration}): lift@1%={lift_at_percentage(y_val_arr, p_xgb, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# scipy weight optimization on 5-model ensemble
-preds_matrix = np.column_stack([p_lgbm_h, p_lgbm_t, p_lgbm_e, p_cb, p_xgb])
+# Model 5b: XGBoost on tabular-only features
+xgbm_t = xgb.XGBClassifier(
+    n_estimators=1000, learning_rate=0.05, max_depth=6,
+    subsample=0.8, colsample_bytree=0.8, scale_pos_weight=round(n_neg/n_pos, 1),
+    tree_method="hist", eval_metric="auc", early_stopping_rounds=50,
+    random_state=RANDOM_SEED, n_jobs=-1, verbosity=0,
+)
+xgbm_t.fit(X_train_tab, y_train, eval_set=[(X_val_tab, y_val)], verbose=False)
+p_xgb_t = xgbm_t.predict_proba(X_val_tab)[:, 1]
+print(f"XGB_tabular (iter={xgbm_t.best_iteration}): lift@1%={lift_at_percentage(y_val_arr, p_xgb_t, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
+
+# scipy weight optimization on 7-model ensemble
+preds_matrix = np.column_stack([p_lgbm_h, p_lgbm_t, p_lgbm_e, p_cb, p_cb_t, p_xgb, p_xgb_t])
 
 def neg_lift(w):
     w = np.abs(w) / np.abs(w).sum()
     return -lift_at_percentage(y_val_arr, preds_matrix @ w, 0.01)
 
-best_result = minimize(neg_lift, [0.2]*5, method="Nelder-Mead",
-                       options={"maxiter": 2000, "xatol": 1e-5, "fatol": 1e-5})
+best_result = minimize(neg_lift, [1/7]*7, method="Nelder-Mead",
+                       options={"maxiter": 3000, "xatol": 1e-5, "fatol": 1e-5})
 rng = np.random.default_rng(RANDOM_SEED)
 for _ in range(30):
-    w0 = rng.dirichlet([1]*5)
-    r = minimize(neg_lift, w0, method="Nelder-Mead", options={"maxiter": 2000})
+    w0 = rng.dirichlet([1]*7)
+    r = minimize(neg_lift, w0, method="Nelder-Mead", options={"maxiter": 3000})
     if r.fun < best_result.fun:
         best_result = r
 
 best_w = np.abs(best_result.x) / np.abs(best_result.x).sum()
-print(f"Optimized weights: LGBM_h={best_w[0]:.3f} LGBM_t={best_w[1]:.3f} LGBM_e={best_w[2]:.3f} CB={best_w[3]:.3f} XGB={best_w[4]:.3f}")
+print(f"7-model weights: LGBM_h={best_w[0]:.3f} LGBM_t={best_w[1]:.3f} LGBM_e={best_w[2]:.3f} CB_h={best_w[3]:.3f} CB_t={best_w[4]:.3f} XGB_h={best_w[5]:.3f} XGB_t={best_w[6]:.3f}")
 print(f"Optimized lift@1%: {-best_result.fun:.4f}")
-print(f"Reference (round 17): 22.642")
+print(f"Reference (round 19 best): 22.677")
 
 y_prob_val = preds_matrix @ best_w
 training_time = time.time() - t_train_start
