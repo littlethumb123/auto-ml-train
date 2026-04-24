@@ -78,3 +78,30 @@ review_note: Hybrid beats tabular by +0.635 lift points (> noise_floor=0.3). Emb
 ### Escalation
 
 None. Hybrid confirmed better than tabular. Next: A_hp on hybrid feature set.
+
+## Round 3
+
+commit: 901cc53
+verdict: discard
+action_type: A_validate
+feature_set: embedding_only
+val_lift_1pct: 18.161879
+val_auc_roc: 0.827758
+val_lift_5pct: 8.390188
+val_lift_10pct: 5.475520
+val_auc_pr: 0.079721
+n_features: 256
+training_seconds: 24.0
+total_seconds: 210.8
+delta_vs_best: -4.051232
+bootstrap_ci_lo: 17.2420
+bootstrap_ci_hi: 19.0849
+bootstrap_se: 0.4666
+review_note: CRITICAL — embedding_only (18.162) does NOT beat tabular floor (21.578). All 3 baselines now done: emb=18.16, tab=21.58, hybrid=22.21. Next: A_feature on hybrid.
+
+### Tool outputs
+- anomaly: not fired (18.162 > threshold 11.107)
+- bootstrap_ci: metric=18.1619 ci=[17.2420, 19.0849] se=0.4666 n_boot=1000
+
+### Escalation
+None.

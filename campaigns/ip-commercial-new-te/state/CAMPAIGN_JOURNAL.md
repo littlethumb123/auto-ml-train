@@ -52,3 +52,18 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** 256 new TE embeddings add +0.635 lift points over tabular-only with identical model config. Δ > noise_floor=0.3 and > bootstrap_se=0.495 (barely — worth noting). Embedding contribution is real but modest with default params. The large embedding dimensionality (256) suggests feature selection could reveal which embeddings carry the signal and which are noise. Success criteria already exceeded (target ≥4.5, achieved 22.21 on round 2). Note: embedding_only NOT YET TESTED — this is the primary research question per updated PROBLEM_CONTRACT.
 
 ---
+
+## Round 3 — 2026-04-24
+
+**Action:** A_validate — CatBoost embedding_only (256 dims, no tabular)
+**Trigger:** STRATEGY_GUIDE §1 "No embedding_only baseline" — primary research question
+**Alternatives rejected:**
+- A_hp on hybrid: cannot choose target without embedding_only baseline
+
+**Expected Δ vs tabular floor:** -2.0 to +2.0 (unknown — this was the question)
+**Actual val_lift_1pct:** 18.162 (Δ = −3.416 vs tabular_only, −4.051 vs hybrid best)
+**Verdict:** discard
+
+**Key finding:** Embedding_only does NOT beat tabular_only (18.16 vs 21.58). Gap is real (CIs don't overlap). Embeddings add value only in combination (hybrid +0.635). All three baselines now established. embedding_only trains 6× faster — useful for future ablations.
+
+---
