@@ -476,3 +476,13 @@ engineered_features: eng_ip_score, eng_chronic_score, eng_lab_score, eng_age_x_i
 delta_vs_best: +0.017166
 bootstrap_se: 0.4939
 review_note: NEW BEST with +5 engineered features. Cache built (623s first run, will load in ~27s). val_lift_1pct=22.677, Δ=+0.017 (0.03 SE) — noise but positive. LGBM_hybrid dropped to 22.162 individually (194 features changed interaction) but ensemble still better. XGB highest weight (0.379). Gains continue shrinking.
+
+## Round 20
+
+commit: 2a43333
+verdict: discard
+action_type: A_feature
+val_lift_1pct: 22.625101
+delta_vs_best: -0.051498
+bootstrap_se: 0.4976
+review_note: Extra 5 features (IP days, recency, ER, severity) HURT performance (-0.052). Weights collapsed to LGBM_t=0.433, LGBM_h=0.019 — the hybrid model was diluted. The 5 new features add noise. Round 19's 5 features were better. Next: try just adding ER-only features (er_clm_cnt_1yr, er_x_chronic) on top of round 19's 5 to test if ER alone is the missing signal.

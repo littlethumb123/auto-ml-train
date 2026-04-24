@@ -257,3 +257,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Engineered features add marginal signal (+0.017). The gains continue to shrink (0.243→0.052→0.034→0.017→0.017). We may be at the Bayes rate ceiling for this feature set and model family. 19 rounds completed, budget_used=19/100. Strategy for remaining rounds: (1) try more aggressive feature engineering (polynomial interactions, count-based risk scores); (2) accept the 22.677 ceiling and focus on robustness; (3) diversify ensemble further with different data subsets.
 
 ---
+
+## Round 20 — 2026-04-24
+
+**Action:** A_feature — +10 domain features (5 new: IP days, recency, ER, ER×chronic, severity)
+**Actual val_lift_1pct:** 22.625 (Δ = **-0.052**)
+**Verdict:** discard
+
+**Key finding:** Adding 5 more features hurt (-0.052). The IP recency ratio and severity features are likely noisy (high variance at low IP count). ER features (er_total, er_x_chronic) may have signal but were overwhelmed by the noisy features. Optimal weights abandoned LGBM_hybrid entirely (0.019). Lesson: more features ≠ better; targeted single features work better. Next round: try only ER features on top of round 19's baseline.
+
+---

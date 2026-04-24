@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 19
-planner_invocation_at: "2026-04-24T11:15:00Z"
+round: 20
+planner_invocation_at: "2026-04-24T11:20:00Z"
 action_type: "A_feature"
-hypothesis: "Engineered features combining tabular signals (IP utilization counts × chronic condition flags; age bins × IP history) will add predictive signal not captured by the existing 789 features, improving the 5-model ensemble beyond the current ceiling (22.659)."
-expected_effect_size: "Δval_lift_1pct: +0.3 to +1.0 (STRATEGY_GUIDE §2: A_feature 0.2-1.0 when champion not saturated)"
-base_commit: "75b3ee2"
+hypothesis: "Adding 5 more targeted domain features (IP days severity, recency ratio, ER utilization, ER×chronic interaction, and stay severity) to the existing 5 will improve lift@1% by encoding more clinical risk signal that the base features don't directly capture."
+expected_effect_size: "Δval_lift_1pct: +0.05 to +0.3 (incremental domain features)"
+base_commit: "daaa604"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -14,25 +14,25 @@ escalation: null
 
 ## 1. Context
 
-Round 19. Best: 5-model ensemble 22.659. Ensemble gains vanishing (+0.017 in round 18). Feature engineering is the next STRATEGY_GUIDE §1 priority — 789 features are all available, but interaction terms may capture signal that individual features miss.
+Round 20. Best: 5-model ensemble + 5 eng features = 22.677 (round 19). Gains of +0.018 suggest signal is present but marginal. Adding 5 more domain features targeting IP severity (days per admission), recency (1yr vs 2yr utilization ratio), ER pathway (ER visits predict IP), and combined risk (ER × chronic disease burden).
 
 ## 2. Evidence from memory
 
-- PRIORS known_good: `np.log1p(Amount)` and `Amount * V1/V2` added signal in creditcard campaign.
-- Round 6 SHAP: 50/50 embedding/tabular split. Tabular features carry strong signal.
-- Known tabular features include: IP MDC counts (ipmdc01-25), member months (mm_*mo), lab values.
-- Domain knowledge: IP6 risk driven by: (1) prior IP utilization, (2) comorbidity burden, (3) lab abnormalities.
+- Round 19: 5 features (IP score, chronic score, lab score, age×IP, mm/IP ratio) added +0.018.
+- ER visits are a known IP precursor — `er_clm_cnt_1yr` exists in columns.
+- IP MDC days columns (`ipmdc*_2yr_days`) capture stay severity, not just count.
+- 1yr/2yr IP recency ratio captures acceleration of utilization.
 
 ## 3. Plan
 
-Engineer features in train.py before loading from cache:
-1. `ip_utilization_score` = sum of ipmdc*_2yr_cnt columns (total IP episodes by MDC)
-2. `chronic_burden_score` = sum of binary chronic condition flags
-3. `lab_abnormality_score` = sum of lab_elev_* and lab_low_* columns
-4. `age_ip_interaction` = age × ip_utilization_score
-5. `mm_ip_ratio` = ip_utilization_score / (mm_2yr_cnt + 1)
+Extend `_engineer()` in train.py to add 5 more features:
+1. `eng_ip_days_score` = sum(ipmdc*_2yr_days) — total IP days in 2yr
+2. `eng_ip_recency` = sum(ipmdc*_1yr_cnt) / (sum(ipmdc*_2yr_cnt) + 0.1) — recent vs total ratio
+3. `eng_er_total` = er_clm_cnt_1yr
+4. `eng_er_x_chronic` = er_clm_cnt_1yr × chronic_score
+5. `eng_severity` = eng_ip_days / (eng_ip_score + 0.1) — average IP stay length
 
-Use these 5 new features alongside the 789 existing in the 5-model ensemble. Rebuild the split cache with augmented features.
+No new cache rebuild needed (features added post-cache-load).
 
 ## 4. Helpers
 
@@ -40,7 +40,7 @@ None.
 
 ## 5. How this differs from current train.py
 
-Add feature engineering block after loading from cache. New cache will be built for the augmented feature set.
+Extend `_engineer()` function body: add 5 more computed columns (10 total). The rest of the pipeline (5-model ensemble, scipy optimization) is unchanged.
 
 ## 6. Escalation
 
