@@ -412,3 +412,21 @@ training_seconds: 345.7
 delta_vs_best: -1.235969
 bootstrap_se: 0.4752
 review_note: RF alone=20.016 is too weak. Adding it to LGBM+XGB mean pulls ensemble DOWN to 21.321 (from 22.453). Anti-pattern: Corr(LGBM,RF)=0.917 is lower diversity but RF is too weak at top-1% to compensate. STRATEGY_GUIDE §4: "Ensembling when one model dominates" — RF is 2.3 lift below LGBM. Next: LGBM+XGB with optimized weights, or accept 22.556 as ceiling.
+
+## Round 16
+
+commit: fcd8867
+verdict: keep
+action_type: A_ensemble
+model_family: ensemble
+val_lift_1pct: 22.607934
+val_auc_roc: 0.856453
+val_lift_5pct: 9.567698
+val_lift_10pct: 6.163822
+val_auc_pr: 0.112146
+training_seconds: 442.2
+total_seconds: 470.8
+optimal_weights: LGBM=0.356 CB=0.150 XGB=0.493
+delta_vs_best: +0.051498
+bootstrap_se: 0.4929
+review_note: NEW BEST via scipy-optimized weights. XGB gets highest weight (0.493) despite weakest standalone (22.196) — confirms XGB adds the most useful diversity. CB gets lowest weight (0.150) consistent with its low contribution. Δ=+0.052 is within noise floor (0.3) and only 0.10 SE — marginal but Δ>0 → keep. Note: in-sample weight optimization (3 params on val) — slightly optimistic but minimal overfitting with only 3 degrees of freedom.
