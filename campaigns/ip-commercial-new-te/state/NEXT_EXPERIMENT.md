@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 17
-planner_invocation_at: "2026-04-24T10:25:00Z"
+round: 18
+planner_invocation_at: "2026-04-24T10:50:00Z"
 action_type: "A_ensemble"
-hypothesis: "Adding a LightGBM trained on tabular-only features (534 features, no embeddings) to the optimized 3-GBDT ensemble creates structural diversity (different feature space), which may improve lift@1% beyond the current best (22.608) more than a same-seed LGBM variant."
-expected_effect_size: "Δval_lift_1pct: +0.1 to +0.4 (tabular-only LGBM has different prediction surface from embedding-inclusive models)"
-base_commit: "8e61f5d"
+hypothesis: "Adding an embedding-only LGBM (256 embedding features, no tabular) to the 4-model ensemble creates the most structurally diverse fifth component — predictions should correlate ~0.85 with hybrid models, lower than tabular-only LGBM's 0.909."
+expected_effect_size: "Δval_lift_1pct: +0.02 to +0.15 (diminishing returns expected)"
+base_commit: "1656560"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -14,25 +14,25 @@ escalation: null
 
 ## 1. Context
 
-Round 17. Best: optimized 3-GBDT weights 22.608 (round 16). consecutive_discards=0. Gains are marginal (+0.052 in round 16). Structural diversity (different feature set) should help more than seed diversity (same features, slightly different bootstrap). Tabular-only LGBM (no embeddings) had corr ~0.92 with hybrid GBDT models and may have unique error patterns for members where embeddings don't add signal.
+Round 18. Best: 4-model ensemble 22.642 (round 17). Gains are shrinking (+0.034). Adding embedding-only LGBM (corr ~0.85 with hybrid — lowest correlation yet) as a 5th model may add marginal signal, particularly for members where embeddings alone drive predictions.
 
 ## 2. Evidence from memory
 
-- Round 1 (CatBoost tabular_only): 21.578. LGBM tabular_only expected ~22.0.
-- Round 14 corr analysis: LGBM/XGB corr=0.97 (both hybrid). Tabular-only model would have ~0.90-0.93 corr with hybrid (missing 256 embedding dims).
-- Round 15 lesson: RF (corr=0.92) was too weak (20.016). Tabular-only LGBM (expected ~22.0) is much stronger.
+- Round 3: CatBoost embedding_only=18.162 (too weak for standalone). But as ensemble component at low weight it may add diversity.
+- LGBM embedding_only expected ~18-20 lift@1% (standalone weak, but may correct specific errors).
+- Corr(emb_only, hybrid) expected ~0.85-0.90.
 
 ## 3. Plan
 
-Train: LGBM(hybrid), LGBM(tabular_only), CB(hybrid), XGB(hybrid). Scipy-optimize 4 weights on val. The tabular_only LGBM is computed by filtering X_train/X_val to non-embedding columns only (no new cache needed).
+5-model ensemble: LGBM_hybrid + LGBM_tabular + LGBM_emb + CB + XGB. Scipy-optimize 5 weights. LGBM_emb trained on embedding_ columns only from X_train.
 
 ## 4. Helpers
 
 None.
 
-## 5. How this differs from current train.py
+## 5. How this differs
 
-Replace model block: add LGBM_tabular (on non-embedding subset of X_train) alongside the 3 hybrid models. Optimize 4 weights with scipy.
+Add LGBM_emb (embedding-only column subset of X_train) alongside existing 4 models; optimize 5 weights.
 
 ## 6. Escalation
 

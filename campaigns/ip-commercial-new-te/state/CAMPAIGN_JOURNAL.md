@@ -237,3 +237,13 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Tabular-only LGBM (corr=0.909 with hybrid LGBM) adds real structural diversity vs the same-seed variants that would correlate at 0.997+. The 4-model ensemble weights distribute more evenly (LGBM_h=0.317, LGBM_t=0.120, CB=0.254, XGB=0.310). The pattern continues: gains are shrinking (22.556 → 22.608 → 22.642). We may be approaching the ensemble ceiling. val_lift_10pct improved (6.191 vs 6.164) — ensemble is improving the tail, not just the top. Next iteration: add more structural diversity (embedding-only LGBM, or different tabular subsets) OR shift to feature engineering.
 
 ---
+
+## Round 18 — 2026-04-24
+
+**Action:** A_ensemble — 5-model (LGBM_hybrid+LGBM_tab+LGBM_emb+CB+XGB) scipy-optimized
+**Actual val_lift_1pct:** 22.659 (Δ = **+0.017 — NEW BEST**)
+**Verdict:** keep (0.03 SE — pure noise)
+
+**Key finding:** 5-model ensemble keeps improving but gains are vanishing (0.243→0.052→0.034→0.017 per round). LGBM_emb (corr=0.874 with hybrid) adds real diversity but is too weak (18.6) to contribute much. Optimal weights give LGBM_hybrid only 0.135 — the diverse weaker models dilute it. This is approaching a pure diversity ceiling: further ensemble additions will hit diminishing returns without stronger diverse models. **Strategy pivot**: shift from ensemble expansion to feature engineering — create interaction features or time-based features that could add genuinely new signal.
+
+---
