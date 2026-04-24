@@ -13,3 +13,4 @@ pytest>=7.0
 PyYAML>=6.0
 scipy>=1.11
 xxhash>=3.4
+shap>=0.45
