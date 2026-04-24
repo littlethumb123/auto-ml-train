@@ -42,7 +42,7 @@ results_columns:
   - "val_auc_pr"
 budgets:
   time_budget_s: 600
-  hard_timeout_s: 1200
+  hard_timeout_s: 1800
   max_experiments: 100
   max_repair_attempts: 2
 plateau_trigger:
