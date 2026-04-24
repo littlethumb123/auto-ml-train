@@ -48,8 +48,8 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_validate: CatBoost tabular_only baseline — establish lift@1% floor"
-FEATURE_SET = "tabular_only"   # options: 'tabular_only' | 'embedding_only' | 'hybrid'
+DESCRIPTION = "A_validate: CatBoost hybrid (tabular+256 embeddings) — measure embedding lift"
+FEATURE_SET = "hybrid"   # options: 'tabular_only' | 'embedding_only' | 'hybrid'
 
 # ---------------------------------------------------------------------------
 # Column-selective parquet load — avoids reading unused embedding columns
