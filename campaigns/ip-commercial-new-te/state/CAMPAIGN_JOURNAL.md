@@ -193,3 +193,14 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** AUC-ROC proxy found IDENTICAL params as round 11 (same TPE seed, same exploration). **Conclusion: Optuna short-proxy HP search is fundamentally broken for LightGBM on this dataset.** The 50-iter proxy with early_stop=20 almost always converges in 20 iterations — not enough signal. Default params (num_leaves=127, lr=0.05) appear to be a genuine optimum for this problem. **Strategy shift**: abandon HP search; focus on three-family mean ensemble (LGBM+CB+XGBoost simple average, no in-sample leakage from logistic meta-learner). If ensemble fails, consider data engineering (interaction features, time-based features) or CV upgrade.
 
 ---
+
+## Round 14 — 2026-04-24
+
+**Action:** A_diagnose — three-family prediction diversity + mean ensemble test
+**Expected Δ:** ~0 (diagnostic); actual: NEW BEST
+**Actual val_lift_1pct:** 22.556 (Δ = **+0.223 — NEW BEST via three-family mean**)
+**Verdict:** keep
+
+**Key finding:** Three-family mean ensemble (no meta-learner) gives 22.556 — honest estimate (no in-sample leakage). Prediction correlations are very high (0.97) but ensemble still adds +0.24 lift at the top-1% threshold. **Critical insight**: CatBoost adds ZERO when combined with LGBM (too similar). XGBoost adds +0.137 (makes different top-1% errors). All three = best. Next: commit this three-family ensemble as the champion via a proper A_ensemble round (round 15), then investigate whether any other models can increase diversity further.
+
+---
