@@ -64,8 +64,8 @@ splits:
   test: "ind_id_last_digit 9 AND index_dt <= 2025-06-30"
   oot: "index_dt > 2025-06-30 (all digits)"
   random_seed: "n/a — digit-based split, deterministic by individual_id"
-approved_at: ""
-approved_by: ""
+approved_at: "2026-04-24"
+approved_by: "Zhaopeng-Xing_cvsh"
 ---
 
 ## 1. Schema summary
