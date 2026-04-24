@@ -514,3 +514,13 @@ optimal_weights: LGBM_h=0.121 LGBM_t=0.067 LGBM_e=0.061 CB_h=0.161 CB_t=0.055 XG
 delta_vs_best: +0.051499
 bootstrap_se: 0.4987
 review_note: NEW BEST. 7-model ensemble breaks through 22.677 ceiling. XGB dominates (XGB_h=0.262+XGB_t=0.273=0.535). CB_h=0.161. LGBM_hybrid only 0.121. XGB_tabular (21.595 standalone) contributes high weight — its tabular-only errors are highly complementary to hybrid models. Δ=+0.051 (0.10 SE) — noise but positive → keep. Budget=22/100 used.
+
+## Round 23
+
+commit: f64bf0e
+verdict: discard
+action_type: A_ensemble
+val_lift_1pct: 22.625101
+delta_vs_best: -0.102997
+bootstrap_se: 0.4959
+review_note: Adding CB_emb and XGB_emb made it worse (-0.103). XGB_t=0.005, XGB_e=0.006 — both near-zero. 22.728 from round 22 (7-model) is the ensemble ceiling. Consecutive_discards=1. Next: try 100-restart scipy on the 7-model to confirm 22.728 is the true optimum, then accept ceiling.
