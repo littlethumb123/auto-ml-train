@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-last_round: 2
-last_verdict: "keep"
+last_round: 43
+last_verdict: "discard"
 ---
 
 # Review log
@@ -789,3 +789,48 @@ bootstrap_se: n/a
 weights: LGBM_h=0.055 LGBM_t=0.023 LGBM_e=0.087 CB_h=0.180 CB_t=0.180 XGB_h=0.376 XGB_t=0.098
 LGBM_hybrid individual: 22.230 (iter=276, up from 22.162 at iter=170 standard)
 review_note: A_hp: LGBM_hybrid colsample_bytree=0.5 (from 0.8). LGBM_hybrid individually improved (+0.068, 276 vs 170 iterations — more trees with fewer features per tree). But XGB_h weight dropped from 0.456 to 0.376 → ensemble degraded to 23.106. Pattern: any change that makes LGBM_hybrid stronger takes weight budget away from XGB, which is the dominant ensemble driver. Weight redistribution is a zero-sum game — LGBM gaining 0.009 weight (0.046→0.055) costs XGB 0.080 (0.456→0.376). Dead end: LGBM_hybrid colsample_bytree reduction. Consecutive discards=2.
+
+## Round 42
+
+commit: (rolled back — a275e1a41741084cad5ba1d74b1048a494394647)
+verdict: discard
+action_type: A_hp
+model_family: ensemble
+n_features: 794
+val_lift_1pct: 22.813929
+val_auc_roc: 0.857917
+val_lift_5pct: 9.595162
+val_lift_10pct: 6.151807
+val_auc_pr: 0.111833
+delta_vs_best: -0.360491
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: not run (discard, below threshold)
+
+review_note: A_hp: XGB_hybrid with monotonic constraints on 5 engineered clinical risk features (eng_ip_score, eng_chronic_score, eng_lab_score, eng_age_x_ip, eng_mm_ip_ratio — all constrained +1). Hypothesis: monotone direction removes noise from non-monotone fitted regions, sharpening XGB top-1% predictions. Result: ensemble 22.814 < 23.174 (Δ=-0.360). Root cause: monotonic constraints shift the Optuna TPE landscape — seed=42 finds different HPs than the unconstrained run that produced the 0.456 XGB weight in r25. Constraints narrow the effective HP search space, producing less complementary XGB predictions. XGB weight likely redistributed away from XGB_h, degrading ensemble complementarity. Consecutive discards=3 → C2 triggered. c2_pending_diagnose=True, consecutive_discards reset to 0.
+
+## Round 43
+
+commit: (rolled back — c3618bfc7d39b18696c9c290c99a9af1365f3ec9)
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+n_features: 794
+val_lift_1pct: 23.174420
+val_auc_roc: 0.857044
+val_lift_5pct: 9.519636
+val_lift_10pct: 6.163822
+val_auc_pr: 0.110768
+delta_vs_best: 0.000000
+bootstrap_ci_lo: 22.0919
+bootstrap_ci_hi: 24.1011
+bootstrap_se: 0.5033
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=23.1744 ci=[22.0919, 24.1011] se=0.5033 n_boot=1000
+
+weights: LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
+c3_advisory: target_gap=0.826 < 2×SE=1.006 (manual assessment — PROBLEM_CONTRACT placeholder prevents auto-detection)
+review_note: A_diagnose post-C2 (rounds 41-42: LGBM colsample_bytree=0.5 + XGB monotonic constraints both failed). Reproduces r25 champion EXACTLY: 23.174420, identical weights (LGBM_h=0.046 CB_h=0.184 XGB_h=0.456). This is the 5th exact reproduction across rounds 29, 32, 35, 40, 43 — an extraordinarily stable saddle point. Bootstrap CI [22.09, 24.10], SE=0.503 — unchanged across all reproducing runs. C3 advisory (manual): target gap 0.826 < 2×SE=1.006. c2_pending_diagnose cleared. Consecutive discards=1 (post-C2 resolve). Budget: 57 rounds remaining (43/100 used). Strategic pivot: all parameter-level changes to existing 7 models exhausted. Next direction must be minimal feature engineering (single new feature) to avoid Optuna landscape destabilization observed in r33 (14 TE features caused catastrophic degradation).
