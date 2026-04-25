@@ -486,3 +486,22 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** LGBM_hybrid with num_leaves=255 is individually WEAKER (21.853 vs 22.162 at 127 leaves, iter=158 vs 170). More leaves → faster overfitting → earlier stopping. LGBM_h weight increased from 0.046 to 0.130 (predictions more different from other models) but the individual weakness negated the gain. LGBM complexity increase is a dead end. The LGBM_hybrid ceiling at num_leaves=127 is not a capacity limit but a data limit: 508K training rows don't support >127 leaves at this learning rate.
 
 ---
+
+## Round 38 — 2026-04-25
+
+**Action:** A_diagnose — LGBM_hybrid trained on 5:1 downsampled training data (276K rows vs standard 508K 10:1)
+**Trigger:** consecutive_discards=1 (r37); hypothesis: 5:1 ratio makes LGBM individually stronger and shifts its predictions away from XGB's manifold
+**Alternatives rejected:**
+- LGBM num_leaves increase: r37 proved capacity increase hurts at this dataset size
+- CB architecture variants: r36 proved Lossguide makes CB more similar to LGBM
+- XGB HP search: exhausted; r32/r35 proved ceiling is base-model property
+
+**Expected Δ (lift@1%):** +0.1 to +0.3 (stronger individual LGBM + different prediction distribution → more complementarity)
+**Actual val_lift_1pct:** 23.089 (Δ = **-0.086**)
+**Individual LGBM_hybrid:** 22.385 (BEST ever — +0.222 vs standard 10:1 LGBM)
+**Weights:** LGBM_h=0.050 LGBM_t=0.020 LGBM_e=0.091 CB_h=0.169 CB_t=0.205 XGB_h=0.387 XGB_t=0.077
+**Verdict:** discard
+
+**Key finding:** 5:1 downsampling makes LGBM individually stronger (best ever: 22.385) but the ensemble is WORSE (23.089 < 23.174). LGBM_h weight barely changed: 0.050 vs 0.046 (r25). Conclusion: changing the training distribution does not change the algorithmic similarity between LGBM and XGB. Both are leaf-wise gradient boosters — their top-1% predictions overlap regardless of what data they train on. The structural correlation is baked into the algorithm, not the training data. **No training-data manipulation can make LGBM predictions complementary with XGB.** To get a 7th meaningfully complementary model, it must be algorithmically different (e.g., neural network, random forest with very different hyperparameters, or a completely different model family).
+
+---

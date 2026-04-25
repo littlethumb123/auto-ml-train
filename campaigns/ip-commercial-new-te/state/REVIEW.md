@@ -714,3 +714,22 @@ bootstrap_se: 0.5060
 - bootstrap_ci: metric=23.0199 ci=[21.9989, 23.9629] se=0.5060 n_boot=1000
 
 review_note: A_diagnose post-C2: LGBM_hybrid num_leaves=255 (from 127). Result: LGBM_hybrid individually WORSE — 21.853 vs 22.162 (iter=158 vs 170; deeper trees overfit earlier → earlier stopping). Ensemble: 23.019 < 23.174. LGBM_h got more weight (0.130 vs 0.046) but individual weakness offset the gain. XGB weight split: XGB_h=0.226, XGB_t=0.288 (was XGB_h=0.456 in r25). More leaves = more overfitting in LGBM at this dataset size. LGBM capacity increase is a dead end. Consecutive discards=1 (after C2 resolve).
+
+## Round 38
+
+commit: (rolled back — 9b8d5e9b888d9c343210cd756c546954c540e4cc)
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+val_lift_1pct: 23.088589
+delta_vs_best: -0.085831
+bootstrap_ci_lo: 22.084
+bootstrap_ci_hi: 24.049
+bootstrap_se: 0.5012
+
+### Tool outputs
+- anomaly: not fired — 23.089 within expected range
+- bootstrap_ci: metric=23.0886 ci=[22.084, 24.049] se=0.5012 n_boot=1000
+
+weights: LGBM_h=0.050 LGBM_t=0.020 LGBM_e=0.091 CB_h=0.169 CB_t=0.205 XGB_h=0.387 XGB_t=0.077
+review_note: A_diagnose: LGBM_hybrid trained on 5:1 downsampled subset (276K rows: all 46K positives + 230K randomly sampled negatives, vs standard 10:1 = 508K). Hypothesis: reducing class imbalance makes LGBM_hybrid individually stronger and changes its prediction distribution to be less correlated with XGB. Result: LGBM_hybrid individually BEST EVER at 22.385 (vs 22.162 standard), but ensemble 23.089 < 23.174. LGBM_h weight barely moved: 0.050 vs 0.046 (r25). The improved individual LGBM predictions are still correlated with XGB top-1% — changing the training distribution does not change the algorithmic similarity. Root cause: LGBM and XGB are both leaf-wise gradient boosters; their prediction manifolds are structurally correlated regardless of training data. No training-data manipulation can decouple them. Consecutive discards=2.
