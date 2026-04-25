@@ -773,3 +773,19 @@ bootstrap_se: 0.5033
 weights: LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
 c3_advisory: target_gap=0.826 < 2×SE=1.006 — measurement uncertainty overlaps the target (manually assessed; PROBLEM_CONTRACT success_criteria placeholder 4.5 prevents auto-detection)
 review_note: A_diagnose post-C2: reproduce r25 champion after rounds 37-39 (LGBM 255 leaves, LGBM 5:1 downsample, ET 8th model). Result: exact reproduction 23.174420, weights identical: LGBM_h=0.046 CB_h=0.184 XGB_h=0.456. Ceiling is STABLE across C2 intervention. Bootstrap CI [22.09, 24.10], SE=0.503 — same as r25 and r29. C3 advisory (manual): target gap 0.826 < 2×SE=1.006. The measurement noise makes the 24.0 target statistically indistinguishable from 23.174. c2_pending_diagnose cleared. Consecutive discards=1 (after C2 resolve). Budget: 60 rounds remaining.
+
+## Round 41
+
+commit: (rolled back — fc9ccf2f0f413c33b0c9603d89bd800832e00d90)
+verdict: discard
+action_type: A_hp
+model_family: ensemble
+val_lift_1pct: 23.105755
+delta_vs_best: -0.068645
+bootstrap_ci_lo: n/a
+bootstrap_ci_hi: n/a
+bootstrap_se: n/a
+
+weights: LGBM_h=0.055 LGBM_t=0.023 LGBM_e=0.087 CB_h=0.180 CB_t=0.180 XGB_h=0.376 XGB_t=0.098
+LGBM_hybrid individual: 22.230 (iter=276, up from 22.162 at iter=170 standard)
+review_note: A_hp: LGBM_hybrid colsample_bytree=0.5 (from 0.8). LGBM_hybrid individually improved (+0.068, 276 vs 170 iterations — more trees with fewer features per tree). But XGB_h weight dropped from 0.456 to 0.376 → ensemble degraded to 23.106. Pattern: any change that makes LGBM_hybrid stronger takes weight budget away from XGB, which is the dominant ensemble driver. Weight redistribution is a zero-sum game — LGBM gaining 0.009 weight (0.046→0.055) costs XGB 0.080 (0.456→0.376). Dead end: LGBM_hybrid colsample_bytree reduction. Consecutive discards=2.
