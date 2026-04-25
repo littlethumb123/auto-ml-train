@@ -733,3 +733,23 @@ bootstrap_se: 0.5012
 
 weights: LGBM_h=0.050 LGBM_t=0.020 LGBM_e=0.091 CB_h=0.169 CB_t=0.205 XGB_h=0.387 XGB_t=0.077
 review_note: A_diagnose: LGBM_hybrid trained on 5:1 downsampled subset (276K rows: all 46K positives + 230K randomly sampled negatives, vs standard 10:1 = 508K). Hypothesis: reducing class imbalance makes LGBM_hybrid individually stronger and changes its prediction distribution to be less correlated with XGB. Result: LGBM_hybrid individually BEST EVER at 22.385 (vs 22.162 standard), but ensemble 23.089 < 23.174. LGBM_h weight barely moved: 0.050 vs 0.046 (r25). The improved individual LGBM predictions are still correlated with XGB top-1% — changing the training distribution does not change the algorithmic similarity. Root cause: LGBM and XGB are both leaf-wise gradient boosters; their prediction manifolds are structurally correlated regardless of training data. No training-data manipulation can decouple them. Consecutive discards=2.
+
+## Round 39
+
+commit: (rolled back — e434d9ee409676918e4886d3cc16b7a17d4ec59d)
+verdict: discard
+action_type: A_model
+model_family: ensemble
+val_lift_1pct: 22.848262
+delta_vs_best: -0.325958
+bootstrap_ci_lo: n/a
+bootstrap_ci_hi: n/a
+bootstrap_se: n/a
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: not run (discard, below threshold)
+
+weights (8-model): LGBM_h=0.053 LGBM_t=0.071 LGBM_e=0.070 CB_h=0.021 CB_t=0.160 XGB_h=0.249 XGB_t=0.323 ET_h=0.054
+ET_hybrid individual: lift@1%=18.934
+review_note: A_model: ExtraTreesClassifier (n=200, max_depth=8, balanced) as 8th base model on hybrid features. ET individually weak: 18.934. ET_h weight: 0.054 (marginal). Critical failure mode: adding ET diluted XGB concentration — CB_h collapsed to 0.021 (was 0.184 in r25) and XGB_h split to 0.249 (was 0.456). Ensemble degraded to 22.848. XGB also got fewer Optuna trials (20 vs typical) due to 526s elapsed before Optuna start (ET not the cause — CB models slow). Root cause: the 8-model weight budget spread too thin, disrupting the r25 balance. Dead end: adding non-gradient-based 8th models dilutes the concentrated XGB weight that drives r25's complementarity. Consecutive discards=3 → C2 triggered. C2 resolved: next must be A_diagnose.
