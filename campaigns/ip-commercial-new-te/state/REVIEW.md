@@ -696,3 +696,21 @@ bootstrap_se: 0.4949
 - bootstrap_ci: metric=23.0543 ci=[22.0556, 23.9714] se=0.4949 n_boot=1000
 
 review_note: A_diagnose post-C2: CatBoost Lossguide (asymmetric leaf-wise growth, max_leaves=64, min_data_in_leaf=30, score_function=Cosine) for CB_hybrid and CB_tabular. CB improvements: hybrid +0.034 (22.076 vs 22.041), tabular +0.206 (21.355 vs 21.149). BUT ensemble WORSE: 23.054 vs 23.174. Weights redistributed dramatically: XGB_h=0.262, XGB_t=0.256 (was XGB_h=0.456) — Lossguide CB is more similar to LGBM (both leaf-wise), reducing CB's unique predictive contribution and causing weight dilution. Lossguide is NOT the solution. 23.174 ceiling persists. Consecutive discards=4.
+
+## Round 37
+
+commit: 23a0834accce618051707a7ade18064a6ab2cb0d
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+val_lift_1pct: 23.019924
+delta_vs_best: -0.154496
+bootstrap_ci_lo: 21.998859
+bootstrap_ci_hi: 23.962865
+bootstrap_se: 0.5060
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=23.0199 ci=[21.9989, 23.9629] se=0.5060 n_boot=1000
+
+review_note: A_diagnose post-C2: LGBM_hybrid num_leaves=255 (from 127). Result: LGBM_hybrid individually WORSE — 21.853 vs 22.162 (iter=158 vs 170; deeper trees overfit earlier → earlier stopping). Ensemble: 23.019 < 23.174. LGBM_h got more weight (0.130 vs 0.046) but individual weakness offset the gain. XGB weight split: XGB_h=0.226, XGB_t=0.288 (was XGB_h=0.456 in r25). More leaves = more overfitting in LGBM at this dataset size. LGBM capacity increase is a dead end. Consecutive discards=1 (after C2 resolve).

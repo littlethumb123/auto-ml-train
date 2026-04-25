@@ -470,3 +470,19 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Lossguide CB improved individual CB models (CB_hybrid: +0.034, CB_tabular: +0.206) but the ensemble is WORSE (23.054 vs 23.174). Root cause: Lossguide (leaf-wise) makes CB more similar to LGBM (also leaf-wise) → reduces CB's unique complementarity → ensemble weights redistribute with XGB split between h and t (0.262+0.256 instead of single 0.456). The 23.174 ceiling survives CB architecture change. Base-model ceiling confirmed for both symmetric and asymmetric CatBoost.
 
 ---
+
+## Round 37 — 2026-04-25
+
+**Action:** A_diagnose — LGBM_hybrid num_leaves=255 (from 127) to make predictions less correlated with XGB
+**Trigger:** C2 resolution (consecutive_discards=4 after rounds 33-36); c2_pending_diagnose; test if LGBM architecture change increases its ensemble weight
+**Alternatives rejected:**
+- CB architecture: r36 proved Lossguide hurts ensemble by making CB more similar to LGBM
+- XGB HP variants: exhausted; r32/r35 proved ceiling is base-model property
+
+**Expected Δ (lift@1%):** +0.1 to +0.3 (deeper LGBM → different prediction manifold → more ensemble complementarity)
+**Actual val_lift_1pct:** 23.019 (Δ = **-0.155**)
+**Verdict:** discard
+
+**Key finding:** LGBM_hybrid with num_leaves=255 is individually WEAKER (21.853 vs 22.162 at 127 leaves, iter=158 vs 170). More leaves → faster overfitting → earlier stopping. LGBM_h weight increased from 0.046 to 0.130 (predictions more different from other models) but the individual weakness negated the gain. LGBM complexity increase is a dead end. The LGBM_hybrid ceiling at num_leaves=127 is not a capacity limit but a data limit: 508K training rows don't support >127 leaves at this learning rate.
+
+---
