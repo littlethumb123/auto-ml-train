@@ -49,6 +49,7 @@ Check every condition below that is true. Earlier rows take precedence. The firs
 | consecutive_discards ≥ 3 | A_diagnose before any structural change. See §3.7. |
 | Target gap ≤ 2× bootstrap_se | Measurement bottleneck. Trigger C3 to upgrade CV scheme. |
 | Individually tuned, complementary models available | A_ensemble via tools/stacking (logistic meta-learner). |
+| All trigger table entries above have been attempted AND the last 5 rounds produced Δ < noise_floor (stuck in pure exploitation) | **Novelty forcing: select a technique class from `state/UNEXPLORED_TECHNIQUES.md` with Status=Unexplored AND Expected Δ > noise_floor.** Do NOT propose a variant of any technique class already in results.tsv. This trigger overrides all earlier rows when active — exploitation has exhausted the current search space and breadth is now higher ROI than depth. |
 
 ### Pre-selection reasoning (required)
 
