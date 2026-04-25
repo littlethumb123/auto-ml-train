@@ -539,3 +539,21 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** 23.174 ceiling is STABLE — reproduced exactly across multiple C2 interventions (r29, r32, r35, r40 all reproduce same value and weights). This is an exceptionally robust local optimum. The target gap analysis: 24.0 - 23.174 = 0.826 < 2×SE=1.006 → C3 advisory (measurement uncertainty overlaps target). **Strategic summary at round 40:** After 15 discards since the r25 champion, the ceiling is definitively confirmed as a base-model property. Remaining directions with non-zero expected Δ: (a) monotonic constraints on clinical features, (b) LGBM with colsample_bytree=0.5, (c) XGB on embedding-only features with separate Optuna, (d) fundamentally different feature engineering (interaction features, polynomial, PCA on embeddings). Budget: 60 rounds remaining (40% used).
 
 ---
+
+## Round 41 — 2026-04-25
+
+**Action:** A_hp — LGBM_hybrid colsample_bytree=0.5 (from 0.8), all other params unchanged
+**Trigger:** consecutive_discards=1 post-C2; colsample reduction is the cheapest unexplored LGBM tweak with theoretical basis
+**Alternatives rejected:**
+- LGBM num_leaves changes: r37 proved capacity increase hurts; capacity decrease untested but likely also hurts
+- Feature additions: r33 risk of Optuna destabilization; ER×IP r31 dead end
+
+**Expected Δ (lift@1%):** +0.0 to +0.2 (more random trees → different prediction manifold)
+**Actual val_lift_1pct:** 23.106 (Δ = **-0.069**)
+**LGBM_hybrid individual:** 22.230 (improved! +0.068, 276 iterations vs 170 standard)
+**Weights:** LGBM_h=0.055 LGBM_t=0.023 LGBM_e=0.087 CB_h=0.180 CB_t=0.180 XGB_h=0.376 XGB_t=0.098
+**Verdict:** discard
+
+**Key finding:** LGBM_hybrid with colsample_bytree=0.5 is individually stronger (22.230 vs 22.162, +0.068) and runs more iterations (276 vs 170 — smaller per-tree feature subset slows overfitting). But XGB_h weight dropped from 0.456 to 0.376 → ensemble degraded. **Core insight confirmed again:** Weight optimization is zero-sum. Improving LGBM predictions doesn't increase the ensemble ceiling if it simultaneously reduces XGB's dominant weight. The r25 optimum is a saddle point where XGB's 0.456 weight is the load-bearing column. Any change to LGBM that shifts weight away from XGB degrades the total. Consecutive discards=2.
+
+---
