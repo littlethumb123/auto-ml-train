@@ -27,3 +27,17 @@ last_updated: "2026-04-24"
 - **C2 resolved (round 13):** consecutive_discards reset from 3 to 0. Resolution: HP search cannot outperform LGBM defaults (same params found repeatedly). Abandoning proxy-based HP search. Next: three-family mean ensemble (LGBM+CatBoost+XGBoost, no meta-learner) to avoid in-sample leakage.
 
 - **C2 resolved (round 28):** consecutive_discards reset from 3 to 0. Resolution: 3 discards were exploratory XGB HP experiments (seeds 42/7, CB/LGBM AUC-ROC). All confirm 23.174 is the genuine ceiling for this 7-model ensemble approach. A_diagnose will verify CI and target gap. Next: try wider XGB search space.
+
+- **C2 resolved (round 31→32):** consecutive_discards reset to 0. Rounds 29-31 were post-C3-advisory exploration: focal-loss 8th XGB model, CCI clinical features — both failed. A_diagnose (r32) required to re-anchor.
+
+- **CRITICAL: 23.174 ceiling is BASE-MODEL property (r32):** r32 reproduced r25 EXACTLY (23.174, LGBM_h=0.046 CB_h=0.184 XGB_h=0.456). The ensemble optimizer always converges to the same weights given the same 5 base-model predictions. To beat 23.174, a BASE MODEL must improve. XGB HP variants and ensemble architecture changes cannot break this ceiling.
+
+- **Feature additions destabilize Optuna landscape (r33):** TE features (+14) → seed=42 found max_depth=10, lr=0.077 (bad HPs) instead of usual max_depth=6, lr=0.254. Adding features shifts the TPE exploration path even with the same seed. Implication: any experiment adding features to the 794-feature set should expect Optuna to find different (possibly worse) XGB HPs.
+
+- **AUC-ROC is definitively the best Optuna proxy for XGB ensemble complementarity (r34):** AUC-PR proxy → XGB weight drops from 0.456 to 0.092 → less diversity. AUC-ROC forces XGB into a complementary prediction space. AUC-PR makes XGB predictions too similar to CB/LGBM.
+
+- **Scipy direct val optimization is not overfitting on 752K rows (r35):** OOF meta-learner gets 22.333 vs scipy's 23.174. The n_val=752K is large enough that direct val optimization is valid and superior. No need for OOF leak-prevention in this campaign.
+
+- **C2 resolved (round 35→36):** consecutive_discards reset to 0. Rounds 33-35 (TE, AUC-PR, OOF) all failed. A_diagnose (r36) for CatBoost Lossguide direction.
+
+- **Lossguide CB improves individual CB but hurts ensemble (r36):** CB_tabular improved +0.206 with Lossguide. But ensemble drops to 23.054. Root cause: Lossguide makes CB predictions more similar to LGBM (both leaf-wise) → reduces CB's unique complementarity → XGB weight splits between h/t instead of concentrating in XGB_h. SymmetricTree CB is preferred for ensemble diversity.

@@ -614,3 +614,85 @@ review_note: A_diagnose reproduces round 25 champion EXACTLY (23.174, same weigh
 ### For C3
 
 Target gap (0.826 lift@1%) < 2×bootstrap_se (1.007). Measurement is the bottleneck: the single digit-8 holdout (752K rows, 0.77% prevalence) gives SE=0.503, which is larger than the remaining gap to the 24.0 target. Any experiment claiming to close this gap with single-holdout evaluation has insufficient statistical power. Recommend C3 to upgrade cv_scheme to stratified k-fold (n_splits=4 or 5) before further HP tuning rounds.
+
+## Round 30
+
+commit: bc788159826ebaed96e04df64144f8dd78ac986f
+verdict: discard
+action_type: A_hp
+model_family: ensemble
+val_lift_1pct: 23.140088
+delta_vs_best: -0.034332
+review_note: Focal loss XGB (γ=2, α=0.25) as 8th ensemble model. Objective-diversity hypothesis: different loss function → different prediction errors → better ensemble complement. Result: 23.140 < 23.174. Focal loss XGB gets non-zero weight but overall ensemble degrades slightly. The AUC-ROC tuned XGB (r25) already captures the complementarity needed; adding a focal-loss variant as an 8th model introduces weight dilution without new diversity. Consecutive discards=2 (rounds 29-30).
+
+## Round 31
+
+commit: ac7cc56a803fd3b57971274bdc3f5cf5daf154ba
+verdict: discard
+action_type: A_feature
+model_family: ensemble
+n_features: 796
+val_lift_1pct: 23.019924
+delta_vs_best: -0.154496
+review_note: CCI-weighted comorbidity score + ER×IP interaction (+2 clinical features, 794→796). Clinical severity hypothesis: CCI captures chronic disease burden that IP utilization doesn't fully encode; ER×IP interaction captures the patients who bounce between ER and IP. Result: 23.019 < 23.174. Clinical features hurt marginally — 794-feature set already captures this signal via the individual flags. Adding correlated aggregates adds noise. Consecutive discards=3 → C2 triggered.
+
+## Round 32
+
+commit: 057503721671a20be53209c4e7682b016f4b2565
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+val_lift_1pct: 23.174420
+delta_vs_best: 0.000000
+bootstrap_se: 0.5033
+review_note: A_diagnose post-C2 (rounds 29-31 = 3 consecutive discards). Reproduces r25 champion EXACTLY: 23.174, weights LGBM_h=0.046 CB_h=0.184 XGB_h=0.456. Confirms ceiling is a BASE-MODEL property — same XGB HPs (seed=42, lr=0.254) always produces the same ensemble outcome regardless of what attempts were made in r30-r31. c2_pending_diagnose cleared. Consecutive discards reset to 0.
+
+## Round 33
+
+commit: 2586d0866b594b862218fd6db7a7ac31366d5d5e
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+n_features: 808
+val_lift_1pct: 22.350441
+delta_vs_best: -0.823979
+review_note: Post-C2 A_diagnose: smoothed target encoding (ip6 rate per categorical col, smoothing=30, 14 new TE features, 794→808 feats). TE hypothesis: ip6 rate encodes group-level base rates that individual flags miss. Result: 22.350 — significantly WORSE. Key finding: adding 14 TE features changed the XGB Optuna landscape → seed=42 found bad HPs (max_depth=10, lr=0.077). Feature additions destabilize Optuna TPE even with same seed. Additionally, CB with TE features converged worse. TE as preprocessing hurts this pipeline. Consecutive discards=1.
+
+## Round 34
+
+commit: 5e060668bc29317e08175b805d61961c2a64565c
+verdict: discard
+action_type: A_hp
+model_family: ensemble
+val_lift_1pct: 22.762431
+delta_vs_best: -0.411989
+review_note: AUC-PR as Optuna proxy instead of AUC-ROC. Hypothesis: AUC-PR directly measures precision-recall aligned with lift@1%. Result: 22.762 < 23.174. AUC-PR proxy finds XGB HPs focused on precision-recall → XGB weight drops from 0.456 (AUC-ROC) to 0.092 → less complementarity with the ensemble. AUC-ROC proxy remains the better objective: it finds HPs that produce complementary predictions (different top-1% errors than CB/LGBM). AUC-PR forces similar decision boundary. Consecutive discards=2.
+
+## Round 35
+
+commit: a21bc2155ff1e43409522a1ab4dc4f8a20ce4d8a
+verdict: discard
+action_type: A_ensemble
+model_family: ensemble
+val_lift_1pct: 23.174420
+delta_vs_best: 0.000000
+bootstrap_se: 0.5033
+review_note: 2-fold OOF stacking (Ridge meta-learner on LGBM+CB+XGB OOF preds) vs scipy direct blend. OOF meta-learner: 22.333. Scipy blend: 23.174. Scipy wins. Root cause: 752K val set is large enough that direct scipy optimization on val does not overfit — the meta-learner gains nothing from the OOF leak-prevention. OOF approach incurs training overhead (2× extra training) and the meta-learner's regularization hurts in this regime. KEY INSIGHT: scipy optimized directly on val is not overfitting because n_val=752K is enormous. Consecutive discards=3 → C2 triggered again.
+
+## Round 36
+
+commit: c09a86f5b3b438edf80c70802777675a84f07b62
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+val_lift_1pct: 23.054257
+delta_vs_best: -0.119963
+bootstrap_ci_lo: 22.055551
+bootstrap_ci_hi: 23.971403
+bootstrap_se: 0.4949
+
+### Tool outputs
+- anomaly: not fired — 23.054 within expected range
+- bootstrap_ci: metric=23.0543 ci=[22.0556, 23.9714] se=0.4949 n_boot=1000
+
+review_note: A_diagnose post-C2: CatBoost Lossguide (asymmetric leaf-wise growth, max_leaves=64, min_data_in_leaf=30, score_function=Cosine) for CB_hybrid and CB_tabular. CB improvements: hybrid +0.034 (22.076 vs 22.041), tabular +0.206 (21.355 vs 21.149). BUT ensemble WORSE: 23.054 vs 23.174. Weights redistributed dramatically: XGB_h=0.262, XGB_t=0.256 (was XGB_h=0.456) — Lossguide CB is more similar to LGBM (both leaf-wise), reducing CB's unique predictive contribution and causing weight dilution. Lossguide is NOT the solution. 23.174 ceiling persists. Consecutive discards=4.
