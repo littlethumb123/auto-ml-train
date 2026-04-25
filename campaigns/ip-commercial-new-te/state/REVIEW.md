@@ -753,3 +753,23 @@ bootstrap_se: n/a
 weights (8-model): LGBM_h=0.053 LGBM_t=0.071 LGBM_e=0.070 CB_h=0.021 CB_t=0.160 XGB_h=0.249 XGB_t=0.323 ET_h=0.054
 ET_hybrid individual: lift@1%=18.934
 review_note: A_model: ExtraTreesClassifier (n=200, max_depth=8, balanced) as 8th base model on hybrid features. ET individually weak: 18.934. ET_h weight: 0.054 (marginal). Critical failure mode: adding ET diluted XGB concentration — CB_h collapsed to 0.021 (was 0.184 in r25) and XGB_h split to 0.249 (was 0.456). Ensemble degraded to 22.848. XGB also got fewer Optuna trials (20 vs typical) due to 526s elapsed before Optuna start (ET not the cause — CB models slow). Root cause: the 8-model weight budget spread too thin, disrupting the r25 balance. Dead end: adding non-gradient-based 8th models dilutes the concentrated XGB weight that drives r25's complementarity. Consecutive discards=3 → C2 triggered. C2 resolved: next must be A_diagnose.
+
+## Round 40
+
+commit: (rolled back — bc901f20083b369c3d1fcf596634cf6ef76eb537)
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+val_lift_1pct: 23.174420
+delta_vs_best: 0.000000
+bootstrap_ci_lo: 22.091923
+bootstrap_ci_hi: 24.101141
+bootstrap_se: 0.5033
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=23.1744 ci=[22.0919, 24.1011] se=0.5033 n_boot=1000
+
+weights: LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
+c3_advisory: target_gap=0.826 < 2×SE=1.006 — measurement uncertainty overlaps the target (manually assessed; PROBLEM_CONTRACT success_criteria placeholder 4.5 prevents auto-detection)
+review_note: A_diagnose post-C2: reproduce r25 champion after rounds 37-39 (LGBM 255 leaves, LGBM 5:1 downsample, ET 8th model). Result: exact reproduction 23.174420, weights identical: LGBM_h=0.046 CB_h=0.184 XGB_h=0.456. Ceiling is STABLE across C2 intervention. Bootstrap CI [22.09, 24.10], SE=0.503 — same as r25 and r29. C3 advisory (manual): target gap 0.826 < 2×SE=1.006. The measurement noise makes the 24.0 target statistically indistinguishable from 23.174. c2_pending_diagnose cleared. Consecutive discards=1 (after C2 resolve). Budget: 60 rounds remaining.

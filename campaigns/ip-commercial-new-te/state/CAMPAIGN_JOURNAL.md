@@ -523,3 +523,19 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** Adding ET as 8th model DEGRADED the ensemble (22.848 vs 23.174). The failure mechanism was unexpected: CB_h weight collapsed to 0.021 (was 0.184 in r25). The 8-model weight budget spread the optimization across more parameters, disrupting the tight CB/XGB balance that generated 23.174. Furthermore, XGB Optuna only ran 20 trials (same seed=42 params were found but at sub-optimal budget). **Lesson: the 7-model balance in r25 is fragile — adding an 8th model dilutes the weight concentration even if the 8th model has "complementary" predictions.** To beat 23.174 by adding a model, the 8th model must have SUCH strong lift@1% that it forces a non-trivial weight assignment. ET at 18.934 individual is far too weak. C2 triggered (rounds 37-39 all discard). Next: A_diagnose to verify ceiling persists.
 
 ---
+
+## Round 40 — 2026-04-25
+
+**Action:** A_diagnose — Reproduce r25 champion to verify ceiling after rounds 37-39 exhausted LGBM/ET directions
+**Trigger:** c2_pending_diagnose=True (mandatory after C2 trigger in r39)
+**Alternatives rejected:** None — A_diagnose is mandatory per c2_pending_diagnose protocol
+
+**Expected Δ (lift@1%):** ~0 (diagnostic)
+**Actual val_lift_1pct:** 23.174 (Δ = 0.000 — exact reproduction)
+**Weights:** LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
+**Bootstrap CI:** [22.09, 24.10], SE=0.503
+**Verdict:** discard
+
+**Key finding:** 23.174 ceiling is STABLE — reproduced exactly across multiple C2 interventions (r29, r32, r35, r40 all reproduce same value and weights). This is an exceptionally robust local optimum. The target gap analysis: 24.0 - 23.174 = 0.826 < 2×SE=1.006 → C3 advisory (measurement uncertainty overlaps target). **Strategic summary at round 40:** After 15 discards since the r25 champion, the ceiling is definitively confirmed as a base-model property. Remaining directions with non-zero expected Δ: (a) monotonic constraints on clinical features, (b) LGBM with colsample_bytree=0.5, (c) XGB on embedding-only features with separate Optuna, (d) fundamentally different feature engineering (interaction features, polynomial, PCA on embeddings). Budget: 60 rounds remaining (40% used).
+
+---
