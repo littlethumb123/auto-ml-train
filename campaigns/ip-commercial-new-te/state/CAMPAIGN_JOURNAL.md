@@ -505,3 +505,21 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** 5:1 downsampling makes LGBM individually stronger (best ever: 22.385) but the ensemble is WORSE (23.089 < 23.174). LGBM_h weight barely changed: 0.050 vs 0.046 (r25). Conclusion: changing the training distribution does not change the algorithmic similarity between LGBM and XGB. Both are leaf-wise gradient boosters — their top-1% predictions overlap regardless of what data they train on. The structural correlation is baked into the algorithm, not the training data. **No training-data manipulation can make LGBM predictions complementary with XGB.** To get a 7th meaningfully complementary model, it must be algorithmically different (e.g., neural network, random forest with very different hyperparameters, or a completely different model family).
 
 ---
+
+## Round 39 — 2026-04-25
+
+**Action:** A_model — ExtraTreesClassifier (n=200, max_depth=8, balanced) as 8th base model on hybrid features
+**Trigger:** consecutive_discards=2; hypothesis: ET is not gradient-based (random threshold selection) → predictions structurally different from all existing 7 models
+**Alternatives rejected:**
+- LGBM variants: r37 (num_leaves=255) and r38 (5:1 downsampling) exhausted the LGBM space; algorithmic correlation with XGB persists regardless of training configuration
+- CB architecture: r36 proved Lossguide makes CB more similar to LGBM
+
+**Expected Δ (lift@1%):** +0.1 to +0.4 (non-gradient-based diversity → new complementarity)
+**Actual val_lift_1pct:** 22.848 (Δ = **-0.326**)
+**ET individual:** 18.934 (weak — expected; ET is a high-variance model without boosting)
+**Weights (8-model):** LGBM_h=0.053 LGBM_t=0.071 LGBM_e=0.070 CB_h=0.021 CB_t=0.160 XGB_h=0.249 XGB_t=0.323 ET_h=0.054
+**Verdict:** discard → consecutive_discards=3 → C2 triggered
+
+**Key finding:** Adding ET as 8th model DEGRADED the ensemble (22.848 vs 23.174). The failure mechanism was unexpected: CB_h weight collapsed to 0.021 (was 0.184 in r25). The 8-model weight budget spread the optimization across more parameters, disrupting the tight CB/XGB balance that generated 23.174. Furthermore, XGB Optuna only ran 20 trials (same seed=42 params were found but at sub-optimal budget). **Lesson: the 7-model balance in r25 is fragile — adding an 8th model dilutes the weight concentration even if the 8th model has "complementary" predictions.** To beat 23.174 by adding a model, the 8th model must have SUCH strong lift@1% that it forces a non-trivial weight assignment. ET at 18.934 individual is far too weak. C2 triggered (rounds 37-39 all discard). Next: A_diagnose to verify ceiling persists.
+
+---

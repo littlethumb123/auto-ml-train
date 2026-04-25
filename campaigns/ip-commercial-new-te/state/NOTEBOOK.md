@@ -41,3 +41,7 @@ last_updated: "2026-04-24"
 - **C2 resolved (round 35→36):** consecutive_discards reset to 0. Rounds 33-35 (TE, AUC-PR, OOF) all failed. A_diagnose (r36) for CatBoost Lossguide direction.
 
 - **Lossguide CB improves individual CB but hurts ensemble (r36):** CB_tabular improved +0.206 with Lossguide. But ensemble drops to 23.054. Root cause: Lossguide makes CB predictions more similar to LGBM (both leaf-wise) → reduces CB's unique complementarity → XGB weight splits between h/t instead of concentrating in XGB_h. SymmetricTree CB is preferred for ensemble diversity.
+
+- **C2 resolved (round 39):** consecutive_discards reset from 3 to 0. Rounds 37-39 (LGBM 255 leaves, LGBM 5:1 downsampling, ET 8th model) all failed. Resolution: switching from LGBM/ET variants to A_diagnose to re-anchor ceiling, then explore different directions (e.g., new XGB seed variant on embedding-only features, or different feature subsets for base models).
+
+- **Adding weak 8th model disrupts 7-model balance (r39):** ET (18.934 individual) gets 0.054 weight but CB_h collapses from 0.184 to 0.021. The r25 7-model balance is a local optimum in weight space — any 8th model with marginal weight shifts the entire weight distribution. An 8th model must have individual lift@1% > ~22.0 to justify the expansion. Weak models as 8th entries are worse than doing nothing.
