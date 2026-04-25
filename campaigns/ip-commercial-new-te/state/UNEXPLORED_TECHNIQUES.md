@@ -2,7 +2,7 @@
 schema_version: 2
 campaign_id: "ip-commercial-new-te"
 purpose: "Comprehensive ML technique toolkit — exhaustive catalog of strategies used by Kaggle grandmasters and experienced MLEs. Planner reads every round and must justify skipping any Unexplored class with Expected Δ > noise_floor when consecutive_discards ≥ 2."
-last_updated: "2026-04-25"
+last_updated: "2026-04-25 (rev2: added imbalanced-learn umbrella note, hill climbing implementation, diverse-base-model strategy principle, training-objectives diversity entry)"
 sources: "Kaggle Grandmasters Playbook (NVIDIA), neptune.ai binary classification tips, MLAgentBench, standard MLE practice"
 ---
 
@@ -111,6 +111,8 @@ sources: "Kaggle Grandmasters Playbook (NVIDIA), neptune.ai binary classificatio
 
 ## C. Re-imbalancing (~0.77% positive rate)
 
+> **Library:** All data-level techniques below are available in the `imbalanced-learn` package (`pip install imbalanced-learn`). Import pattern: `from imblearn.over_sampling import ADASYN, BorderlineSMOTE, SMOTENC` / `from imblearn.under_sampling import TomekLinks, NearMiss` / `from imblearn.combine import SMOTEENN, SMOTETomek`. Apply **after** `get_splits()` and **before** model training. Do NOT modify `prepare.py`.
+
 ### C1. Data-Level Oversampling
 
 | Technique | Status | Expected Δ lift@1% | Notes |
@@ -217,7 +219,7 @@ sources: "Kaggle Grandmasters Playbook (NVIDIA), neptune.ai binary classificatio
 
 | Technique | Status | Expected Δ lift@1% | Notes |
 |---|---|---|---|
-| Hill climbing (greedy model addition) | **Unexplored** | 0.1–0.3 | Start with best model, greedily add others that improve val metric; standard Kaggle technique |
+| Hill climbing (greedy model addition) | **Unexplored** | 0.1–0.3 | Start with best single model; at each step, try adding each remaining model (with equal weights or re-optimized weights) and keep the addition only if val lift@1% improves; repeat until no model adds value. Implementation: score all 7 existing models individually, then greedily expand the ensemble. This selects a subset with diversity > marginal cost, often outperforming all-model ensembles. |
 | Power averaging (geometric mean of probabilities) | **Unexplored** | 0.0–0.2 | p_ensemble = (p1 × p2 × ... × pN)^(1/N); better than arithmetic mean for calibrated probs |
 | Rank averaging (average percentile ranks, not probabilities) | **Unexplored** | 0.0–0.2 | Robust to calibration differences between models; often used when models have different scales |
 | Multiple seed averaging (same model, k different seeds) | **Unexplored** | 0.1–0.2 | Train same architecture with 5+ random seeds; average reduces variance without adding models |
@@ -235,11 +237,15 @@ sources: "Kaggle Grandmasters Playbook (NVIDIA), neptune.ai binary classificatio
 
 ### F3. Diversity-Driven Ensemble
 
+> **Principle:** Ensemble error = bias² + variance. Diversity (low pairwise prediction correlation) reduces variance. The three axes of diversity are: **data** (different subsets/windows), **architecture** (different model families and objectives), **features** (different views of the same data). Intentional diversity along all three axes produces ensembles that outperform any single model even when individual members are weaker.
+
 | Technique | Status | Expected Δ lift@1% | Notes |
 |---|---|---|---|
+| Diverse base model strategy (intentional multi-axis diversity) | **Unexplored** | 0.2–0.5 | Explicitly build models that differ across 3 axes: (1) architecture — CB/LGBM/XGB (different tree-split logic), (2) objective — log-loss vs focal loss vs AUC-PR, (3) training view — tabular-only vs hybrid vs embedding-only. Models that disagree on hard cases are the highest-value ensemble members. Measure pairwise prediction rank correlation (Spearman) — pairs with ρ < 0.85 are worth keeping together. |
 | Model trained on different temporal windows | **Unexplored** | 0.1–0.3 | Train one model on 2024-11 to 2025-03, another on 2025-01 to 2025-06; temporal diversity |
 | Model trained on different feature subsets (random) | **Unexplored** | 0.0–0.2 | Column subsampling at model level (not tree level); adds structural diversity |
 | Models with different downsampling ratios in ensemble | **Unexplored** | 0.1–0.3 | One model at 5:1, one at 10:1, one at 20:1; different recall/precision tradeoffs |
+| Models with different training objectives in ensemble | **Unexplored** | 0.1–0.4 | Ensemble one model trained with log-loss, one with focal loss (γ=2), one with AUC-PR objective; each finds a different region of the score space; their union covers more positives in top 1% |
 
 ---
 
