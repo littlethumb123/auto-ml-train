@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-count: 8
+count: 9
 last_updated: "2026-04-25"
 ---
 
@@ -14,4 +14,5 @@ last_updated: "2026-04-25"
 - **AUC-PR as Optuna proxy:** Finds XGB HPs that reduce ensemble complementarity (XGB weight drops to 0.092 vs 0.456 with AUC-ROC). AUC-ROC proxy is definitively superior for this ensemble. (r34)
 - **OOF stacking with Ridge meta-learner:** 752K val rows are large enough that scipy direct optimization does not overfit. OOF meta-learner gets 22.333 vs scipy's 23.174. OOF is strictly worse here. (r35)
 - **CatBoost Lossguide grow_policy:** Individual CB models improve but ensemble degrades (23.054 vs 23.174). Lossguide makes CB more similar to LGBM (both leaf-wise), reducing CB's unique complementarity. SymmetricTree CB provides better ensemble diversity. (r36)
+- **LGBM num_leaves increase (127→255):** More leaves causes faster overfitting → earlier stopping → WEAKER individual model (21.853 vs 22.162). 508K train rows do not support >127 leaves at lr=0.05. Increasing LGBM capacity hurts. (r37)
 - **Any HP tuning or ensemble architecture change while keeping 5 base models fixed:** r32 and r35 both prove that 23.174 is a hard property of the 5 base-model predictions (LGBM_h, LGBM_t, LGBM_e, CB_h, CB_t). To beat 23.174, a base model must produce fundamentally different predictions.
