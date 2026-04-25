@@ -11,6 +11,7 @@ You are running an autonomous ML experiment campaign. **Read this file first, th
 - History: `runner/state/results.tsv`, `runner/state/REVIEW.md`
 - Memory: `runner/state/DEAD_ENDS.md`, `runner/state/NOTEBOOK.md`
 - Retrospective: `runner/state/CAMPAIGN_JOURNAL.md` — planned reasoning vs actual outcome per round
+- Exploration frontier: `runner/state/UNEXPLORED_TECHNIQUES.md` — technique classes not yet tried (Planner reads every round; mandatory when consecutive_discards ≥ 2)
 - Priors (cross-campaign): `runner/contracts/PRIORS.md`
 
 ## 1. Your role for this turn

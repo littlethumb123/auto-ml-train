@@ -11,6 +11,7 @@ You are running an autonomous ML experiment campaign for commercial inpatient (I
 - History: `campaigns/ip-commercial-new-te/state/results.tsv`, `campaigns/ip-commercial-new-te/state/REVIEW.md`
 - Memory: `campaigns/ip-commercial-new-te/state/DEAD_ENDS.md`, `campaigns/ip-commercial-new-te/state/NOTEBOOK.md`
 - Retrospective: `campaigns/ip-commercial-new-te/state/CAMPAIGN_JOURNAL.md` — planned reasoning vs actual outcome per round (Reviewer-owned, appended every round)
+- Exploration frontier: `campaigns/ip-commercial-new-te/state/UNEXPLORED_TECHNIQUES.md` — technique classes not yet tried, with Expected Δ estimates (Planner reads every round; mandatory check when consecutive_discards ≥ 2)
 - Priors: `campaigns/ip-commercial-new-te/contracts/PRIORS.md`
 
 **Primary metric:** `val_lift_1pct` (lift at top 1% of scored members — see EVAL_PROTOCOL.md).
