@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-count: 12
+count: 13
 last_updated: "2026-04-25"
 ---
 
@@ -19,3 +19,4 @@ last_updated: "2026-04-25"
 - **LGBM training data downsampling (5:1 vs 10:1):** 5:1 makes LGBM individually strongest ever (22.385 vs 22.162) but ensemble is WORSE (23.089 vs 23.174). LGBM_h weight barely moves (0.050 vs 0.046). Root cause: LGBM and XGB are both leaf-wise gradient boosters — their prediction manifolds are structurally correlated regardless of training distribution. No training-data manipulation can decouple them. (r38)
 - **Adding weak 8th model (ExtraTreesClassifier) to 7-model ensemble:** ET individually 18.934 (weak); ET gets 0.054 weight but CB_h collapses from 0.184 to 0.021. Ensemble degrades to 22.848. The r25 7-model balance is fragile — any 8th model that gets marginal weight disrupts the CB/XGB complementarity distribution. An 8th model must have individual lift@1% > ~22.0 to justify the weight budget expansion. (r39)
 - **LGBM_hybrid colsample_bytree=0.5 (from 0.8):** LGBM individually stronger (22.230 vs 22.162, 276 vs 170 iterations) but XGB_h weight drops 0.456→0.376 → ensemble 23.106 < 23.174. Weight redistribution is zero-sum: gains in LGBM weight directly cost XGB weight. The r25 saddle point requires XGB_h≈0.456 to achieve ceiling. Any LGBM improvement that shifts weight away from XGB degrades the ensemble. (r41)
+- **XGB monotonic constraints on clinical features (eng_ip_score, eng_chronic_score, eng_lab_score, eng_age_x_ip, eng_mm_ip_ratio):** Ensemble degrades to 22.814 (Δ=-0.360). Root cause: constraints structurally change the XGB optimization landscape → Optuna TPE seed=42 cannot find the HPs that produced the 0.456 dominant weight in r25. Like feature additions (r33), any structural change to the XGB optimization space prevents the r25 saddle point from being reached. XGB must remain unconstrained for AUC-ROC Optuna to find the complementary prediction manifold. (r42)

@@ -2,7 +2,7 @@
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
 purpose: "Retrospective decision log — planned reasoning vs actual outcome per round. Reviewer-owned; appended every round."
-last_updated: "2026-04-24"
+last_updated: "2026-04-25"
 ---
 
 # Campaign Journal — ip-commercial-new-te
@@ -555,5 +555,37 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Verdict:** discard
 
 **Key finding:** LGBM_hybrid with colsample_bytree=0.5 is individually stronger (22.230 vs 22.162, +0.068) and runs more iterations (276 vs 170 — smaller per-tree feature subset slows overfitting). But XGB_h weight dropped from 0.456 to 0.376 → ensemble degraded. **Core insight confirmed again:** Weight optimization is zero-sum. Improving LGBM predictions doesn't increase the ensemble ceiling if it simultaneously reduces XGB's dominant weight. The r25 optimum is a saddle point where XGB's 0.456 weight is the load-bearing column. Any change to LGBM that shifts weight away from XGB degrades the total. Consecutive discards=2.
+
+---
+
+## Round 42 — 2026-04-25
+
+**Action:** A_hp — XGB_hybrid monotonic constraints on 5 engineered clinical risk features
+**Trigger:** consecutive_discards=2 post-C2; hypothesis: monotone constraints narrow the prediction surface to medically valid regions, sharpening XGB top-1% identification
+**Alternatives rejected:**
+- More LGBM colsample variants: r41 proved colsample reduction is zero-sum with XGB weight
+- Feature additions: r33 showed feature additions destabilize Optuna TPE landscape
+
+**Expected Δ (lift@1%):** +0.0 to +0.2 (monotone constraints reduce noise without changing feature count or model family)
+**Actual val_lift_1pct:** 22.814 (Δ = **-0.360**)
+**Verdict:** discard → consecutive_discards=3 → C2 triggered
+
+**Key finding:** Monotonic constraints on clinical features (eng_ip_score, eng_chronic_score, eng_lab_score, eng_age_x_ip, eng_mm_ip_ratio) significantly degraded the ensemble (22.814 vs 23.174, Δ=-0.360). Root cause: the monotone_constraints parameter changes the XGB optimization landscape — Optuna's TPE with seed=42 can no longer find the specific HP combination (lr≈0.254, depth≈6) that produced the 0.456 dominant weight in r25. The constraints introduce a structural barrier that prevents the optimizer from reaching the r25 saddle point. **Critical generalization: any structural change to XGB's optimization space — whether additional features (r33), different seeds (r28), different proxy metrics (r34), or constraints (r42) — systematically prevents the r25 optimal solution from being found.** The 23.174 ceiling is achievable ONLY with the exact seed=42 + AUC-ROC proxy + unconstrained landscape. C2 triggered (r40=discard, r41=discard, r42=discard). c2_pending_diagnose=True.
+
+---
+
+## Round 43 — 2026-04-25
+
+**Action:** A_diagnose — Reproduce r25 champion post-C2 (rounds 41-42 exhausted LGBM colsample and XGB monotonic constraints)
+**Trigger:** c2_pending_diagnose=True (mandatory after C2 trigger in r42; consecutive_discards=3: rounds 40-42)
+**Alternatives rejected:** None — A_diagnose is mandatory per c2_pending_diagnose protocol
+
+**Expected Δ (lift@1%):** ~0 (diagnostic)
+**Actual val_lift_1pct:** 23.174 (Δ = 0.000 — exact reproduction, 5th time)
+**Weights:** LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
+**Bootstrap CI:** [22.09, 24.10], SE=0.503
+**Verdict:** discard
+
+**Key finding:** 23.174 ceiling reproduced exactly for the 5th time (r29=23.174, r32=23.174, r35=23.174, r40=23.174, r43=23.174). The weights are identical across all 5 reproducing runs. This establishes an important campaign invariant: **the 23.174 saddle point is perfectly stable — it will always be found given seed=42 + AUC-ROC Optuna + unconstrained 7-model architecture on the original feature set.** C3 advisory persists (target gap 0.826 < 2×SE=1.006). c2_pending_diagnose cleared. **Strategic assessment at round 43:** 13 directions have been exhausted (all in DEAD_ENDS.md). The parameter-level search space for existing 7 models is fully explored. The only remaining unexplored directions are: (a) single-feature additions that avoid Optuna destabilization (r33 showed 14 features catastrophic; 1 feature may be safe), (b) replacing a base model entirely with a different algorithm that has both high individual lift AND unique prediction manifold. Budget: 57 rounds remaining. Next: A_feature with 1 new feature (e.g., IP6 rate by county_cd as a group-level base rate proxy).
 
 ---

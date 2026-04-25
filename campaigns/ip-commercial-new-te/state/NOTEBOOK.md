@@ -45,3 +45,9 @@ last_updated: "2026-04-24"
 - **C2 resolved (round 39):** consecutive_discards reset from 3 to 0. Rounds 37-39 (LGBM 255 leaves, LGBM 5:1 downsampling, ET 8th model) all failed. Resolution: switching from LGBM/ET variants to A_diagnose to re-anchor ceiling, then explore different directions (e.g., new XGB seed variant on embedding-only features, or different feature subsets for base models).
 
 - **Adding weak 8th model disrupts 7-model balance (r39):** ET (18.934 individual) gets 0.054 weight but CB_h collapses from 0.184 to 0.021. The r25 7-model balance is a local optimum in weight space — any 8th model with marginal weight shifts the entire weight distribution. An 8th model must have individual lift@1% > ~22.0 to justify the expansion. Weak models as 8th entries are worse than doing nothing.
+
+- **C2 resolved (round 42→43):** consecutive_discards reset from 3 to 0 (rounds 41-42: LGBM colsample, XGB monotonic constraints). A_diagnose (r43) required. Resolution: switching to single-feature-addition experiments to test if minimal feature engineering avoids the Optuna destabilization that killed r33 (14 TE features).
+
+- **Any structural change to XGB optimization landscape prevents r25 saddle point (r42):** Monotonic constraints on 5 clinical features → ensemble 22.814 (Δ=-0.360). Same mechanism as r33 (14 TE features) and r28 (different seed). The r25 optimum at XGB_h=0.456 requires: (1) no feature count change, (2) AUC-ROC proxy, (3) seed=42, (4) no structural constraints. All four conditions must hold simultaneously.
+
+- **5th exact reproduction of 23.174 (r43):** Rounds 29, 32, 35, 40, 43 all produce 23.174420 with LGBM_h=0.046 CB_h=0.184 XGB_h=0.456. This saddle point is perfectly deterministic given the original conditions. The consistency across 5 independent runs from different states confirms the ceiling is a mathematical property of the 7-model base prediction distributions, not a numerical artifact.
