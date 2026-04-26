@@ -63,3 +63,7 @@ last_updated: "2026-04-26"
 - **Rank blending destroys calibration signal (r47):** Rank normalization (percentile ranks) removes the calibration scale differences that make XGB_h uniquely complementary. Result: 22.780 vs 23.174. The calibration difference between models is signal, not noise.
 
 - **Scipy weight landscape has multiple local optima (r47):** Probability blending with a different rng state (consumed by prior rank restarts) found 22.865 instead of 23.174. The r25 saddle point at 23.174 is one of several local optima. Open question: is 23.174 the GLOBAL optimum, or just the best local one found by rng(42)? `scipy.optimize.differential_evolution` could answer this definitively.
+
+- **ANSWERED (r48): 23.174 was a LOCAL optimum. DE global optimizer found 23.260.** Differential evolution (popsize=15, maxiter=200, 13868 function evals) found a better weight configuration: CB_h increased 0.184→0.248, XGB_h reduced 0.456→0.415. The NM saddle point over-concentrated on XGB_h at the expense of CB_h. DE's global search found a more balanced optimum.
+
+- **CRITICAL IMPLICATION (r48):** All 22 experiments between r25 and r47 were evaluated using NM's suboptimal weight configuration. Some discarded experiments might actually beat 23.260 if re-evaluated with DE. The "ceiling" was an artifact of the local optimizer, not of the base models.
