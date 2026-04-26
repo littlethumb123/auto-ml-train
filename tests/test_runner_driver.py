@@ -303,6 +303,7 @@ def test_init_creates_assumption_register_skeleton(campaign: Path):
     text = ar.read_text()
     assert "schema_version: 1" in text
     assert "count: 0" in text
+    assert "tiny" in text
 
 
 def test_init_creates_pattern_book_skeleton(campaign: Path):
@@ -312,6 +313,7 @@ def test_init_creates_pattern_book_skeleton(campaign: Path):
     text = pb.read_text()
     assert "schema_version: 1" in text
     assert "count: 0" in text
+    assert "tiny" in text
 
 
 def test_init_historian_interval_from_eval_protocol(tmp_path: Path):

@@ -154,7 +154,7 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     elif budget_total < 50:
         historian_interval = max(5, int(budget_total * 0.10))
     else:
-        historian_interval = 10
+        historian_interval = 10  # >=50 round campaigns: fixed 10-round cadence
 
     state = {
         "$schema_version": 2,
