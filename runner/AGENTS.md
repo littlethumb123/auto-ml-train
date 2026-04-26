@@ -32,6 +32,15 @@
 
 (None yet promoted. Planner reads `runner/state/DEAD_ENDS.md` for campaign-specific lines; only structurally reusable ones are promoted here by human.)
 
+## Historian (added 2026-04-26)
+
+- **Trigger:** `historian_trigger_pending = true` in CAMPAIGN_STATE.json (set by `review_finalize` when `rounds_since_last_historian >= historian_interval` OR `consecutive_discards >= plateau_trigger`).
+- **Owns:** `state/STRATEGY_MEMO.md` (overwritten each run), `state/PATTERN_BOOK.md` (append/update), `state/ASSUMPTION_REGISTER.md` (audit updates only — no new entries).
+- **Does NOT own:** NEXT_EXPERIMENT.md, REVIEW.md, train.py, any contract.
+- **Replaces:** The old `c2_pending_diagnose → A_diagnose` protocol (removed 2026-04-26).
+- **C2 path:** `historian_finalize` with `trigger="c2"` resets `consecutive_discards = 0`.
+- **Role prompt:** `runner/roles/historian.md`
+
 ## Harness changes (when to update this file)
 
 Update when:

@@ -29,7 +29,6 @@ action_types:
   - "A_hp"
   - "A_imbalance"
   - "A_ensemble"
-  - "A_diagnose"
   - "A_validate"
   - "A_restart"
 budgets:
@@ -39,6 +38,7 @@ budgets:
   max_repair_attempts: 2
 plateau_trigger:
   consecutive_discards: 3
+historian_interval: 10
 anomaly:
   floor: 0.75
   relative: 0.5
