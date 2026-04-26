@@ -338,3 +338,97 @@ def test_init_historian_interval_default_for_small_budget(campaign: Path):
     state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
     # EVAL_PROTOCOL fixture has max_experiments: 3
     assert state["historian_interval"] == 5
+
+
+def test_review_finalize_sets_historian_trigger_at_interval(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    state_path = campaign / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    # historian_interval = 5 (budget_total=3 < 50); set rounds to interval - 1
+    state["rounds_since_last_historian"] = state["historian_interval"] - 1
+    state_path.write_text(json.dumps(state, indent=2) + "\n")
+
+    runner_driver.review_finalize(
+        verdict="keep",
+        commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp",
+        hypothesis="h",
+        description="d",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+    )
+    state_after = json.loads(state_path.read_text())
+    assert state_after["historian_trigger_pending"] is True
+
+
+def test_review_finalize_sets_historian_trigger_on_c2_plateau(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # 3 consecutive discards = plateau_trigger
+    for i in range(3):
+        runner_driver.review_finalize(
+            verdict="discard",
+            commit=f"d{i}",
+            metrics={"val_pr_auc": 0.4, "lift_at_10": 0, "macro_f1": 0, "val_f1": 0},
+            action_type="A_hp",
+            hypothesis="h",
+            description="d",
+            model_family="lightgbm",
+            n_features=10,
+            campaign_dir=str(campaign),
+        )
+    state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert state["historian_trigger_pending"] is True
+
+
+def test_review_finalize_accumulates_tokens_in_state(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    runner_driver.review_finalize(
+        verdict="keep",
+        commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp",
+        hypothesis="h",
+        description="d",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+        planner_tokens=100,
+        executor_tokens=200,
+        reviewer_tokens=150,
+    )
+    state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert state["total_tokens"]["planner"] == 100
+    assert state["total_tokens"]["executor"] == 200
+    assert state["total_tokens"]["reviewer"] == 150
+
+
+def test_review_finalize_historian_tokens_from_pending_state(campaign: Path):
+    """historian_tokens in results.tsv comes from state.pending_historian_tokens."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    state_path = campaign / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    state["pending_historian_tokens"] = 99_000
+    state_path.write_text(json.dumps(state, indent=2) + "\n")
+
+    runner_driver.review_finalize(
+        verdict="keep",
+        commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp",
+        hypothesis="h",
+        description="d",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+    )
+    # pending_historian_tokens should be cleared after use
+    state_after = json.loads(state_path.read_text())
+    assert state_after.get("pending_historian_tokens", 0) == 0
+    # Results.tsv should have historian_tokens=99000
+    lines = (campaign / "state" / "results.tsv").read_text().splitlines()
+    headers = lines[0].split("\t")
+    data = lines[1].split("\t")
+    if "historian_tokens" in headers:
+        assert data[headers.index("historian_tokens")] == "99000"
