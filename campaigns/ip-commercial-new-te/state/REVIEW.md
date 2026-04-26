@@ -834,3 +834,26 @@ bootstrap_se: 0.5033
 weights: LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
 c3_advisory: target_gap=0.826 < 2×SE=1.006 (manual assessment — PROBLEM_CONTRACT placeholder prevents auto-detection)
 review_note: A_diagnose post-C2 (rounds 41-42: LGBM colsample_bytree=0.5 + XGB monotonic constraints both failed). Reproduces r25 champion EXACTLY: 23.174420, identical weights (LGBM_h=0.046 CB_h=0.184 XGB_h=0.456). This is the 5th exact reproduction across rounds 29, 32, 35, 40, 43 — an extraordinarily stable saddle point. Bootstrap CI [22.09, 24.10], SE=0.503 — unchanged across all reproducing runs. C3 advisory (manual): target gap 0.826 < 2×SE=1.006. c2_pending_diagnose cleared. Consecutive discards=1 (post-C2 resolve). Budget: 57 rounds remaining (43/100 used). Strategic pivot: all parameter-level changes to existing 7 models exhausted. Next direction must be minimal feature engineering (single new feature) to avoid Optuna landscape destabilization observed in r33 (14 TE features caused catastrophic degradation).
+
+## Round 44
+
+commit: (rolled back — 5596f2531b077e6f49d8c91e7e4574dbc4a95195)
+verdict: discard
+action_type: A_feature
+model_family: ensemble
+n_features: 795
+val_lift_1pct: 22.676599
+val_auc_roc: 0.857389
+val_lift_5pct: 9.687852
+val_lift_10pct: 6.138075
+val_auc_pr: 0.110284
+delta_vs_best: -0.497821
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: not run (discard, below threshold)
+
+weights: LGBM_h=0.167 LGBM_t=0.022 LGBM_e=0.168 CB_h=0.091 CB_t=0.018 XGB_h=0.044 XGB_t=0.489
+XGB Optuna HPs: max_depth=6, lr=0.148 (vs r25's lr≈0.254)
+XGB_hybrid individual: 21.767 (vs r25's 22.127)
+review_note: A_feature: +1 feature eng_total_ip_days_2yr (sum of 25 ipmdc*_2yr_days cols, 794→795 features). CRITICAL FINDING: even a SINGLE feature addition destabilizes the Optuna TPE landscape. XGB Optuna found lr=0.148 instead of r25's lr≈0.254. XGB_h weight COLLAPSED from 0.456 to 0.044 — destroyed. XGB_t (default, tabular-only) absorbed the weight at 0.489. Ensemble reverted to 22.677 = exactly r19 level (pre-Optuna era). The eng_total_ip_days_2yr feature itself had no measurable effect; all degradation came from Optuna destabilization. CONCLUSION: any feature count change (even +1) is incompatible with the current Optuna pipeline. Feature engineering cannot break 23.174 while Optuna seed=42 is active on the modified feature space. Next: try selective feature addition (add feature only to LGBM/CB, keep XGB on original 794 features to preserve Optuna landscape).

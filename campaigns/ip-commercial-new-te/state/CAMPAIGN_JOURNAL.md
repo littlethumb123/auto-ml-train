@@ -589,3 +589,23 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding:** 23.174 ceiling reproduced exactly for the 5th time (r29=23.174, r32=23.174, r35=23.174, r40=23.174, r43=23.174). The weights are identical across all 5 reproducing runs. This establishes an important campaign invariant: **the 23.174 saddle point is perfectly stable — it will always be found given seed=42 + AUC-ROC Optuna + unconstrained 7-model architecture on the original feature set.** C3 advisory persists (target gap 0.826 < 2×SE=1.006). c2_pending_diagnose cleared. **Strategic assessment at round 43:** 13 directions have been exhausted (all in DEAD_ENDS.md). The parameter-level search space for existing 7 models is fully explored. The only remaining unexplored directions are: (a) single-feature additions that avoid Optuna destabilization (r33 showed 14 features catastrophic; 1 feature may be safe), (b) replacing a base model entirely with a different algorithm that has both high individual lift AND unique prediction manifold. Budget: 57 rounds remaining. Next: A_feature with 1 new feature (e.g., IP6 rate by county_cd as a group-level base rate proxy).
 
 ---
+
+## Round 44 — 2026-04-26
+
+**Action:** A_feature — +1 feature eng_total_ip_days_2yr (sum of 25 ipmdc*_2yr_days cols), 794→795 features
+**Trigger:** consecutive_discards=1 post-C2; tests r43's strategy pivot to minimal feature engineering
+**Alternatives rejected:**
+- Multi-feature additions: r33 (14 TE features) proved catastrophic; 1 feature is the minimum test
+- Parameter-level changes: 13 dead ends exhaust all LGBM/CB/XGB HP and architecture variants
+- 8th model additions: r39 proved weight budget dilution kills performance
+
+**Expected Δ (lift@1%):** +0.0 to +0.2 (primary: test if 1-feature addition preserves Optuna landscape)
+**Actual val_lift_1pct:** 22.677 (Δ = **-0.498**)
+**XGB Optuna HPs found:** max_depth=6, lr=0.148 (vs r25's lr≈0.254)
+**XGB_hybrid individual:** 21.767 (vs r25's 22.127)
+**Weights:** LGBM_h=0.167 LGBM_t=0.022 LGBM_e=0.168 CB_h=0.091 CB_t=0.018 XGB_h=0.044 XGB_t=0.489
+**Verdict:** discard
+
+**Key finding — CRITICAL CAMPAIGN DISCOVERY:** Even a SINGLE feature addition (794→795) destabilizes the Optuna TPE landscape. XGB Optuna found lr=0.148 (vs r25's 0.254). This shifted XGB_h weight from 0.456 to 0.044 — effectively destroying the r25 saddle point. XGB_t (default, tabular, untouched) absorbed the weight at 0.489, but its default-HP predictions lack the AUC-ROC-optimized complementarity. The ensemble reverted to exactly 22.677 = r19 level (the pre-Optuna-XGB era). **Generalization: the r25 saddle point at 23.174 is a joint property of FOUR invariants: (1) exactly 794 features, (2) AUC-ROC proxy, (3) seed=42, (4) no structural constraints. Changing ANY ONE of these — even a single feature — destroys it.** Feature engineering is fundamentally incompatible with the current Optuna pipeline. To do feature engineering, one must either (a) supply features only to non-XGB models while keeping XGB on original features, or (b) accept that Optuna must re-find a new saddle point (with no guarantee it exists above 23.174). Consecutive discards=2.
+
+---
