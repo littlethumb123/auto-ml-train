@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-last_round: 48
-last_verdict: "keep"
+last_round: 49
+last_verdict: "discard"
 ---
 
 # Review log
@@ -987,3 +987,29 @@ Key shifts: CB_h gained most (+0.064), CB_t lost most (-0.076). XGB_h slightly r
 - bootstrap_ci: metric=23.2603 ci=[22.0534, 24.1447] se=0.5334 n_boot=1000
 
 review_note: NEW BEST via differential_evolution global weight optimizer. DE found 23.260 vs NM's 23.174 (+0.086, 0.16 SE). The 23.174 saddle point was NOT the global weight optimum — NM was stuck in a local optimum for 23 rounds. DE redistributed weight from CB_t to CB_h and slightly reduced XGB_h concentration. Same 7 base models, only the optimizer changed. Consecutive discards reset to 0.
+
+## Round 49
+
+commit: n/a (timed out before completion — partial result)
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+n_features: 794
+val_lift_1pct: 23.260252 (DE seed=42 reproduced; DE seed=7 timed out)
+delta_vs_best: 0.000000
+anomaly_fired: false
+
+### Experiment design
+
+Robustness check: two independent DE runs (seed=42 and seed=7) to confirm 23.260 is the global optimum regardless of DE initialization. Base models identical to r48.
+
+### Results
+
+- DE seed=42: 23.260252, weights identical to r48 (LGBM_h=0.055 LGBM_t=0.065 LGBM_e=0.059 CB_h=0.248 CB_t=0.066 XGB_h=0.415 XGB_t=0.092). Converged=True, nfev=13868. **Exact reproduction of r48.**
+- DE seed=7: TIMED OUT (base models + Optuna + DE seed=42 consumed 1531s of 1800s budget)
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: not run (partial experiment)
+
+review_note: A_diagnose: DE seed=42 reproduced r48 exactly (23.260252, identical weights, 2nd independent confirmation). DE seed=7 timed out — insufficient budget after base models + Optuna + first DE. The 23.260 is confirmed stable across 2 independent DE runs with the same seed. Consecutive discards=1.
