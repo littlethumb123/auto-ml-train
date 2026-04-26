@@ -402,6 +402,8 @@ def test_review_finalize_accumulates_tokens_in_state(campaign: Path):
     assert state["total_tokens"]["planner"] == 100
     assert state["total_tokens"]["executor"] == 200
     assert state["total_tokens"]["reviewer"] == 150
+    # historian key should be untouched (review_finalize does not accumulate historian tokens)
+    assert state["total_tokens"]["historian"] == 0
 
 
 def test_review_finalize_historian_tokens_from_pending_state(campaign: Path):
@@ -430,5 +432,5 @@ def test_review_finalize_historian_tokens_from_pending_state(campaign: Path):
     lines = (campaign / "state" / "results.tsv").read_text().splitlines()
     headers = lines[0].split("\t")
     data = lines[1].split("\t")
-    if "historian_tokens" in headers:
-        assert data[headers.index("historian_tokens")] == "99000"
+    assert "historian_tokens" in headers, "historian_tokens column missing from results.tsv"
+    assert data[headers.index("historian_tokens")] == "99000"
