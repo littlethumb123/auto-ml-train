@@ -2,16 +2,18 @@
   "$schema_version": 1,
   "best_so_far": {
     "commit": "ab43253",
-    "primary_metric": 23.260252
+    "primary_metric": 23.260252,
+    "test_metric": 22.483524
   },
   "budget_total": 100,
-  "budget_used": 49,
+  "budget_used": 50,
   "c2_pending_diagnose": false,
   "campaign_id": "ip-commercial-new-te",
-  "consecutive_discards": 1,
-  "exp_id_counter": 49,
-  "last_commit": "48f2a89",
-  "last_verdict": "discard",
-  "round": 49,
-  "updated_at": "2026-04-26T05:20:00Z"
+  "campaign_status": "completed",
+  "consecutive_discards": 0,
+  "exp_id_counter": 50,
+  "last_commit": "0b89eb8",
+  "last_verdict": "keep",
+  "round": 50,
+  "updated_at": "2026-04-26T06:00:00Z"
 }

@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-last_round: 49
-last_verdict: "discard"
+last_round: 50
+last_verdict: "keep"
 ---
 
 # Review log
@@ -1013,3 +1013,65 @@ Robustness check: two independent DE runs (seed=42 and seed=7) to confirm 23.260
 - bootstrap_ci: not run (partial experiment)
 
 review_note: A_diagnose: DE seed=42 reproduced r48 exactly (23.260252, identical weights, 2nd independent confirmation). DE seed=7 timed out — insufficient budget after base models + Optuna + first DE. The 23.260 is confirmed stable across 2 independent DE runs with the same seed. Consecutive discards=1.
+
+## Round 50
+
+commit: 0b89eb8
+verdict: keep
+action_type: A_validate
+model_family: ensemble
+n_features: 794
+val_lift_1pct: 23.260252
+val_auc_roc: 0.857231
+val_lift_5pct: 9.553966
+val_lift_10pct: 6.179271
+val_auc_pr: 0.111090
+test_lift_1pct: 22.483524
+test_lift_5pct: 9.498785
+test_lift_10pct: 6.042226
+test_auc_roc: 0.855927
+training_seconds: ~1700
+total_seconds: ~1750
+anomaly_fired: false
+bootstrap_ci_lo: 22.0534
+bootstrap_ci_hi: 24.1447
+bootstrap_se: 0.5334
+
+### Experiment design
+
+Final test-set evaluation: reproduce r48 champion (DE-optimized 7-model ensemble) and evaluate on held-out test set (digit-9 split, never seen during any training or validation). Base models and DE weight optimization identical to r48.
+
+### Test set results
+
+| Metric       | Val (digit-8)  | Test (digit-9) | Gap     |
+|-------------|----------------|----------------|---------|
+| lift_1pct   | 23.260         | 22.484         | +0.777  |
+| lift_5pct   | 9.554          | 9.499          | +0.055  |
+| lift_10pct  | 6.179          | 6.042          | +0.137  |
+| auc_roc     | 0.857          | 0.856          | +0.001  |
+
+Gap analysis:
+- lift_1pct gap = +0.777, which is 1.46× bootstrap SE (0.533). Moderate — some val-set optimization but not extreme overfitting.
+- lift_5pct and lift_10pct gaps are small (<0.14 lift points). Generalization is strong at broader thresholds.
+- AUC-ROC gap is negligible (+0.001) — overall ranking quality generalizes near-perfectly.
+- The lift_1pct gap is concentrated in the most extreme tail (top 1%) where val-based weight optimization has the most influence.
+
+### Individual model test lift@1%
+
+| Model    | Val lift@1% | Test lift@1% |
+|----------|-------------|--------------|
+| LGBM_h   | 22.162      | 22.230       |
+| LGBM_t   | 21.853      | 21.572       |
+| LGBM_e   | 18.500      | 18.500       |
+| CB_h     | 22.041      | 22.011       |
+| CB_t     | 21.149      | 21.471       |
+| XGB_h    | 22.127      | 21.893       |
+| XGB_t    | 21.595      | 22.214       |
+
+Individual models show tight val-test alignment. Ensemble still lifts above best individual on test (22.484 > LGBM_h=22.230).
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=23.2603 ci=[22.0534, 24.1447] se=0.5334 n_boot=1000 (val)
+
+review_note: A_validate FINAL TEST-SET EVALUATION. Campaign champion (r48 DE-optimized ensemble): val_lift@1%=23.260, test_lift@1%=22.484, gap=+0.777 (1.46× SE). Generalization is acceptable — gap concentrates in the extreme top-1% tail where val-based weight optimization has the most leverage. AUC-ROC generalizes near-perfectly (0.857→0.856). Ensemble adds +0.254 lift on test vs best individual model (LGBM_h=22.230). Campaign concludes at round 50 with 50/100 budget used.
