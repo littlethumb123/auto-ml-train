@@ -64,7 +64,7 @@ def test_historian_run_returns_periodic_trigger(campaign_v2: Path):
 
     result = runner_driver.historian_run(campaign_dir=str(campaign_v2))
     assert result["status"] == "ok"
-    assert result["trigger"] in ("periodic", "periodic+c2")
+    assert result["trigger"] == "periodic"
 
 
 def test_historian_run_returns_c2_trigger(campaign_v2: Path):
@@ -170,7 +170,7 @@ def test_historian_finalize_periodic_only_does_not_reset_discards(campaign_v2: P
 
 def test_historian_run_migrates_v1_state(campaign_v1: Path):
     state_path = campaign_v1 / "state" / "CAMPAIGN_STATE.json"
-    # Force a C2 trigger so historian_run actually runs migration
+    # Force a c2 trigger so the return value includes trigger type; migration runs because schema_version=1
     state = json.loads(state_path.read_text())
     state["consecutive_discards"] = 3
     state_path.write_text(json.dumps(state, indent=2) + "\n")
