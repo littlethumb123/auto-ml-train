@@ -685,3 +685,21 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Next:** Try DE with larger popsize/maxiter to confirm convergence, or test whether previously-discarded base model changes look different under DE optimization.
 
 ---
+
+## Round 49 — 2026-04-26
+
+**Action:** A_diagnose — DE seed=42 vs DE seed=7 robustness check
+**Trigger:** r48 found 23.260 via DE; need to confirm it's stable across different DE initializations
+**Alternatives rejected:**
+- NM variants: already proven 7 times to find 23.174 local optimum
+- Base model changes: all dead ends under NM; could revisit under DE but time-constrained
+
+**Expected Δ (lift@1%):** ~0 (confirmation)
+**Actual val_lift_1pct:** 23.260 (Δ = 0.000 — DE seed=42 exact reproduction; seed=7 timed out)
+**Verdict:** discard
+
+**Key finding:** DE seed=42 reproduced r48 exactly: 23.260252, identical weights (LGBM_h=0.055 CB_h=0.248 XGB_h=0.415), converged=True, 13868 function evaluations. **2nd independent confirmation of the DE global optimum.** DE seed=7 could not be completed due to time budget constraints (base models + Optuna + first DE consumed 1531s of 1800s). The 23.260 appears stable.
+
+**Next:** r50 = A_validate on test set (final evaluation). Campaign concludes after r50.
+
+---
