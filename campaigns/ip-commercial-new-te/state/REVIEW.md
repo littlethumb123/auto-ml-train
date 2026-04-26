@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-last_round: 47
-last_verdict: "discard"
+last_round: 48
+last_verdict: "keep"
 ---
 
 # Review log
@@ -939,3 +939,51 @@ Comparison: ran BOTH rank-based and probability-based blending with same base mo
 - bootstrap_ci: not run (discard, below threshold)
 
 review_note: A_ensemble: rank-based blending definitively worse than probability blending (22.780 vs 23.174). Rank normalization destroys calibration information that makes XGB_h uniquely complementary. Multi-modal weight landscape confirmed — different scipy restart seeds find different local optima. The 23.174 saddle point requires not just the right base models and features, but also the right scipy initialization. Consecutive discards=2.
+
+## Round 48
+
+commit: ab43253
+verdict: keep
+action_type: A_diagnose
+model_family: ensemble
+n_features: 794
+val_lift_1pct: 23.260252
+val_auc_roc: 0.857231
+val_lift_5pct: 9.553966
+val_lift_10pct: 6.179271
+val_auc_pr: 0.111090
+training_seconds: 1721.9
+total_seconds: 1770.7
+delta_vs_best: +0.085832
+bootstrap_ci_lo: 22.0534
+bootstrap_ci_hi: 24.1447
+bootstrap_se: 0.5334
+anomaly_fired: false
+
+### Experiment design
+
+Tests whether 23.174 is the global weight optimum using `scipy.optimize.differential_evolution` (DE), a global optimizer. Base models identical to r25 (all 7 models produce same predictions). Only the weight optimization step differs.
+
+Comparison:
+- Nelder-Mead (30 restarts, rng(42)): 23.174420 — reproduces r25 exactly (7th time)
+- Differential Evolution (global, popsize=15, maxiter=200, 13868 evals): 23.260252 — NEW BEST
+
+### Weight comparison (NM vs DE)
+
+| Model   | NM (r25) | DE (r48) | Δ      |
+|---------|----------|----------|--------|
+| LGBM_h  | 0.046    | 0.055    | +0.009 |
+| LGBM_t  | 0.023    | 0.065    | +0.042 |
+| LGBM_e  | 0.063    | 0.059    | -0.004 |
+| CB_h    | 0.184    | 0.248    | +0.064 |
+| CB_t    | 0.142    | 0.066    | -0.076 |
+| XGB_h   | 0.456    | 0.415    | -0.041 |
+| XGB_t   | 0.086    | 0.092    | +0.006 |
+
+Key shifts: CB_h gained most (+0.064), CB_t lost most (-0.076). XGB_h slightly reduced (-0.041) but still dominant. The NM saddle point over-concentrated on XGB_h at the expense of CB_h — DE found a more balanced optimum.
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: metric=23.2603 ci=[22.0534, 24.1447] se=0.5334 n_boot=1000
+
+review_note: NEW BEST via differential_evolution global weight optimizer. DE found 23.260 vs NM's 23.174 (+0.086, 0.16 SE). The 23.174 saddle point was NOT the global weight optimum — NM was stuck in a local optimum for 23 rounds. DE redistributed weight from CB_t to CB_h and slightly reduced XGB_h concentration. Same 7 base models, only the optimizer changed. Consecutive discards reset to 0.

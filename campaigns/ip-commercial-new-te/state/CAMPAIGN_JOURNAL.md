@@ -664,3 +664,24 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Implication:** `scipy.optimize.differential_evolution` (a global optimizer) could answer whether 23.174 is the global optimum. If DE also finds 23.174, the weight space is fully explored. If DE finds something higher, there's still headroom.
 
 ---
+
+## Round 48 — 2026-04-26
+
+**Action:** A_diagnose — differential_evolution global weight optimizer vs Nelder-Mead 30-restart
+**Trigger:** r47 proved multi-modal weight landscape (NM finds different local optima from different starting points). DE is a global optimizer that doesn't depend on starting points.
+**Alternatives rejected:**
+- More NM restarts: local optimizer, will find same local optima
+- Feature/model changes: r44-45 proved all feature changes are dead ends; r39 proved 8th model dilutes
+
+**Expected Δ (lift@1%):** 0.0 to +0.3 (global optimizer explores full simplex)
+**Actual val_lift_1pct:** 23.260 (Δ = **+0.086 — NEW BEST**)
+**NM_30 comparison:** 23.174 (7th exact reproduction)
+**Verdict:** keep
+
+**Key finding — BREAKTHROUGH: 23.174 was a LOCAL optimum, not the global one.** DE found a weight configuration that achieves 23.260 by redistributing weight: CB_h +0.064 (0.184→0.248), CB_t -0.076 (0.142→0.066), XGB_h -0.041 (0.456→0.415). The NM saddle point over-concentrated on XGB_h — DE found a more balanced CB_h / XGB_h split that exploits CatBoost hybrid's complementarity better.
+
+**Implication:** For 23 rounds (r25-r47), we were stuck in a local weight optimum. Every experiment that changed base model predictions was evaluated at the wrong weight optimum — the changes looked harmful, but they were actually being measured against a suboptimal baseline. With DE as the optimizer, some of the previously-discarded experiments might actually have improved the global optimum. However, the base model predictions are the same in this experiment, so the gain is purely from better weight optimization.
+
+**Next:** Try DE with larger popsize/maxiter to confirm convergence, or test whether previously-discarded base model changes look different under DE optimization.
+
+---
