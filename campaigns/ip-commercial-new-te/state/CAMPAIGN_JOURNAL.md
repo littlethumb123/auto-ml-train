@@ -2,7 +2,7 @@
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
 purpose: "Retrospective decision log — planned reasoning vs actual outcome per round. Reviewer-owned; appended every round."
-last_updated: "2026-04-25"
+last_updated: "2026-04-26"
 ---
 
 # Campaign Journal — ip-commercial-new-te
@@ -639,5 +639,28 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Verdict:** discard. c2_pending_diagnose cleared. consecutive_discards=1.
 
 **Key finding:** 6th reproduction confirms the ceiling is perfectly stable. After 21 consecutive discards since r25, the saddle point has never moved. Budget: 54 rounds remaining. Strategic pivot: the only unexplored ensemble-level change is rank-based blending (convert predictions to percentile ranks before scipy optimization). This changes the blending metric space without touching any base model.
+
+---
+
+## Round 47 — 2026-04-26
+
+**Action:** A_ensemble — rank-based blending (percentile ranks) vs probability blending comparison
+**Trigger:** consecutive_discards=1 post-C2; rank blending is the last unexplored ensemble-level change that doesn't touch base models
+**Alternatives rejected:**
+- Feature engineering: r44/r45 proved all feature additions (to any subset of models) are dead ends
+- HP variants: 13+ dead ends exhaust all parameter-level and architecture changes
+- 8th model: r39 proved weight dilution kills performance
+
+**Expected Δ (lift@1%):** +0.0 to +0.3 (rank normalization removes calibration noise → cleaner weight optimization)
+**Actual val_lift_1pct:** 22.865 (Δ = **-0.309**; RANK=22.780, PROB with different rng=22.865)
+**Verdict:** discard
+
+**Key finding — TWO CRITICAL DISCOVERIES:**
+
+1. **Rank blending is definitively worse (22.780 vs 23.174).** Rank normalization eliminates calibration scale differences between models. But those calibration differences are NOT noise — they encode how differently each model calibrates its top-1% region, and that difference is precisely what makes XGB_h uniquely complementary. Converting to ranks destroys this information.
+
+2. **Multi-modal weight landscape.** The probability blending comparison found 22.865 (not 23.174) because the numpy rng was consumed by 30 rank-blending restarts before being used for the prob restarts. Different restart trajectories → different local optimum (22.865 instead of 23.174). This confirms the scipy weight landscape has MULTIPLE local optima, and the r25 result (23.174) requires the specific rng(42) trajectory to find the global-best local optimum. This raises a strategic question: is 23.174 truly the global weight optimum, or just the best local one found by one specific initialization?
+
+**Implication:** `scipy.optimize.differential_evolution` (a global optimizer) could answer whether 23.174 is the global optimum. If DE also finds 23.174, the weight space is fully explored. If DE finds something higher, there's still headroom.
 
 ---

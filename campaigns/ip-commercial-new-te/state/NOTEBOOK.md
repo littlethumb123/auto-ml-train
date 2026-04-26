@@ -2,7 +2,7 @@
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
 count: 0
-last_updated: "2026-04-24"
+last_updated: "2026-04-26"
 ---
 
 # Observations worth remembering (non-dead-end)
@@ -59,3 +59,7 @@ last_updated: "2026-04-24"
 - **C2 resolved (round 45→46):** consecutive_discards reset from 3 to 0 (rounds 43-45: A_diagnose, +1 feature all models, selective +1 feature LGBM/CB only). Resolution: feature engineering conclusively dead — both full-model and selective approaches fail. Next after A_diagnose: rank-based blending or accept ceiling.
 
 - **23.174 is a joint 7-model prediction property, not just XGB (r45):** Selective feature addition preserved XGB Optuna (same HPs, same predictions) but the ensemble still degraded because LGBM/CB predictions changed → scipy weight optimum shifted → XGB_h weight dropped 0.456→0.249. This is the deepest understanding of the ceiling: it requires ALL 7 models to produce their EXACT original predictions. Any change to ANY model's predictions — even the weakest 0.023-weight LGBM_t — shifts the scipy optimization landscape.
+
+- **Rank blending destroys calibration signal (r47):** Rank normalization (percentile ranks) removes the calibration scale differences that make XGB_h uniquely complementary. Result: 22.780 vs 23.174. The calibration difference between models is signal, not noise.
+
+- **Scipy weight landscape has multiple local optima (r47):** Probability blending with a different rng state (consumed by prior rank restarts) found 22.865 instead of 23.174. The r25 saddle point at 23.174 is one of several local optima. Open question: is 23.174 the GLOBAL optimum, or just the best local one found by rng(42)? `scipy.optimize.differential_evolution` could answer this definitively.
