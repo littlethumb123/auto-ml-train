@@ -158,6 +158,12 @@ def validate_eval_protocol(path: Path) -> list[str]:
         mra = budgets.get("max_repair_attempts")
         if mra is not None and (not isinstance(mra, int) or mra != 2):
             errors.append("budgets.max_repair_attempts is a hard invariant (must be 2)")
+    historian_interval = fm.get("historian_interval")
+    if historian_interval is not None:
+        if not isinstance(historian_interval, int) or historian_interval < 1:
+            errors.append(
+                "historian_interval must be a positive integer when present"
+            )
     errors += _check_numbered_sections(body, _EP_SECTIONS)
     return errors
 
@@ -305,6 +311,21 @@ def validate_notebook(path: Path) -> list[str]:
         errors.append(
             f"count={count} but found {actual_entries} bullet entries in body"
         )
+    return errors
+
+
+_AR_REQUIRED = ["schema_version", "campaign_id", "count", "last_updated"]
+
+
+def validate_assumption_register(path: Path) -> list[str]:
+    try:
+        fm, _body = parse_frontmatter(Path(path))
+    except FrontmatterError as exc:
+        return [str(exc)]
+    errors = _required_keys(fm, _AR_REQUIRED)
+    count = fm.get("count")
+    if count is not None and not isinstance(count, int):
+        errors.append("count must be an integer")
     return errors
 
 
