@@ -150,3 +150,5 @@ Where:
 - Does NOT modify train.py or run experiments — that is the Executor's job
 - Does NOT create new assumption entries — that is the Reviewer's job on keep
 - Does NOT override the Planner — STRATEGY_MEMO.md is advisory input, not instruction
+- Does NOT write REVIEW.md — that is the Reviewer's job
+- Does NOT modify contracts — contracts are human-approved and change only via C3 protocol
