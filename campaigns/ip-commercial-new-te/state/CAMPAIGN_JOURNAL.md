@@ -629,3 +629,15 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding — DEEPENED UNDERSTANDING OF 23.174 CEILING:** The selective feature approach confirmed that Optuna landscape preservation WORKS — XGB found the same HPs and produced the same individual predictions (22.127). But the ensemble STILL degraded because changing LGBM/CB predictions (795 features) shifted the scipy weight optimum. XGB_h weight dropped 0.456→0.249 despite identical XGB predictions. **The 23.174 ceiling is not just an XGB property — it is a property of ALL 7 base-model predictions jointly.** Changing any model's predictions (even models with 0.046 weight) shifts the scipy optimization landscape enough to redistribute weight away from XGB_h=0.456, which is the load-bearing pillar. This means: **no feature engineering of any kind can break 23.174 — whether features are added to all models (r44: destabilizes Optuna), to non-XGB models only (r45: shifts scipy weights), or to individual models (r41: zero-sum weight redistribution).** The remaining avenues are: (a) rank-based blending instead of probability-based, (b) fundamentally different model replacement, (c) accept ceiling. C2 triggered. c2_pending_diagnose=True.
 
 ---
+
+## Round 46 — 2026-04-26
+
+**Action:** A_diagnose — 6th exact reproduction of r25 champion post-C2 (rounds 43-45)
+**Trigger:** c2_pending_diagnose=True
+**Actual val_lift_1pct:** 23.174 (Δ = 0.000)
+**Weights:** LGBM_h=0.046 CB_h=0.184 XGB_h=0.456 (identical)
+**Verdict:** discard. c2_pending_diagnose cleared. consecutive_discards=1.
+
+**Key finding:** 6th reproduction confirms the ceiling is perfectly stable. After 21 consecutive discards since r25, the saddle point has never moved. Budget: 54 rounds remaining. Strategic pivot: the only unexplored ensemble-level change is rank-based blending (convert predictions to percentile ranks before scipy optimization). This changes the blending metric space without touching any base model.
+
+---

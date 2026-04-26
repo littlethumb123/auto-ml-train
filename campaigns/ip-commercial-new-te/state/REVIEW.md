@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-last_round: 45
+last_round: 46
 last_verdict: "discard"
 ---
 
@@ -888,3 +888,16 @@ review_note: A_feature: selective +1 eng_total_ip_days_2yr to LGBM/CB only, XGB 
 3 consecutive discards (rounds 43-45): A_diagnose reproduction, +1 feature to all models, selective +1 feature to LGBM/CB only. Feature engineering is conclusively a dead end: adding features to XGB destabilizes Optuna; adding features only to LGBM/CB shifts scipy weights away from XGB. Both paths degrade the ensemble.
 
 **c2_pending_diagnose=True.** Next: A_diagnose (6th exact reproduction expected). After A_diagnose: pivot to rank-based ensemble blending or accept 23.174 as campaign ceiling.
+
+## Round 46
+
+commit: (rolled back — fb0d3f1947a1e626a795e416569f56be03875740)
+verdict: discard
+action_type: A_diagnose
+model_family: ensemble
+n_features: 794
+val_lift_1pct: 23.174420
+delta_vs_best: 0.000000
+bootstrap_se: 0.5033
+weights: LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
+review_note: A_diagnose post-C2 (rounds 43-45: feature engineering dead end). 6th exact reproduction of 23.174420 with identical weights. c2_pending_diagnose cleared. Budget: 54 rounds remaining (46/100 used). Next: rank-based ensemble blending (changes only the blending step, not the base models).
