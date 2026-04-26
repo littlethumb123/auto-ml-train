@@ -84,3 +84,13 @@ def test_write_token_summary_format(camp: Path):
     assert "avg/round:" in result
     assert "top cost:" in result
     assert "trend:" in result
+
+
+def test_fmt_boundaries():
+    from runner.tools.token_summary import _fmt
+    assert _fmt(0) == "0"
+    assert _fmt(999) == "999"
+    assert _fmt(1000) == "1K"
+    assert _fmt(999_499) == "999K"
+    assert _fmt(999_500) == "1.0M"  # was previously "1000K" — fixed
+    assert _fmt(1_000_000) == "1.0M"

@@ -13,7 +13,10 @@ def _fmt(n: int) -> str:
     if n >= 1_000_000:
         return f"{n / 1_000_000:.1f}M"
     if n >= 1_000:
-        return f"{n / 1_000:.0f}K"
+        k = round(n / 1_000)
+        if k >= 1_000:
+            return f"{n / 1_000_000:.1f}M"
+        return f"{k}K"
     return str(n)
 
 
@@ -61,7 +64,7 @@ def write_token_summary(campaign_dir: str = "runner/") -> str:
     historian_avg = sum(historian_runs) // len(historian_runs) if historian_runs else 0
 
     max_idx = totals.index(max(totals)) if totals else 0
-    top_round = max_idx + 1
+    top_round = (max_idx + 1) if totals else 0
     top_cost = totals[max_idx] if totals else 0
     top_action = rows[max_idx].get("action_type", "unknown") if rows else "unknown"
 
