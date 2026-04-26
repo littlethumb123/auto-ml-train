@@ -28,7 +28,8 @@ _TOKEN_COLUMNS = [
     "historian_tokens", "round_total_tokens",
 ]
 
-# Kept for backward compatibility with anything that imported this name directly.
+# Kept for backward compatibility.
+# WARNING: does NOT include token columns added in 2026-04-26; use make_header(None) for the current schema.
 _RESULTS_HEADER = (
     "commit\tval_pr_auc\tlift_at_10\tmacro_f1\tval_f1\tstatus\tn_features\t"
     "model_family\taction_type\thypothesis\tdescription\n"
