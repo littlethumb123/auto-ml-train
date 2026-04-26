@@ -22,6 +22,12 @@ _STRUCTURAL_SUFFIX = ["status", "n_features", "model_family", "action_type", "hy
 # Legacy metric columns (creditcard campaign and any campaign without results_columns).
 _LEGACY_METRIC_COLUMNS = ["val_pr_auc", "lift_at_10", "macro_f1", "val_f1"]
 
+# Token usage columns appended at the end of every results.tsv row.
+_TOKEN_COLUMNS = [
+    "planner_tokens", "executor_tokens", "reviewer_tokens",
+    "historian_tokens", "round_total_tokens",
+]
+
 # Kept for backward compatibility with anything that imported this name directly.
 _RESULTS_HEADER = (
     "commit\tval_pr_auc\tlift_at_10\tmacro_f1\tval_f1\tstatus\tn_features\t"
@@ -37,7 +43,7 @@ def make_header(results_columns: list[str] | None) -> str:
             EVAL_PROTOCOL.results_columns.  ``None`` → legacy schema.
     """
     metric_cols = results_columns if results_columns is not None else _LEGACY_METRIC_COLUMNS
-    return "\t".join(_STRUCTURAL_PREFIX + metric_cols + _STRUCTURAL_SUFFIX) + "\n"
+    return "\t".join(_STRUCTURAL_PREFIX + metric_cols + _STRUCTURAL_SUFFIX + _TOKEN_COLUMNS) + "\n"
 
 
 def get_results_columns(campaign_dir: str) -> list[str] | None:
@@ -80,6 +86,10 @@ def append_result(
     campaign_dir: str = "runner/",
     primary_metric_name: str = "val_pr_auc",
     direction: Direction = "maximize",
+    planner_tokens: int = 0,
+    executor_tokens: int = 0,
+    reviewer_tokens: int = 0,
+    historian_tokens: int = 0,
 ) -> None:
     """Append one row to `<campaign_dir>/state/results.tsv` and update
     `<campaign_dir>/state/CAMPAIGN_STATE.json`.
@@ -108,6 +118,12 @@ def append_result(
         except (TypeError, ValueError):
             return _clean(str(v))
 
+    round_total = planner_tokens + executor_tokens + reviewer_tokens + historian_tokens
+    token_cells = [
+        str(planner_tokens), str(executor_tokens), str(reviewer_tokens),
+        str(historian_tokens), str(round_total),
+    ]
+
     if results_columns is None:
         # Legacy fixed schema (creditcard campaign and any without results_columns).
         row = "\t".join([
@@ -122,7 +138,7 @@ def append_result(
             action_type,
             _clean(hypothesis),
             _clean(description),
-        ]) + "\n"
+        ] + token_cells) + "\n"
     else:
         metric_cells = [_metric_val(col) for col in results_columns]
         row = "\t".join(
@@ -130,6 +146,7 @@ def append_result(
             + metric_cells
             + [status, str(int(n_features)), model_family, action_type,
                _clean(hypothesis), _clean(description)]
+            + token_cells
         ) + "\n"
 
     with results_path.open("a", encoding="utf-8") as fp:
