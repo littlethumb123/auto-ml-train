@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-count: 13
-last_updated: "2026-04-25"
+count: 14
+last_updated: "2026-04-26"
 ---
 
 # Dead ends — do NOT retry
@@ -20,3 +20,4 @@ last_updated: "2026-04-25"
 - **Adding weak 8th model (ExtraTreesClassifier) to 7-model ensemble:** ET individually 18.934 (weak); ET gets 0.054 weight but CB_h collapses from 0.184 to 0.021. Ensemble degrades to 22.848. The r25 7-model balance is fragile — any 8th model that gets marginal weight disrupts the CB/XGB complementarity distribution. An 8th model must have individual lift@1% > ~22.0 to justify the weight budget expansion. (r39)
 - **LGBM_hybrid colsample_bytree=0.5 (from 0.8):** LGBM individually stronger (22.230 vs 22.162, 276 vs 170 iterations) but XGB_h weight drops 0.456→0.376 → ensemble 23.106 < 23.174. Weight redistribution is zero-sum: gains in LGBM weight directly cost XGB weight. The r25 saddle point requires XGB_h≈0.456 to achieve ceiling. Any LGBM improvement that shifts weight away from XGB degrades the ensemble. (r41)
 - **XGB monotonic constraints on clinical features (eng_ip_score, eng_chronic_score, eng_lab_score, eng_age_x_ip, eng_mm_ip_ratio):** Ensemble degrades to 22.814 (Δ=-0.360). Root cause: constraints structurally change the XGB optimization landscape → Optuna TPE seed=42 cannot find the HPs that produced the 0.456 dominant weight in r25. Like feature additions (r33), any structural change to the XGB optimization space prevents the r25 saddle point from being reached. XGB must remain unconstrained for AUC-ROC Optuna to find the complementary prediction manifold. (r42)
+- **Single-feature addition to ALL models including XGB Optuna:** Even +1 feature (eng_total_ip_days_2yr, 794→795) destabilizes the Optuna TPE landscape — lr shifts from 0.254 to 0.148, XGB_h weight collapses 0.456→0.044, ensemble reverts to 22.677 (r19 level). The r25 saddle point requires EXACTLY 794 features. ANY feature count change to XGB's training data — no matter how small — shifts the TPE exploration path and prevents finding the complementary HPs. Feature engineering must either exclude XGB from the new features, or accept that a new (possibly inferior) saddle point will be found. (r44)
