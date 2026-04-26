@@ -609,3 +609,23 @@ Use this for retrospective analysis, identifying where priors were wrong, and ca
 **Key finding — CRITICAL CAMPAIGN DISCOVERY:** Even a SINGLE feature addition (794→795) destabilizes the Optuna TPE landscape. XGB Optuna found lr=0.148 (vs r25's 0.254). This shifted XGB_h weight from 0.456 to 0.044 — effectively destroying the r25 saddle point. XGB_t (default, tabular, untouched) absorbed the weight at 0.489, but its default-HP predictions lack the AUC-ROC-optimized complementarity. The ensemble reverted to exactly 22.677 = r19 level (the pre-Optuna-XGB era). **Generalization: the r25 saddle point at 23.174 is a joint property of FOUR invariants: (1) exactly 794 features, (2) AUC-ROC proxy, (3) seed=42, (4) no structural constraints. Changing ANY ONE of these — even a single feature — destroys it.** Feature engineering is fundamentally incompatible with the current Optuna pipeline. To do feature engineering, one must either (a) supply features only to non-XGB models while keeping XGB on original features, or (b) accept that Optuna must re-find a new saddle point (with no guarantee it exists above 23.174). Consecutive discards=2.
 
 ---
+
+## Round 45 — 2026-04-26
+
+**Action:** A_feature — selective +1 eng_total_ip_days_2yr to LGBM/CB only; XGB Optuna on original 794 features
+**Trigger:** consecutive_discards=2 (r43-r44); tests whether Optuna landscape preservation + feature-enhanced LGBM/CB can beat 23.174
+**Alternatives rejected:**
+- Feature addition to all models: r44 proved even +1 feature destabilizes Optuna
+- Parameter-level changes: 13 dead ends exhaust all HP/architecture variants
+- 8th model: r39 proved weight dilution kills performance
+
+**Expected Δ (lift@1%):** +0.0 to +0.2 (XGB predictions unchanged → baseline preserved; LGBM/CB improvement adds delta)
+**Actual val_lift_1pct:** 22.986 (Δ = **-0.189**)
+**XGB Optuna HPs:** lr=0.254 (SAME as r25 — landscape preserved!)
+**XGB_hybrid individual:** 22.127 (SAME as r25 — predictions identical)
+**Weights:** LGBM_h=0.127 LGBM_t=0.066 LGBM_e=0.060 CB_h=0.166 CB_t=0.059 XGB_h=0.249 XGB_t=0.274
+**Verdict:** discard → consecutive_discards=3 → C2 triggered
+
+**Key finding — DEEPENED UNDERSTANDING OF 23.174 CEILING:** The selective feature approach confirmed that Optuna landscape preservation WORKS — XGB found the same HPs and produced the same individual predictions (22.127). But the ensemble STILL degraded because changing LGBM/CB predictions (795 features) shifted the scipy weight optimum. XGB_h weight dropped 0.456→0.249 despite identical XGB predictions. **The 23.174 ceiling is not just an XGB property — it is a property of ALL 7 base-model predictions jointly.** Changing any model's predictions (even models with 0.046 weight) shifts the scipy optimization landscape enough to redistribute weight away from XGB_h=0.456, which is the load-bearing pillar. This means: **no feature engineering of any kind can break 23.174 — whether features are added to all models (r44: destabilizes Optuna), to non-XGB models only (r45: shifts scipy weights), or to individual models (r41: zero-sum weight redistribution).** The remaining avenues are: (a) rank-based blending instead of probability-based, (b) fundamentally different model replacement, (c) accept ceiling. C2 triggered. c2_pending_diagnose=True.
+
+---
