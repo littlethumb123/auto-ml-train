@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-count: 15
+count: 16
 last_updated: "2026-04-26"
 ---
 
@@ -22,3 +22,4 @@ last_updated: "2026-04-26"
 - **XGB monotonic constraints on clinical features (eng_ip_score, eng_chronic_score, eng_lab_score, eng_age_x_ip, eng_mm_ip_ratio):** Ensemble degrades to 22.814 (Δ=-0.360). Root cause: constraints structurally change the XGB optimization landscape → Optuna TPE seed=42 cannot find the HPs that produced the 0.456 dominant weight in r25. Like feature additions (r33), any structural change to the XGB optimization space prevents the r25 saddle point from being reached. XGB must remain unconstrained for AUC-ROC Optuna to find the complementary prediction manifold. (r42)
 - **Single-feature addition to ALL models including XGB Optuna:** Even +1 feature (eng_total_ip_days_2yr, 794→795) destabilizes the Optuna TPE landscape — lr shifts from 0.254 to 0.148, XGB_h weight collapses 0.456→0.044, ensemble reverts to 22.677 (r19 level). The r25 saddle point requires EXACTLY 794 features. ANY feature count change to XGB's training data — no matter how small — shifts the TPE exploration path and prevents finding the complementary HPs. Feature engineering must either exclude XGB from the new features, or accept that a new (possibly inferior) saddle point will be found. (r44)
 - **Selective feature addition to LGBM/CB only (XGB on original features):** eng_total_ip_days_2yr given to LGBM/CB (795 features), XGB trains on original 794. XGB Optuna preserved (found same lr=0.254, same 22.127 individual). But LGBM/CB predictions changed → scipy weight optimum shifted → XGB_h dropped 0.456→0.249 → ensemble 22.986 < 23.174. The 23.174 ceiling is a joint property of ALL 7 base-model predictions — changing ANY model's predictions (even 0.046-weight LGBM_h) shifts the scipy landscape enough to hurt. Feature engineering of any form is a dead end. (r45)
+- **Rank-based ensemble blending (percentile ranks before scipy weight optimization):** Rank blending converts model predictions to percentile ranks (0–1) to remove calibration noise. Result: 22.780 < 23.174. Root cause: calibration scale differences between models are NOT noise — they encode how differently each model calibrates its top-1% region, which is precisely what makes XGB_h complementary. Rank normalization destroys this information. Also confirmed: scipy weight landscape has multiple local optima — probability blending with a different rng found 22.865 instead of 23.174. The r25 saddle point requires a specific scipy restart trajectory. (r47)

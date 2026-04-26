@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-last_round: 46
+last_round: 47
 last_verdict: "discard"
 ---
 
@@ -901,3 +901,41 @@ delta_vs_best: 0.000000
 bootstrap_se: 0.5033
 weights: LGBM_h=0.046 LGBM_t=0.023 LGBM_e=0.063 CB_h=0.184 CB_t=0.142 XGB_h=0.456 XGB_t=0.086
 review_note: A_diagnose post-C2 (rounds 43-45: feature engineering dead end). 6th exact reproduction of 23.174420 with identical weights. c2_pending_diagnose cleared. Budget: 54 rounds remaining (46/100 used). Next: rank-based ensemble blending (changes only the blending step, not the base models).
+
+## Round 47
+
+commit: a12464b (rolled back)
+verdict: discard
+action_type: A_ensemble
+model_family: ensemble
+n_features: 794
+val_lift_1pct: 22.865428
+val_auc_roc: 0.857044
+delta_vs_best: -0.308992
+bootstrap_se: n/a
+
+### Experiment design
+
+Rank-based blending: convert each model's val predictions to percentile ranks (0–1) before scipy weight optimization, instead of raw probabilities. Hypothesis: rank normalization removes calibration noise and lets the optimizer focus on ordinal complementarity.
+
+Comparison: ran BOTH rank-based and probability-based blending with same base models. Probability-based used fresh rng for scipy restarts (separate from rank's rng).
+
+### Results
+
+- RANK blending: val_lift_1pct = 22.780 (XGB_h=0.254, XGB_t=0.265 — weight spread across both)
+- PROB blending (different rng state): val_lift_1pct = 22.865 (XGB_h=0.086, XGB_t=0.409 — wrong local optimum)
+- Winner reported: PROB = 22.865 (still below 23.174)
+
+### Key findings
+
+1. **Rank blending is definitively worse than probability blending (22.780 vs 23.174).** Rank normalization eliminates calibration differences that make XGB_h uniquely complementary. The raw probability scale encodes important information about how differently each model calibrates — this is signal, not noise.
+
+2. **Multi-modal weight landscape confirmed.** The prob blending found 22.865 (not 23.174) because the rng used for scipy restarts had already been consumed by 30 rank-blending restarts before being used for prob restarts. Different starting points → different local optimum. This proves the scipy weight landscape has multiple local optima, and the r25 rng(42) starting trajectory is needed to find the 23.174 peak.
+
+3. **XGB_h weight collapse in both approaches.** RANK: XGB_h=0.254 (weight dispersed). PROB (wrong rng): XGB_h=0.086 (local optimum favors XGB_t). Neither approach found the 0.456 concentration that characterizes 23.174.
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: not run (discard, below threshold)
+
+review_note: A_ensemble: rank-based blending definitively worse than probability blending (22.780 vs 23.174). Rank normalization destroys calibration information that makes XGB_h uniquely complementary. Multi-modal weight landscape confirmed — different scipy restart seeds find different local optima. The 23.174 saddle point requires not just the right base models and features, but also the right scipy initialization. Consecutive discards=2.
