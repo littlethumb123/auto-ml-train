@@ -13,6 +13,9 @@ You are running an autonomous ML experiment campaign. **Read this file first, th
 - Retrospective: `runner/state/CAMPAIGN_JOURNAL.md` — planned reasoning vs actual outcome per round
 - Exploration frontier: `runner/state/UNEXPLORED_TECHNIQUES.md` — technique classes not yet tried (Planner reads every round; mandatory when consecutive_discards ≥ 2)
 - Priors (cross-campaign): `runner/contracts/PRIORS.md`
+- Meta-cognitive: `runner/state/ASSUMPTION_REGISTER.md`, `runner/state/PATTERN_BOOK.md`
+- Historian synthesis: `runner/state/STRATEGY_MEMO.md` (exists after first Historian run)
+- Token digest: `runner/state/TOKEN_SUMMARY.txt` (informational)
 
 ## 1. Your role for this turn
 
@@ -21,6 +24,7 @@ Pick the role that matches the current state:
 - **Planner** — invoked when state expects a new `NEXT_EXPERIMENT.md`. Read `runner/roles/planner.md`.
 - **Executor** — invoked after Planner and driver validated the plan. Read `runner/roles/executor.md`.
 - **Reviewer** — invoked after Executor run. Read `runner/roles/reviewer.md`.
+- **Historian** — invoked by the outer loop when `historian_trigger_pending` is true in `CAMPAIGN_STATE.json`. Runs before the next Planner turn. Read `runner/roles/historian.md`.
 
 The driver (`runner/run_round.sh`) tells you which role to play.
 
