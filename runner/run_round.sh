@@ -2,7 +2,7 @@
 # runner/run_round.sh — thin CLI wrapper over runner_driver.py.
 set -euo pipefail
 
-STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize|resolve-c2"}
+STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize|resolve-c2|historian|historian-finalize"}
 shift || true
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -55,12 +55,29 @@ elif stage == "review-finalize":
         campaign_dir=args.get("campaign_dir", "runner/"),
         tools_ran=tools_ran,
         bootstrap_se=bootstrap_se,
+        planner_tokens=int(args.get("planner_tokens", 0) or 0),
+        executor_tokens=int(args.get("executor_tokens", 0) or 0),
+        reviewer_tokens=int(args.get("reviewer_tokens", 0) or 0),
     )
     print(json.dumps(res))
 elif stage == "resolve-c2":
     res = runner_driver.resolve_c2(
         resolution=args.get("resolution", ""),
         campaign_dir=args.get("campaign_dir", "runner/"),
+    )
+    print(json.dumps(res))
+elif stage == "historian":
+    res = runner_driver.historian_run(
+        campaign_dir=args.get("campaign_dir", "runner/"),
+    )
+    print(json.dumps(res))
+elif stage == "historian-finalize":
+    res = runner_driver.historian_finalize(
+        campaign_dir=args.get("campaign_dir", "runner/"),
+        trigger=args.get("trigger", "periodic"),
+        patterns_added=int(args.get("patterns_added", 0) or 0),
+        assumptions_flagged=int(args.get("assumptions_flagged", 0) or 0),
+        tokens_used=int(args.get("tokens_used", 0) or 0),
     )
     print(json.dumps(res))
 else:
