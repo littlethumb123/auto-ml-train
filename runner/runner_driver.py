@@ -298,6 +298,122 @@ def resolve_c2(
     }
 
 
+def historian_run(campaign_dir: str = "runner/") -> dict[str, Any]:
+    """Return metadata for the outer loop to pass to the Historian agent.
+
+    Migrates v1 CAMPAIGN_STATE.json to v2 schema on first call if needed.
+    """
+    camp = Path(campaign_dir)
+    state_path = camp / "state" / "CAMPAIGN_STATE.json"
+    if not state_path.exists():
+        raise DriverError("CAMPAIGN_STATE.json not found — run init first")
+
+    state = json.loads(state_path.read_text())
+
+    # Migrate v1 → v2 if needed
+    if state.get("$schema_version", 1) < 2:
+        import datetime as _dt
+
+        eval_fm_mig, _ = parse_frontmatter(camp / "contracts" / "EVAL_PROTOCOL.md")
+        budgets_mig = eval_fm_mig.get("budgets") or {}
+        budget_total_mig = int(budgets_mig.get("max_experiments", 100))
+        ep_interval = eval_fm_mig.get("historian_interval")
+        if ep_interval is not None:
+            hist_interval = int(ep_interval)
+        elif budget_total_mig < 50:
+            hist_interval = max(5, int(budget_total_mig * 0.10))
+        else:
+            hist_interval = 10
+
+        state["$schema_version"] = 2
+        state.setdefault("rounds_since_last_historian", int(state.get("round", 0)))
+        state.setdefault("historian_interval", hist_interval)
+        state.setdefault("last_historian_round", None)
+        state.setdefault("historian_trigger_pending", False)
+        state.setdefault(
+            "total_tokens",
+            {"planner": 0, "executor": 0, "reviewer": 0, "historian": 0},
+        )
+        state.pop("c2_pending_diagnose", None)
+        state["updated_at"] = _dt.datetime.now(_dt.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+    eval_fm, _ = parse_frontmatter(camp / "contracts" / "EVAL_PROTOCOL.md")
+    plateau_trigger = int(
+        (eval_fm.get("plateau_trigger") or {}).get("consecutive_discards", 3)
+    )
+
+    is_periodic = (
+        int(state.get("rounds_since_last_historian", 0))
+        >= int(state.get("historian_interval", 10))
+    )
+    is_c2 = int(state.get("consecutive_discards", 0)) >= plateau_trigger
+
+    if is_periodic and is_c2:
+        trigger = "periodic+c2"
+    elif is_c2:
+        trigger = "c2"
+    else:
+        trigger = "periodic"
+
+    last_historian_round = int(state.get("last_historian_round") or 0)
+    current_round = int(state.get("round", 0))
+
+    return {
+        "status": "ok",
+        "trigger": trigger,
+        "rounds_covered": [last_historian_round + 1, current_round],
+        "current_round": current_round,
+        "campaign_dir": campaign_dir,
+    }
+
+
+def historian_finalize(
+    campaign_dir: str = "runner/",
+    trigger: str = "periodic",
+    patterns_added: int = 0,
+    assumptions_flagged: int = 0,
+    tokens_used: int = 0,
+) -> dict[str, Any]:
+    """Update CAMPAIGN_STATE.json after the Historian agent completes."""
+    camp = Path(campaign_dir)
+    state_path = camp / "state" / "CAMPAIGN_STATE.json"
+    if not state_path.exists():
+        raise DriverError("CAMPAIGN_STATE.json not found — run init first")
+
+    import datetime as _dt
+
+    state = json.loads(state_path.read_text())
+    state["rounds_since_last_historian"] = 0
+    state["last_historian_round"] = int(state.get("round", 0))
+    state["historian_trigger_pending"] = False
+    state["pending_historian_tokens"] = tokens_used
+
+    if "c2" in trigger:
+        state["consecutive_discards"] = 0
+
+    total_tokens = state.get("total_tokens") or {
+        "planner": 0, "executor": 0, "reviewer": 0, "historian": 0
+    }
+    total_tokens["historian"] = int(total_tokens.get("historian", 0)) + tokens_used
+    state["total_tokens"] = total_tokens
+    state["updated_at"] = _dt.datetime.now(_dt.timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+    return {
+        "status": "ok",
+        "trigger": trigger,
+        "patterns_added": patterns_added,
+        "assumptions_flagged": assumptions_flagged,
+        "tokens_used": tokens_used,
+        "consecutive_discards_reset": "c2" in trigger,
+    }
+
+
 def execute_finalize(
     executor_stdout: str,
     campaign_dir: str = "runner/",
