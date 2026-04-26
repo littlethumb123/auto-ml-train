@@ -41,7 +41,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_diagnose: differential_evolution global weight optimizer vs Nelder-Mead — tests if 23.174 is global optimum"
+DESCRIPTION = "A_validate: final test-set evaluation with DE-optimized weights from r48"
 FEATURE_SET = "hybrid"
 _USE_ENGINEERED = True
 
@@ -154,6 +154,7 @@ import lightgbm as lgb
 from catboost import CatBoostClassifier, Pool
 import xgboost as xgb
 from scipy.optimize import minimize, differential_evolution
+from sklearn.metrics import roc_auc_score as _roc_auc_score
 
 t_train_start = time.time()
 cat_idx = [i for i, c in enumerate(X_train.columns) if c in set(_cat_cols_names)]
@@ -273,73 +274,78 @@ xgbm_t.fit(X_train_tab, y_train, eval_set=[(X_val_tab, y_val)], verbose=False)
 p_xgb_t = xgbm_t.predict_proba(X_val_tab)[:, 1]
 print(f"XGB_tabular (iter={xgbm_t.best_iteration}): lift@1%={lift_at_percentage(y_val_arr, p_xgb_t, 0.01):.4f}  ({time.time()-t_start:.1f}s)")
 
-# scipy weight optimization on 7-model ensemble
-preds_matrix = np.column_stack([p_lgbm_h, p_lgbm_t, p_lgbm_e, p_cb, p_cb_t, p_xgb, p_xgb_t])
+# --- DE weight optimization on val (reproduce r48) ---
+preds_val = np.column_stack([p_lgbm_h, p_lgbm_t, p_lgbm_e, p_cb, p_cb_t, p_xgb, p_xgb_t])
 model_names = ["LGBM_h", "LGBM_t", "LGBM_e", "CB_h", "CB_t", "XGB_h", "XGB_t"]
 
-def neg_lift(w):
-    w = np.abs(w) / np.abs(w).sum()
-    return -lift_at_percentage(y_val_arr, preds_matrix @ w, 0.01)
-
-# --- Method 1: Nelder-Mead multi-restart (original r25 approach, rng(42)) ---
-nm_best = minimize(neg_lift, [1/7]*7, method="Nelder-Mead",
-                   options={"maxiter": 3000, "xatol": 1e-5, "fatol": 1e-5})
-rng = np.random.default_rng(RANDOM_SEED)
-for _ in range(30):
-    w0 = rng.dirichlet([1]*7)
-    r = minimize(neg_lift, w0, method="Nelder-Mead", options={"maxiter": 3000})
-    if r.fun < nm_best.fun:
-        nm_best = r
-
-nm_w = np.abs(nm_best.x) / np.abs(nm_best.x).sum()
-nm_lift = -nm_best.fun
-print(f"\n=== Nelder-Mead (30 restarts, rng(42)) ===")
-print(f"  weights: {' '.join(f'{n}={w:.3f}' for n, w in zip(model_names, nm_w))}")
-print(f"  lift@1%: {nm_lift:.6f}")
-
-# --- Method 2: differential_evolution (global optimizer) ---
 def neg_lift_de(w):
     w = np.array(w)
     s = w.sum()
     if s < 1e-12:
         return 0.0
     w = w / s
-    return -lift_at_percentage(y_val_arr, preds_matrix @ w, 0.01)
+    return -lift_at_percentage(y_val_arr, preds_val @ w, 0.01)
 
-print(f"Starting DE... ({time.time()-t_start:.0f}s elapsed)")
+print(f"Starting DE weight optimization... ({time.time()-t_start:.0f}s elapsed)")
 de_result = differential_evolution(
-    neg_lift_de,
-    bounds=[(0.0, 1.0)] * 7,
-    seed=RANDOM_SEED,
-    maxiter=200,
-    tol=1e-7,
-    mutation=(0.5, 1.5),
-    recombination=0.9,
-    popsize=15,
-    polish=True,
+    neg_lift_de, bounds=[(0.0, 1.0)] * 7, seed=RANDOM_SEED,
+    maxiter=200, tol=1e-7, mutation=(0.5, 1.5), recombination=0.9, popsize=15, polish=True,
 )
-de_w = np.array(de_result.x) / np.array(de_result.x).sum()
-de_lift = -de_result.fun
-print(f"\n=== Differential Evolution (global optimizer) ===")
-print(f"  weights: {' '.join(f'{n}={w:.3f}' for n, w in zip(model_names, de_w))}")
-print(f"  lift@1%: {de_lift:.6f}")
+best_w = np.array(de_result.x) / np.array(de_result.x).sum()
+val_lift = -de_result.fun
+print(f"\n=== DE Val Weights ===")
+print(f"  weights: {' '.join(f'{n}={w:.3f}' for n, w in zip(model_names, best_w))}")
+print(f"  val_lift@1%: {val_lift:.6f}")
 print(f"  converged: {de_result.success}  nfev: {de_result.nfev}  ({time.time()-t_start:.0f}s)")
 
-# --- Select winner ---
-results = [("NM_30", nm_lift, nm_w), ("DE", de_lift, de_w)]
-winner_name, winner_lift, best_w = max(results, key=lambda x: x[1])
-print(f"\n*** WINNER: {winner_name} with lift@1% = {winner_lift:.6f} ***")
-print(f"  NM_30={nm_lift:.6f}  DE={de_lift:.6f}")
-print(f"7-model weights: {' '.join(f'{n}={w:.3f}' for n, w in zip(model_names, best_w))}")
-print(f"Reference (r25 champion): 23.174420")
-
-y_prob_val = preds_matrix @ best_w
+y_prob_val = preds_val @ best_w
 training_time = time.time() - t_train_start
 
 # ---------------------------------------------------------------------------
-# Evaluation
+# TEST SET evaluation — final hold-out assessment
 # ---------------------------------------------------------------------------
 
+y_test_arr = np.asarray(y_test)
+tab_cols_test = [c for c in X_test.columns if not c.startswith("embedding_")]
+emb_cols_test = [c for c in X_test.columns if c.startswith("embedding_")]
+
+p_test_lgbm_h = lgbm_h.predict_proba(X_test)[:, 1]
+p_test_lgbm_t = lgbm_t.predict_proba(X_test[tab_cols_test])[:, 1]
+p_test_lgbm_e = lgbm_e.predict_proba(X_test[emb_cols_test])[:, 1]
+p_test_cb = cb.predict_proba(Pool(X_test, cat_features=cat_idx))[:, 1]
+cat_idx_tab_test = [i for i, c in enumerate(tab_cols_test) if c in set(_cat_cols_names)]
+p_test_cb_t = cb_t.predict_proba(Pool(X_test[tab_cols_test], cat_features=cat_idx_tab_test))[:, 1]
+p_test_xgb = xgbm.predict_proba(X_test)[:, 1]
+p_test_xgb_t = xgbm_t.predict_proba(X_test[tab_cols_test])[:, 1]
+
+preds_test = np.column_stack([p_test_lgbm_h, p_test_lgbm_t, p_test_lgbm_e,
+                                p_test_cb, p_test_cb_t, p_test_xgb, p_test_xgb_t])
+y_prob_test = preds_test @ best_w
+
+test_lift_1 = lift_at_percentage(y_test_arr, y_prob_test, 0.01)
+test_lift_5 = lift_at_percentage(y_test_arr, y_prob_test, 0.05)
+test_lift_10 = lift_at_percentage(y_test_arr, y_prob_test, 0.10)
+test_auc_roc = float(_roc_auc_score(y_test_arr, y_prob_test))
+
+print(f"\n{'='*60}")
+print(f"  FINAL TEST SET EVALUATION")
+print(f"{'='*60}")
+print(f"  test_lift_1pct:   {test_lift_1:.6f}")
+print(f"  test_lift_5pct:   {test_lift_5:.6f}")
+print(f"  test_lift_10pct:  {test_lift_10:.6f}")
+print(f"  test_auc_roc:     {test_auc_roc:.6f}")
+print(f"  test_n:           {len(y_test_arr)}")
+print(f"  test_prevalence:  {y_test_arr.mean():.4f}")
+print(f"{'='*60}")
+
+for i, name in enumerate(model_names):
+    ind_lift = lift_at_percentage(y_test_arr, preds_test[:, i], 0.01)
+    print(f"  {name} individual test_lift@1%: {ind_lift:.4f}")
+
+print(f"\n  val_lift@1% (for comparison):  {val_lift:.6f}")
+print(f"  val-test gap:                  {val_lift - test_lift_1:+.6f}")
+
+# Val metrics for results.tsv
 metrics = compute_split_metrics(np.asarray(y_val), y_prob_val, prefix="val")
 
 _scores_dir = Path("campaigns/ip-commercial-new-te/state")
