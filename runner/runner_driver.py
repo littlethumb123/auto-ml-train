@@ -205,8 +205,6 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
     allowed = list(eval_fm.get("action_types") or [])
     errors = schema.validate_next_experiment(plan_path, allowed_action_types=allowed)
 
-    state = json.loads((camp / "state" / "CAMPAIGN_STATE.json").read_text())
-    trigger = int((eval_fm.get("plateau_trigger") or {}).get("consecutive_discards", 3))
     fm_plan: dict[str, Any] | None = None
     escalation = None
     try:

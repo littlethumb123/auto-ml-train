@@ -250,8 +250,6 @@ def validate_campaign_state(path: Path) -> list[str]:
     for k in ("round", "exp_id_counter", "consecutive_discards", "budget_used", "budget_total"):
         if k in data and not isinstance(data[k], int):
             errors.append(f"{k} must be int, got {type(data[k]).__name__}")
-    if "c2_pending_diagnose" in data and not isinstance(data["c2_pending_diagnose"], bool):
-        errors.append("c2_pending_diagnose must be bool if present")
     return errors
 
 
