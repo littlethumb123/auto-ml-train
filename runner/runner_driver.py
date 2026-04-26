@@ -214,20 +214,6 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
         escalation = fm_plan.get("escalation")
     except FrontmatterError:
         pass
-    if state.get("consecutive_discards", 0) >= trigger and escalation != "C2":
-        errors.append(
-            f"consecutive_discards={state['consecutive_discards']} >= trigger={trigger} "
-            f"but escalation!=C2 (required per spec §8.3 item 5)"
-        )
-
-    if state.get("c2_pending_diagnose") and escalation is None:
-        plan_action = fm_plan.get("action_type") if fm_plan else None
-        if plan_action != "A_diagnose":
-            errors.append(
-                "c2_pending_diagnose is active — next plan must be A_diagnose "
-                f"(STRATEGY_GUIDE §3.7), got {plan_action!r}"
-            )
-
     if errors:
         return {"status": "malformed", "errors": errors}
     if escalation == "C2":
@@ -274,7 +260,7 @@ def resolve_c2(
 
     prior_discards = state["consecutive_discards"]
     state["consecutive_discards"] = 0
-    state["c2_pending_diagnose"] = True
+    state["historian_trigger_pending"] = True
     state["updated_at"] = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
 
@@ -295,6 +281,7 @@ def resolve_c2(
         "status": "resolved",
         "prior_consecutive_discards": prior_discards,
         "resolution": resolution,
+        "historian_trigger_pending": True,
     }
 
 
