@@ -356,6 +356,8 @@ def historian_run(campaign_dir: str = "runner/") -> dict[str, Any]:
     elif is_c2:
         trigger = "c2"
     else:
+        # Callers must pre-check historian_trigger_pending; this path
+        # assumes the periodic interval was the trigger when c2 is not active.
         trigger = "periodic"
 
     last_historian_round = int(state.get("last_historian_round") or 0)
