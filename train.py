@@ -19,6 +19,8 @@ import pandas as pd
 import pyarrow.parquet as pq
 
 warnings.filterwarnings("ignore")
+import sys
+sys.stdout.reconfigure(line_buffering=True)
 
 from prepare import RANDOM_SEED, OOT_CUTOFF_DATE, CACHE_PATH, get_splits
 from shared.metrics import compute_split_metrics, lift_at_percentage
@@ -39,7 +41,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_hp: Optuna XGBoost (AUC-ROC proxy, 25 trials) in 7-model ensemble — XGB gets 0.535 weight"
+DESCRIPTION = "A_diagnose: differential_evolution global weight optimizer vs Nelder-Mead — tests if 23.174 is global optimum"
 FEATURE_SET = "hybrid"
 _USE_ENGINEERED = True
 
@@ -151,7 +153,7 @@ print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 import lightgbm as lgb
 from catboost import CatBoostClassifier, Pool
 import xgboost as xgb
-from scipy.optimize import minimize
+from scipy.optimize import minimize, differential_evolution
 
 t_train_start = time.time()
 cat_idx = [i for i, c in enumerate(X_train.columns) if c in set(_cat_cols_names)]
@@ -273,24 +275,63 @@ print(f"XGB_tabular (iter={xgbm_t.best_iteration}): lift@1%={lift_at_percentage(
 
 # scipy weight optimization on 7-model ensemble
 preds_matrix = np.column_stack([p_lgbm_h, p_lgbm_t, p_lgbm_e, p_cb, p_cb_t, p_xgb, p_xgb_t])
+model_names = ["LGBM_h", "LGBM_t", "LGBM_e", "CB_h", "CB_t", "XGB_h", "XGB_t"]
 
 def neg_lift(w):
     w = np.abs(w) / np.abs(w).sum()
     return -lift_at_percentage(y_val_arr, preds_matrix @ w, 0.01)
 
-best_result = minimize(neg_lift, [1/7]*7, method="Nelder-Mead",
-                       options={"maxiter": 3000, "xatol": 1e-5, "fatol": 1e-5})
+# --- Method 1: Nelder-Mead multi-restart (original r25 approach, rng(42)) ---
+nm_best = minimize(neg_lift, [1/7]*7, method="Nelder-Mead",
+                   options={"maxiter": 3000, "xatol": 1e-5, "fatol": 1e-5})
 rng = np.random.default_rng(RANDOM_SEED)
 for _ in range(30):
     w0 = rng.dirichlet([1]*7)
     r = minimize(neg_lift, w0, method="Nelder-Mead", options={"maxiter": 3000})
-    if r.fun < best_result.fun:
-        best_result = r
+    if r.fun < nm_best.fun:
+        nm_best = r
 
-best_w = np.abs(best_result.x) / np.abs(best_result.x).sum()
-print(f"7-model weights: LGBM_h={best_w[0]:.3f} LGBM_t={best_w[1]:.3f} LGBM_e={best_w[2]:.3f} CB_h={best_w[3]:.3f} CB_t={best_w[4]:.3f} XGB_h={best_w[5]:.3f} XGB_t={best_w[6]:.3f}")
-print(f"Optimized lift@1%: {-best_result.fun:.4f}")
-print(f"Reference (round 19 best): 22.677")
+nm_w = np.abs(nm_best.x) / np.abs(nm_best.x).sum()
+nm_lift = -nm_best.fun
+print(f"\n=== Nelder-Mead (30 restarts, rng(42)) ===")
+print(f"  weights: {' '.join(f'{n}={w:.3f}' for n, w in zip(model_names, nm_w))}")
+print(f"  lift@1%: {nm_lift:.6f}")
+
+# --- Method 2: differential_evolution (global optimizer) ---
+def neg_lift_de(w):
+    w = np.array(w)
+    s = w.sum()
+    if s < 1e-12:
+        return 0.0
+    w = w / s
+    return -lift_at_percentage(y_val_arr, preds_matrix @ w, 0.01)
+
+print(f"Starting DE... ({time.time()-t_start:.0f}s elapsed)")
+de_result = differential_evolution(
+    neg_lift_de,
+    bounds=[(0.0, 1.0)] * 7,
+    seed=RANDOM_SEED,
+    maxiter=200,
+    tol=1e-7,
+    mutation=(0.5, 1.5),
+    recombination=0.9,
+    popsize=15,
+    polish=True,
+)
+de_w = np.array(de_result.x) / np.array(de_result.x).sum()
+de_lift = -de_result.fun
+print(f"\n=== Differential Evolution (global optimizer) ===")
+print(f"  weights: {' '.join(f'{n}={w:.3f}' for n, w in zip(model_names, de_w))}")
+print(f"  lift@1%: {de_lift:.6f}")
+print(f"  converged: {de_result.success}  nfev: {de_result.nfev}  ({time.time()-t_start:.0f}s)")
+
+# --- Select winner ---
+results = [("NM_30", nm_lift, nm_w), ("DE", de_lift, de_w)]
+winner_name, winner_lift, best_w = max(results, key=lambda x: x[1])
+print(f"\n*** WINNER: {winner_name} with lift@1% = {winner_lift:.6f} ***")
+print(f"  NM_30={nm_lift:.6f}  DE={de_lift:.6f}")
+print(f"7-model weights: {' '.join(f'{n}={w:.3f}' for n, w in zip(model_names, best_w))}")
+print(f"Reference (r25 champion): 23.174420")
 
 y_prob_val = preds_matrix @ best_w
 training_time = time.time() - t_train_start
