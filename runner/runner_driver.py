@@ -483,6 +483,9 @@ def review_finalize(
     campaign_dir: str = "runner/",
     tools_ran: list[str] | None = None,
     bootstrap_se: float | None = None,
+    planner_tokens: int = 0,
+    executor_tokens: int = 0,
+    reviewer_tokens: int = 0,
 ) -> dict[str, Any]:
     camp = Path(campaign_dir)
     state_path = camp / "state" / "CAMPAIGN_STATE.json"
@@ -505,6 +508,9 @@ def review_finalize(
                 f"mandatory_tools: missing normalized tool(s) {sorted(missing)} (spec §8.3 item 8)"
             )
 
+    # Historian tokens stored by historian_finalize for the round that triggered it
+    historian_tokens = int(state.get("pending_historian_tokens", 0))
+
     log.append_result(
         commit=commit if commit else "none",
         metrics=metrics,
@@ -517,12 +523,46 @@ def review_finalize(
         campaign_dir=str(camp),
         primary_metric_name=metric_name,
         direction=direction,
+        planner_tokens=planner_tokens,
+        executor_tokens=executor_tokens,
+        reviewer_tokens=reviewer_tokens,
+        historian_tokens=historian_tokens,
     )
     state_after = json.loads(state_path.read_text())
 
-    if action_type == "A_diagnose" and state_after.get("c2_pending_diagnose"):
-        state_after["c2_pending_diagnose"] = False
-        state_path.write_text(json.dumps(state_after, indent=2, sort_keys=True) + "\n")
+    # Clear consumed pending_historian_tokens; increment rounds_since_last_historian
+    state_after.pop("pending_historian_tokens", None)
+    rounds_since = int(state_after.get("rounds_since_last_historian", 0)) + 1
+    state_after["rounds_since_last_historian"] = rounds_since
+
+    # Check historian trigger conditions
+    hist_interval = int(state_after.get("historian_interval", 10))
+    plateau_trigger_val = int(
+        (eval_fm.get("plateau_trigger") or {}).get("consecutive_discards", 3)
+    )
+    if (
+        rounds_since >= hist_interval
+        or int(state_after.get("consecutive_discards", 0)) >= plateau_trigger_val
+    ):
+        state_after["historian_trigger_pending"] = True
+
+    # Accumulate token costs in state
+    total_tokens = state_after.get("total_tokens") or {
+        "planner": 0, "executor": 0, "reviewer": 0, "historian": 0
+    }
+    total_tokens["planner"] = int(total_tokens.get("planner", 0)) + planner_tokens
+    total_tokens["executor"] = int(total_tokens.get("executor", 0)) + executor_tokens
+    total_tokens["reviewer"] = int(total_tokens.get("reviewer", 0)) + reviewer_tokens
+    state_after["total_tokens"] = total_tokens
+
+    state_path.write_text(json.dumps(state_after, indent=2, sort_keys=True) + "\n")
+
+    # Update token digest (non-critical — never raise)
+    try:
+        from runner.tools.token_summary import write_token_summary
+        write_token_summary(campaign_dir=str(camp))
+    except Exception:
+        pass
 
     should_rollback = verdict in {"discard", "crash", "malformed"}
     pause_loop = verdict == "anomaly"
