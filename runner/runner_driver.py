@@ -94,6 +94,32 @@ def _normalize_mandatory_tool_name(name: str) -> str:
     return n
 
 
+def _assumption_register_skeleton(campaign_id: str) -> str:
+    return (
+        "---\n"
+        "schema_version: 1\n"
+        f'campaign_id: "{campaign_id}"\n'
+        "count: 0\n"
+        'last_updated: ""\n'
+        "---\n\n"
+        "<!-- Reviewer appends entries on every keep verdict. -->\n"
+        "<!-- Format: ### A-<round>-<seq> — <short name> -->\n"
+    )
+
+
+def _pattern_book_skeleton(campaign_id: str) -> str:
+    return (
+        "---\n"
+        "schema_version: 1\n"
+        f'campaign_id: "{campaign_id}"\n'
+        "count: 0\n"
+        'last_updated: ""\n'
+        "---\n\n"
+        "<!-- Historian appends entries during periodic/C2 runs. -->\n"
+        "<!-- Format: ### P-<seq> — <pattern name> -->\n"
+    )
+
+
 def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     camp = Path(campaign_dir)
     contracts = {
@@ -119,8 +145,19 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     import datetime as _dt
 
     now = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # historian_interval: explicit from EVAL_PROTOCOL, or compute from budget
+    budget_total = int(budgets.get("max_experiments", 100))
+    ep_historian_interval = eval_fm.get("historian_interval")
+    if ep_historian_interval is not None:
+        historian_interval = int(ep_historian_interval)
+    elif budget_total < 50:
+        historian_interval = max(5, int(budget_total * 0.10))
+    else:
+        historian_interval = 10
+
     state = {
-        "$schema_version": 1,
+        "$schema_version": 2,
         "campaign_id": problem_fm.get("campaign_id"),
         "round": 0,
         "exp_id_counter": 0,
@@ -128,9 +165,13 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
         "last_verdict": None,
         "best_so_far": {"commit": None, "primary_metric": None},
         "consecutive_discards": 0,
-        "c2_pending_diagnose": False,
+        "rounds_since_last_historian": 0,
+        "historian_interval": historian_interval,
+        "last_historian_round": None,
+        "historian_trigger_pending": False,
+        "total_tokens": {"planner": 0, "executor": 0, "reviewer": 0, "historian": 0},
         "budget_used": 0,
-        "budget_total": int(budgets.get("max_experiments", 100)),
+        "budget_total": budget_total,
         "created_at": now,
         "updated_at": now,
     }
@@ -142,6 +183,15 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     if not results.exists():
         results_columns = list(eval_fm.get("results_columns") or []) or None
         results.write_text(log.make_header(results_columns))
+
+    # Create skeleton state artifacts for the new meta-cognitive tier
+    ar_path = state_dir / "ASSUMPTION_REGISTER.md"
+    if not ar_path.exists():
+        ar_path.write_text(_assumption_register_skeleton(state["campaign_id"]))
+    pb_path = state_dir / "PATTERN_BOOK.md"
+    if not pb_path.exists():
+        pb_path.write_text(_pattern_book_skeleton(state["campaign_id"]))
+
     return state
 
 

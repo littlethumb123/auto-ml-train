@@ -282,3 +282,57 @@ def test_execute_finalize_parses_run_failed(campaign: Path):
     )
     assert status["channel"] == "RUN_FAILED"
     assert status["synthetic_verdict"] == "crash"
+
+
+def test_init_creates_v2_state_fields(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert state["$schema_version"] == 2
+    assert state["rounds_since_last_historian"] == 0
+    assert "historian_interval" in state
+    assert state["historian_interval"] >= 1
+    assert state["historian_trigger_pending"] is False
+    assert state["total_tokens"] == {"planner": 0, "executor": 0, "reviewer": 0, "historian": 0}
+    assert "c2_pending_diagnose" not in state
+
+
+def test_init_creates_assumption_register_skeleton(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    ar = (campaign / "state" / "ASSUMPTION_REGISTER.md")
+    assert ar.exists()
+    text = ar.read_text()
+    assert "schema_version: 1" in text
+    assert "count: 0" in text
+
+
+def test_init_creates_pattern_book_skeleton(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    pb = (campaign / "state" / "PATTERN_BOOK.md")
+    assert pb.exists()
+    text = pb.read_text()
+    assert "schema_version: 1" in text
+    assert "count: 0" in text
+
+
+def test_init_historian_interval_from_eval_protocol(tmp_path: Path):
+    """When historian_interval is explicit in EVAL_PROTOCOL, use it."""
+    ep_with_interval = EVAL_PROTOCOL.replace(
+        "approved_at:", "historian_interval: 7\napproved_at:"
+    )
+    root = tmp_path / "runner"
+    (root / "contracts").mkdir(parents=True)
+    (root / "state").mkdir()
+    (root / "contracts" / "PROBLEM_CONTRACT.md").write_text(PROBLEM_CONTRACT)
+    (root / "contracts" / "DATA_CONTRACT.md").write_text(DATA_CONTRACT)
+    (root / "contracts" / "EVAL_PROTOCOL.md").write_text(ep_with_interval)
+    runner_driver.init_campaign(campaign_dir=str(root))
+    state = json.loads((root / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert state["historian_interval"] == 7
+
+
+def test_init_historian_interval_default_for_small_budget(campaign: Path):
+    """budget_total=3 < 50 → max(5, int(3 * 0.10)) = 5."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    # EVAL_PROTOCOL fixture has max_experiments: 3
+    assert state["historian_interval"] == 5
