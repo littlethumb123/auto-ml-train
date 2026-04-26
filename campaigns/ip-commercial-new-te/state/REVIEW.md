@@ -1,7 +1,7 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-last_round: 43
+last_round: 45
 last_verdict: "discard"
 ---
 
@@ -857,3 +857,34 @@ weights: LGBM_h=0.167 LGBM_t=0.022 LGBM_e=0.168 CB_h=0.091 CB_t=0.018 XGB_h=0.04
 XGB Optuna HPs: max_depth=6, lr=0.148 (vs r25's lr≈0.254)
 XGB_hybrid individual: 21.767 (vs r25's 22.127)
 review_note: A_feature: +1 feature eng_total_ip_days_2yr (sum of 25 ipmdc*_2yr_days cols, 794→795 features). CRITICAL FINDING: even a SINGLE feature addition destabilizes the Optuna TPE landscape. XGB Optuna found lr=0.148 instead of r25's lr≈0.254. XGB_h weight COLLAPSED from 0.456 to 0.044 — destroyed. XGB_t (default, tabular-only) absorbed the weight at 0.489. Ensemble reverted to 22.677 = exactly r19 level (pre-Optuna era). The eng_total_ip_days_2yr feature itself had no measurable effect; all degradation came from Optuna destabilization. CONCLUSION: any feature count change (even +1) is incompatible with the current Optuna pipeline. Feature engineering cannot break 23.174 while Optuna seed=42 is active on the modified feature space. Next: try selective feature addition (add feature only to LGBM/CB, keep XGB on original 794 features to preserve Optuna landscape).
+
+## Round 45
+
+commit: (rolled back — 4a0102269bf994cf2cf82281e1644c321e1892c7)
+verdict: discard
+action_type: A_feature
+model_family: ensemble
+n_features: 795
+val_lift_1pct: 22.985592
+val_auc_roc: 0.858060
+val_lift_5pct: 9.615759
+val_lift_10pct: 6.160389
+val_auc_pr: 0.112235
+delta_vs_best: -0.188828
+
+### Tool outputs
+- anomaly: not fired
+- bootstrap_ci: not run (discard, below threshold)
+
+XGB Optuna HPs: max_depth=6, lr=0.254 — SAME as r25 (landscape preserved!)
+XGB_hybrid individual: 22.127 (SAME as r25)
+weights: LGBM_h=0.127 LGBM_t=0.066 LGBM_e=0.060 CB_h=0.166 CB_t=0.059 XGB_h=0.249 XGB_t=0.274
+review_note: A_feature: selective +1 eng_total_ip_days_2yr to LGBM/CB only, XGB on original 794 features. XGB Optuna PRESERVED: found lr=0.254, XGB individual=22.127 (both identical to r25). But ensemble still degraded (22.986 < 23.174) because changing LGBM/CB predictions (795 features) shifted the scipy weight landscape — XGB_h weight dropped 0.456→0.249 despite XGB predictions being identical. LGBM_h weight rose 0.046→0.127 (predictions changed by new feature made them more "XGB-like" in top-1%). Refined understanding: 23.174 is a property of ALL 7 base-model predictions jointly, not just XGB. Changing ANY model's predictions shifts the scipy optimum and redistributes weight away from XGB_h. Consecutive discards=3 → C2 triggered.
+
+### Escalation
+
+### For C2
+
+3 consecutive discards (rounds 43-45): A_diagnose reproduction, +1 feature to all models, selective +1 feature to LGBM/CB only. Feature engineering is conclusively a dead end: adding features to XGB destabilizes Optuna; adding features only to LGBM/CB shifts scipy weights away from XGB. Both paths degrade the ensemble.
+
+**c2_pending_diagnose=True.** Next: A_diagnose (6th exact reproduction expected). After A_diagnose: pivot to rank-based ensemble blending or accept 23.174 as campaign ceiling.
