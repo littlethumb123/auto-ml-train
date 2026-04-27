@@ -95,3 +95,18 @@ campaign_id: "smoke-test-creditcard"
 **Actual val_pr_auc:** 0.824075 (Δ = +0.008545 vs prior best 0.815530)
 **Verdict:** keep — NEW CHAMPION at val_pr_auc=0.824075
 **Key finding:** LightGBM with n_estimators=1000 outperforms 600 by 0.009 — the model was undertrained. This confirms the CRITICAL assumption was correct: champion HP was NOT near-optimal. Learning rate 0.02 with 600 rounds was insufficient for convergence. The pattern is: increasing n_estimators (staying with same architecture) does help, contradicting the "simple perturbations hurt" pattern from earlier rounds. That pattern was only 3 data points of a specific type (family, num_leaves, feature) and didn't generalize to convergence depth.
+
+## Round 7 — 2026-04-27
+
+**Action:** A_hp — LightGBM n_estimators 1000→1500 to test convergence depth (testing A-6-2)
+**Trigger:** A-6-2 assumption: lr=0.02 needs >600 rounds; round 6 confirmed >600; testing if >1000 also helps
+**Alternatives rejected:**
+- A_hp (lr change): two-variable change; keep convergence direction for clean test
+- A_validate (seed stability): lower ROI than exploring convergence
+
+**Independent assessment:** Run completed in 18.5s. val_pr_auc=0.827750 — above prior champion 0.824075. Δ=+0.004. Continuing convergence trajectory. Diminishing returns visible.
+
+**Expected Δ (val_pr_auc):** +0.005 (continuing convergence at reduced rate)
+**Actual val_pr_auc:** 0.827750 (Δ = +0.003675 vs prior best 0.824075)
+**Verdict:** keep — NEW CHAMPION at val_pr_auc=0.827750
+**Key finding:** n_estimators=1500 continues improving PR-AUC. Diminishing returns pattern confirmed: Δ_{600→1000}=+0.009 vs Δ_{1000→1500}=+0.004. Next step (1500→2000) likely yields <0.003 — near noise_floor. The model is approaching convergence with lr=0.02.

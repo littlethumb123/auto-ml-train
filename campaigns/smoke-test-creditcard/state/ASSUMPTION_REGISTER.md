@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
-count: 5
-last_updated: "2026-04-27 (round 6 keep)"
+count: 7
+last_updated: "2026-04-27 (round 7 keep)"
 ---
 
 <!-- Reviewer appends entries on every keep verdict. -->
@@ -53,7 +53,27 @@ last_updated: "2026-04-27 (round 6 keep)"
 - **Claim:** With lr=0.02, LightGBM requires more than 600 boosting rounds to converge for the creditcard fraud dataset. 1000 rounds is better; the optimal may be 800-1500.
 - **Evidence for:** n_estimators=1000 outperforms 600 by 0.009. The improvement suggests additional iterations still find signal.
 - **Evidence against:** 1000 vs 600 is the only comparison; we don't know if 1200 or 1500 would further improve.
-- **Confidence:** low
+- **Confidence:** medium — round 7 (n_est=1500) also improved, confirming the trend. Both 1000 and 1500 beat 600.
 - **Load-bearing:** yes — guides future n_estimators choices
+- **Verification status:** partially_verified (confirmed: >600 better; optimal: unknown, >1000 still improving)
+- **Last audited:** round 7 by Reviewer
+
+### A-7-1 — LightGBM PR-AUC continues improving beyond 1000 estimators at lr=0.02
+
+- **Claim:** LightGBM with n_estimators=1500 (val_pr_auc=0.827750) outperforms n_estimators=1000 (0.824075). The model at lr=0.02 has not yet converged by 1500 rounds — further gains may be possible.
+- **Evidence for:** n_estimators=1500 improves on 1000 by Δ=+0.003675. Bootstrap CI [0.7538, 0.8951].
+- **Evidence against:** Diminishing returns trend: 600→1000 Δ=+0.009, 1000→1500 Δ=+0.004. Rate of improvement is slowing.
+- **Confidence:** medium
+- **Load-bearing:** yes — determines whether to try n_estimators=2000 in remaining rounds
+- **Verification status:** unverified (optimal n_estimators unknown)
+- **Last audited:** round 7 by Reviewer
+
+### A-7-2 — Diminishing returns on n_estimators beyond 1500
+
+- **Claim:** The marginal gain per additional 500 estimators is shrinking: Δ_{600→1000}=+0.009, Δ_{1000→1500}=+0.004. The next step (1500→2000) may yield <0.003 — near or below noise_floor.
+- **Evidence for:** Two data points show clearly diminishing returns: 0.009 → 0.004 improvement per 500-estimator increment.
+- **Evidence against:** Only two data points; could be noise in the estimates.
+- **Confidence:** low
+- **Load-bearing:** no — advisory only
 - **Verification status:** unverified
-- **Last audited:** round 6 by Reviewer
+- **Last audited:** round 7 by Reviewer
