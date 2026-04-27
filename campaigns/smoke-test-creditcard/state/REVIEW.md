@@ -157,3 +157,42 @@ Actual Δ=-0.035. Hypothesis strongly falsified. Adding log1p(Amount) alongside 
 - **PLATEAU TRIGGER FIRED:** consecutive_discards=3 → historian_trigger_pending=true
 
 **Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
+
+## Round 5 — 2026-04-27
+
+**Commit:** 0e4fe213efed6045beaa82f97d9c29b3dcb34be0
+**Action type:** A_hp
+**Description:** LightGBM min_child_samples=1 (vs 5) — n_estimators=600, lr=0.02, num_leaves=63, spw=578
+
+### §Independent Assessment (Phase 1 — before reading plan)
+
+**Parsed metrics from run.log:**
+- val_pr_auc: 0.793780
+- lift_at_10: 9.291624
+- macro_f1: 0.913272
+- val_f1: 0.999427
+- training_seconds: 8.0
+- total_seconds: 10.2
+- n_features: 30
+
+**Mandatory tool outputs:**
+
+`runner.tools.anomaly`: fired=False, val_pr_auc=0.793780 within expected range (threshold=0.750000).
+`runner.tools.bootstrap_ci` (n_boot=500): approximate metric=0.793780, SE≈0.039 (consistent with prior).
+
+**Prior best:** 0.815530 (round 1, LightGBM). Δ = -0.021750.
+**Preliminary verdict:** DISCARD — Δ < 0. min_child_samples=1 improves lift_at_10 (9.29 vs 8.99) but hurts PR-AUC.
+
+### §Plan Comparison
+
+Hypothesis: min_child_samples=1 improves val_pr_auc by granular fraud splits. Expected Δ=+0.008.
+Actual Δ=-0.022. Hypothesis falsified. Reducing min_child_samples hurts PR-AUC (overall ranking) while improving lift_at_10 (top-k ranking). This dissociation suggests the modification shifts the model toward precision in the extreme top decile at the cost of overall probability calibration.
+
+### §Verdict: DISCARD
+
+- Δ = -0.021750 < 0
+- Anomaly: did not fire
+- No tool regression
+
+**Bootstrap SE:** ≈0.039 (95% CI: approximately [0.716, 0.872])
+**Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
