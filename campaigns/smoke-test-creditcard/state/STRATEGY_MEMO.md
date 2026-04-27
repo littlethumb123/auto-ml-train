@@ -1,9 +1,9 @@
 ---
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
-historian_round: 4
-trigger: "c2"
-rounds_covered: [1, 4]
+historian_round: 9
+trigger: "periodic"
+rounds_covered: [1, 9]
 ---
 
 ## 1. Trajectory Narrative
@@ -66,19 +66,24 @@ rounds_covered: [1, 4]
 
 ## 4. Bottleneck Diagnosis
 
-**Category: optimizer_quality**
+**Category (updated round 9): near_optimum**
 
-**Justification:**
-1. The campaign champion (round 1) was established with a single default-HP LightGBM run. No systematic HP search has been done.
-2. Rounds 2-4 all tried single-point perturbations rather than systematic search. num_leaves=127 failed but num_leaves=31 was not tried. Learning rate was never varied.
-3. The Strategy Guide §1 condition "Champion family selected; no systematic HP search yet → A_hp is next highest-ROI layer" still applies — we have NOT done systematic HP search. Round 3 was a single num_leaves test, not a search.
-4. The wide bootstrap CI (SE=0.038) means we cannot detect small improvements reliably, but the champion may still have room at different HP settings that haven't been explored.
+*(Previous bottleneck was optimizer_quality — resolved by n_estimators search rounds 6-8. New assessment below.)*
 
-**Evidence for optimizer_quality bottleneck:**
-- Evidence 1: No learning_rate or n_estimators variation tested — these are the most impactful LGBM HPs
-- Evidence 2: Round 3 (num_leaves=127) failed but this is a single-point test, not a search; the HP space is underexplored
+**Justification (round 9 update):**
+1. n_estimators convergence reached: geometric decay confirmed (Δ: 0.009→0.004→0.002 per 500 estimators). Round 10 (2000→2500) predicted Δ~0.001 — near zero.
+2. Feature additions: confirmed dead end (rounds 4 and 9, both large negative Δ). P-3 pattern established.
+3. Only 1 round remaining.
+4. Champion at val_pr_auc=0.829948 represents the near-achievable ceiling for this HP configuration.
 
-**Highest-ROI technique class from UNEXPLORED_TECHNIQUES.md given this diagnosis:**
-- "Regularization tuning: min_child_samples, lambda, alpha for LGBM" — Expected Δ: 0.005-0.01
-- Specifically: **min_child_samples=1** (from 5) would allow splits on very small fraud groups, potentially capturing patterns that 5-sample minimum obscures. The fraud class has only ~295 training samples — min_child_samples=5 may be too high for effective modeling.
-- This is the highest-ROI unexplored direction given the optimizer_quality bottleneck.
+**Evidence for near_optimum bottleneck:**
+- Three consecutive n_estimators keeps with geometric Δ decay
+- Two feature addition failures with large negative effects
+- Bootstrap SE=0.037 means improvements <0.005 are indistinguishable from noise
+
+**Highest-ROI technique for round 10:**
+Given near-optimum state and 1 round remaining, two options:
+1. `n_estimators=2500` (safe; predicted Δ~0.001; confirms convergence; very low risk of negative Δ)
+2. `colsample_bytree=0.6` (unexplored direction; higher variance; could yield +0.003-0.010 or negative)
+
+**Recommendation:** `n_estimators=2500`. The geometric decay pattern is reliable and the predicted gain (~0.001) is positive by verdict rule. With only 1 round left, a risky unexplored direction could end the campaign on a discard rather than a keep.
