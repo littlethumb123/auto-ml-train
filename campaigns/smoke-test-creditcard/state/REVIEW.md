@@ -236,3 +236,43 @@ Actual Δ=+0.008545. Hypothesis confirmed. More iterations captured additional s
 
 **Bootstrap SE:** 0.0370 (95% CI: [0.7490, 0.8921])
 **Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
+
+## Round 7 — 2026-04-27
+
+**Commit:** 10ca9bab883455ecca01f41e06f82106f69c263c
+**Action type:** A_hp
+**Description:** LightGBM n_estimators=1500 (vs 1000) — lr=0.02, num_leaves=63, min_child_samples=5, spw=578
+
+### §Independent Assessment (Phase 1 — before reading plan)
+
+**Parsed metrics from run.log:**
+- val_pr_auc: 0.827750
+- lift_at_10: 9.190628
+- macro_f1: 0.926022
+- val_f1: 0.999515
+- training_seconds: 16.2
+- total_seconds: 18.5
+- n_features: 30
+
+**Mandatory tool outputs:**
+
+`runner.tools.anomaly`: fired=False, val_pr_auc=0.827750 within expected range (threshold=0.750000).
+`runner.tools.bootstrap_ci` (n_boot=500): metric=0.827750, ci_lo=0.7538, ci_hi=0.8951, SE=0.0367.
+
+**Prior best:** 0.824075 (round 6, LightGBM n_est=1000). Δ = +0.003675.
+**Preliminary verdict:** KEEP — Δ > 0, anomaly clean.
+
+### §Plan Comparison
+
+Hypothesis: n_estimators=1500 further improves PR-AUC as model not yet converged at 1000. Expected Δ=+0.005.
+Actual Δ=+0.003675. Hypothesis confirmed — model still improving at 1500. Diminishing returns visible: Δ_{600→1000}=+0.009, Δ_{1000→1500}=+0.004.
+
+### §Verdict: KEEP
+
+- Δ = +0.003675 > 0
+- Anomaly: did not fire
+- Bootstrap CI: [0.7538, 0.8951], no regression vs prior champion CI [0.7490, 0.8921]
+- New champion: val_pr_auc=0.827750
+
+**Bootstrap SE:** 0.0367 (95% CI: [0.7538, 0.8951])
+**Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
