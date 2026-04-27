@@ -80,3 +80,18 @@ campaign_id: "smoke-test-creditcard"
 **Actual val_pr_auc:** 0.793780 (Δ = -0.021750 vs prior best 0.815530)
 **Verdict:** discard
 **Key finding:** min_child_samples=1 trades PR-AUC for lift_at_10 — it concentrates fraud detection at the very top scores but degrades calibration across the full probability range. This is a consistent pattern: XGBoost (r2) and min_child_samples=1 (r5) both showed improved lift_at_10 with reduced PR-AUC, suggesting a precision-recall tradeoff where aggressive models win at extremes but lose overall.
+
+## Round 6 — 2026-04-27
+
+**Action:** A_hp — LightGBM n_estimators 600→1000 to test convergence depth
+**Trigger:** Strategy Guide §1: "Champion family selected; no systematic HP search yet"; Historian bottleneck=optimizer_quality; A-6-2 assumption (lr=0.02 needs >600 rounds) being tested
+**Alternatives rejected:**
+- A_hp (reg_lambda=10): less likely to help than testing convergence depth; overfitting evidence is weak
+- A_validate: low ROI; better to explore HP space
+
+**Independent assessment:** Run completed in 14.9s. val_pr_auc=0.824075 — clearly above champion 0.815530. Δ=+0.009. Anomaly did not fire. Bootstrap CI: [0.749, 0.892], no regression.
+
+**Expected Δ (val_pr_auc):** +0.006 (more boosting rounds expected to capture residual signal)
+**Actual val_pr_auc:** 0.824075 (Δ = +0.008545 vs prior best 0.815530)
+**Verdict:** keep — NEW CHAMPION at val_pr_auc=0.824075
+**Key finding:** LightGBM with n_estimators=1000 outperforms 600 by 0.009 — the model was undertrained. This confirms the CRITICAL assumption was correct: champion HP was NOT near-optimal. Learning rate 0.02 with 600 rounds was insufficient for convergence. The pattern is: increasing n_estimators (staying with same architecture) does help, contradicting the "simple perturbations hurt" pattern from earlier rounds. That pattern was only 3 data points of a specific type (family, num_leaves, feature) and didn't generalize to convergence depth.

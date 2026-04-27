@@ -196,3 +196,43 @@ Actual Δ=-0.022. Hypothesis falsified. Reducing min_child_samples hurts PR-AUC 
 
 **Bootstrap SE:** ≈0.039 (95% CI: approximately [0.716, 0.872])
 **Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
+
+## Round 6 — 2026-04-27
+
+**Commit:** ea0f5ac471f29eeb575bb75675f48062b1df157c
+**Action type:** A_hp
+**Description:** LightGBM n_estimators=1000 (vs 600) — lr=0.02, num_leaves=63, min_child_samples=5, spw=578
+
+### §Independent Assessment (Phase 1 — before reading plan)
+
+**Parsed metrics from run.log:**
+- val_pr_auc: 0.824075
+- lift_at_10: 9.089632
+- macro_f1: 0.922738
+- val_f1: 0.999495
+- training_seconds: 12.7
+- total_seconds: 14.9
+- n_features: 30
+
+**Mandatory tool outputs:**
+
+`runner.tools.anomaly`: fired=False, val_pr_auc=0.824075 within expected range (threshold=0.750000).
+`runner.tools.bootstrap_ci` (n_boot=500): metric=0.824075, ci_lo=0.7490, ci_hi=0.8921, SE=0.0370.
+
+**Prior best:** 0.815530 (round 1, LightGBM). Δ = +0.008545.
+**Preliminary verdict:** KEEP — Δ > 0, anomaly clean, CI lower bound (0.749) > prior CI lower (0.740).
+
+### §Plan Comparison
+
+Hypothesis: n_estimators=1000 improves val_pr_auc via more boosting iterations. Expected Δ=+0.006.
+Actual Δ=+0.008545. Hypothesis confirmed. More iterations captured additional signal — model was undertrained at 600 rounds with lr=0.02.
+
+### §Verdict: KEEP
+
+- Δ = +0.008545 > 0
+- Anomaly: did not fire
+- Bootstrap CI: no regression (CI_lo=0.749 > prior CI_lo=0.740)
+- New champion: val_pr_auc=0.824075
+
+**Bootstrap SE:** 0.0370 (95% CI: [0.7490, 0.8921])
+**Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]

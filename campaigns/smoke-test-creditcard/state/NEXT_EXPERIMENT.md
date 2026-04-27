@@ -1,12 +1,12 @@
 ---
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
-round: 2
-planner_invocation_at: "2026-04-27T04:00:00Z"
-action_type: "A_model"
-hypothesis: "XGBoost with default hyperparameters will match or exceed LightGBM's val_pr_auc of 0.815530 on the creditcard fraud dataset"
-expected_effect_size: 0.010
-base_commit: "2023897d3a544060477463e9e9cc7af70d25dcaf"
+round: 6
+planner_invocation_at: "2026-04-27T05:30:00Z"
+action_type: "A_hp"
+hypothesis: "Increasing LightGBM n_estimators from 600 to 1000 will improve val_pr_auc by allowing more gradient boosting iterations to capture fraud patterns"
+expected_effect_size: 0.006
+base_commit: "9453fbc4ce58c6aa9d16d02e151dd56da7bd8ee0"
 touches_helpers: false
 helpers_declared: []
 escalation: null
@@ -15,46 +15,41 @@ assumptions_tested: []
 
 ## 1. Context
 
-**Current champion:** LightGBM, spw=578, n_estimators=600, lr=0.02, num_leaves=63 → val_pr_auc=0.815530 (round 1)
-**Last verdict:** keep
-**Consecutive discards:** 0
-**Rounds remaining:** 9 (including this one)
+**Current champion:** LightGBM, spw=578, n_estimators=600, lr=0.02, num_leaves=63, min_child_samples=5 → val_pr_auc=0.815530 (round 1)
+**Last verdict:** discard (round 5: min_child_samples=1 Δ=-0.022)
+**Consecutive discards:** 1
+**Rounds remaining:** 5 (including this one)
 
 ## 2. Evidence from memory
 
-**Strategy Guide trigger:** "Fewer than 2 distinct model families in results.tsv" → Try ≥1 alternative family before investing in tuning.
+**Historian context:**
+- **Bottleneck diagnosis:** optimizer_quality — HP space not systematically explored
+- **Critical assumptions:** ⚠ CRITICAL — champion HP near-optimal (unverified). n_estimators=600 has never been varied.
+- **Alignment:** Varying n_estimators directly tests whether 600 is the right number of trees.
 
 **Candidate actions evaluated:**
 
-1. **A_model (XGBoost):** Expected Δ: 0.005–0.015. Condition: "Early campaign; alternative families not yet compared" → HIGH ROI. No dead-ends. Families untested. Strategy Guide priority: must compare families before committing to HP tuning.
+1. **A_hp (n_estimators 600→1000):** Expected Δ: 0.003–0.008. lr=0.02 with 600 estimators may not have fully converged. More trees could capture residual fraud signal. Time risk: 600 estimators takes ~8s, 1000 should take ~13s — well within 90s timeout. Single variable change.
 
-2. **A_feature (log1p(Amount), interactions):** Expected Δ: 0.005–0.020. Condition: "Champion model trained and tuned; feature coverage not inspected." Viable but Strategy Guide says compare families FIRST before feature engineering, since family rankings can reverse after tuning.
+2. **A_hp (reg_lambda=10 for L2 regularization):** Expected Δ: 0.001–0.005. May help if overfitting is present, but previous evidence (num_leaves=127 discard at Δ=-0.002) suggests the model is NOT drastically overfitting — the drop was small. Less promising.
 
-3. **A_hp (LightGBM HP tuning):** Expected Δ: 0.001–0.008. Condition: "First systematic tune of a new champion family." Viable but lower priority than family comparison — we need to know if XGBoost could be the better base before investing in LGBM tuning.
+3. **A_validate (test if champion score is reproducible):** Expected Δ: ~0.000. Low ROI — we already know the champion score. Better to explore HP space.
 
-**Decision:** A_model (XGBoost) selected. Strategy Guide §1 explicitly states: "Fewer than 2 distinct model families in results.tsv → Try ≥1 alternative family before investing in tuning." This is the highest-priority trigger currently firing.
+**Decision:** A_hp (n_estimators=1000). The most fundamental untested HP dimension. Learning rate and n_estimators together determine convergence; with lr=0.02, 600 trees may not be fully converged.
 
-**No STRATEGY_MEMO.md exists** (Historian not yet triggered — round 2).
+**Dead-ends:** num_leaves=127 (r3), log1p Amount (r4), min_child_samples=1 (r5), XGBoost default (r2). None apply here.
 
-**Assumption interaction:** A-1-2 (LightGBM is viable) — this experiment tests whether an alternative family can match or beat it. A-1-1 (spw has minimal effect on PR-AUC) is not directly tested here.
-
-**Pattern consistency:** No active patterns in PATTERN_BOOK.md (empty). No collision.
-
-**Dead-ends:** None applicable.
+**Pattern consistency:**
+- P-1 (simple perturbations degrade): Low confidence pattern. Trying n_estimators=1000 explicitly because it tests a different dimension (convergence depth) than previous perturbations (model family, tree shape, regularization, features).
+- P-2 (Amount FE hurts): Not applicable.
 
 ## 3. Plan
 
-Implement XGBoost with:
-- `n_estimators=200` (XGBoost slower than LGBM; keep below 300 for 90s timeout safety)
-- `learning_rate=0.05` (faster convergence given lower n_estimators)
-- `max_depth=6` (default, reasonable for this feature space)
-- `scale_pos_weight=578` (class ratio — carry over from round 1 baseline)
-- `tree_method='hist'` (fast GPU-free tree method)
-- `use_label_encoder=False`, `verbosity=0`
-- Same 60/20/20 stratified split (seed=42, no change)
-- Same metric computation code (no change)
+Change single parameter: `n_estimators=600` → `n_estimators=1000` in the LightGBM model. All other parameters identical to champion.
 
-One controlled change: model family switch from LightGBM to XGBoost. All evaluation code stays identical.
+Update DESCRIPTION to reflect the change.
+
+Expected runtime: ~13-15s (600→1000 trees, same lr), well within 90s timeout.
 
 ## 4. Helpers
 
@@ -62,7 +57,7 @@ None needed.
 
 ## 5. How this differs from prior experiments
 
-Round 1 used LightGBM (spw=578). This round replaces the entire model with XGBoost (n_estimators=200, lr=0.05, max_depth=6, spw=578, tree_method='hist'). All data loading, split logic, and metric computation code remain identical.
+Round 1 champion: n_estimators=600. This round: n_estimators=1000. Single parameter change. All other parameters, features (30), split logic, evaluation code identical.
 
 ## 6. Escalation
 
