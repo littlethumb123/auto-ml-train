@@ -35,3 +35,18 @@ campaign_id: "smoke-test-creditcard"
 **Actual val_pr_auc:** 0.793611 (Δ = -0.021919 vs prior best 0.815530)
 **Verdict:** discard
 **Key finding:** Default-param XGBoost underperforms LightGBM by 0.022 on PR-AUC. However, XGBoost was tested at 200 estimators vs LGBM's 600, so this is not a fully controlled comparison. Strategy Guide trigger ("best leads by >2× noise_floor") now fires, indicating LightGBM is the preferred family — commit to it and move to HP tuning or feature engineering.
+
+## Round 3 — 2026-04-27
+
+**Action:** A_hp — LightGBM num_leaves 63→127 to increase model capacity
+**Trigger:** Strategy Guide §1: "Champion family selected; no systematic HP search yet → A_hp is next highest-ROI layer"
+**Alternatives rejected:**
+- A_feature (log1p(Amount)): Strategy Guide says A_hp before A_feature when no systematic HP search done
+- A_hp (lr change): changing lr and n_estimators together violates one-variable rule
+
+**Independent assessment:** Run completed in 13.6s. val_pr_auc=0.813307 — slightly below champion 0.815530 (Δ=-0.002). Anomaly did not fire. Slight decrease suggests num_leaves=127 may introduce mild overfitting on this small fraud class.
+
+**Expected Δ (val_pr_auc):** +0.008 (num_leaves increase expected to improve model expressiveness)
+**Actual val_pr_auc:** 0.813307 (Δ = -0.002223 vs prior best 0.815530)
+**Verdict:** discard
+**Key finding:** Doubling num_leaves from 63 to 127 did not improve PR-AUC — slightly decreased it (Δ=-0.002, within bootstrap SE=0.038 so statistically ambiguous). The default num_leaves=63 appears well-suited or this direction is saturated. Feature engineering (A_feature) may be more productive than further HP tuning of num_leaves.
