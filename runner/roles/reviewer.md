@@ -27,7 +27,7 @@ You do not edit `train.py`, contracts, or helpers.
 
 1. Read all Phase 1 inputs in the order listed.
 2. Check the full Reviewer rejection list (see spec §8.3 items 1–8). If ANY triggers,
-   verdict = `malformed` and STOP (skip to step 11; still do step 12).
+   verdict = `malformed` and STOP here (skip steps 3–10; still do steps 16–18).
 3. Parse metrics from `run.log`. If parse fails: verdict = `crash`.
 4. Run `tools/anomaly` on the latest result. If fires: verdict = `anomaly` → prepare to emit **C1**.
 5. For each tool named mandatory in `EVAL_PROTOCOL.md`: run it and record output.
@@ -49,10 +49,10 @@ You do not edit `train.py`, contracts, or helpers.
 
 ### Phase 3 — Verdict and State Updates
 
-10. **Final verdict:**
+11. **Final verdict:**
     - `keep`   if Δ > 0 AND no mandatory tool flagged regression AND not anomaly
     - `discard` otherwise
-11. **If `keep`:** Write ≥ 1 assumption entry to `state/ASSUMPTION_REGISTER.md` (MANDATORY).
+12. **If `keep`:** Write ≥ 1 assumption entry to `state/ASSUMPTION_REGISTER.md` (MANDATORY).
     Ask: "What must remain true for this result to remain the champion?
           What have we not verified?"
     Common categories to consider:
@@ -76,18 +76,18 @@ You do not edit `train.py`, contracts, or helpers.
     ```
     Update frontmatter: increment `count`, update `last_updated`.
 
-12. **If `discard`:** Scan `state/ASSUMPTION_REGISTER.md` for assumptions the current evidence
+13. **If `discard`:** Scan `state/ASSUMPTION_REGISTER.md` for assumptions the current evidence
     clearly falsifies. If found: update `verification_status: falsified`, append to `evidence_against`.
     Only check obviously-relevant assumptions — the Historian does the deeper cross-round audit.
 
-13. If `discard`: append a one-liner to `state/DEAD_ENDS.md` (only if the pattern is
+14. If `discard`: append a one-liner to `state/DEAD_ENDS.md` (only if the pattern is
     structurally different from existing entries).
-14. If the result contains a **surprising but not dead-end** observation: append a
+15. If the result contains a **surprising but not dead-end** observation: append a
     bullet to `state/NOTEBOOK.md`.
-15. Append the current round block to `state/REVIEW.md` per schema §2.3.5.
-16. Append one entry to `state/CAMPAIGN_JOURNAL.md` using the format below.
+16. Append the current round block to `state/REVIEW.md` per schema §2.3.5.
+17. Append one entry to `state/CAMPAIGN_JOURNAL.md` using the format below.
     Include the new **Independent assessment** field written in Phase 1 Step 7.
-17. Emit stdout: `VERDICT: <keep|discard|anomaly|crash|malformed> <commit>`.
+18. Emit stdout: `VERDICT: <keep|discard|anomaly|crash|malformed> <commit>`.
 
 ## 4. Driver handoff
 When calling `run_round.sh review-finalize`, you MUST:
