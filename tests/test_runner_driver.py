@@ -434,3 +434,46 @@ def test_review_finalize_historian_tokens_from_pending_state(campaign: Path):
     data = lines[1].split("\t")
     assert "historian_tokens" in headers, "historian_tokens column missing from results.tsv"
     assert data[headers.index("historian_tokens")] == "99000"
+
+
+def test_review_finalize_updates_review_md_frontmatter(campaign: Path):
+    """review_finalize should update last_verdict and last_round in REVIEW.md frontmatter."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # Write a minimal REVIEW.md with stale frontmatter
+    (campaign / "state" / "REVIEW.md").write_text(
+        "---\nschema_version: 1\ncampaign_id: tiny\nlast_verdict: null\nlast_round: 0\n---\n\n<!-- content -->\n"
+    )
+    runner_driver.review_finalize(
+        verdict="keep",
+        commit="abc123",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp",
+        hypothesis="h",
+        description="d",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+    )
+    content = (campaign / "state" / "REVIEW.md").read_text()
+    assert "last_verdict: keep" in content
+    assert "last_round: 1" in content
+
+
+def test_review_finalize_review_md_absent_does_not_crash(campaign: Path):
+    """review_finalize must not crash when REVIEW.md does not exist."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # No REVIEW.md created — should complete without error
+    runner_driver.review_finalize(
+        verdict="discard",
+        commit="abc123",
+        metrics={"val_pr_auc": 0.40, "lift_at_10": 0, "macro_f1": 0, "val_f1": 0},
+        action_type="A_hp",
+        hypothesis="h",
+        description="d",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+    )
+    # Just verifying no exception was raised
+    state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert state["last_verdict"] == "discard"

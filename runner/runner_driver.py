@@ -551,6 +551,23 @@ def review_finalize(
     except Exception:
         pass
 
+    # Update REVIEW.md frontmatter with current verdict and round (non-critical)
+    import re as _re
+    review_md_path = camp / "state" / "REVIEW.md"
+    if review_md_path.exists():
+        try:
+            _content = review_md_path.read_text()
+            _round_num = int(state_after.get("round", 0))
+            _content = _re.sub(
+                r"^last_verdict:.*$", f"last_verdict: {verdict}", _content, flags=_re.MULTILINE
+            )
+            _content = _re.sub(
+                r"^last_round:.*$", f"last_round: {_round_num}", _content, flags=_re.MULTILINE
+            )
+            review_md_path.write_text(_content)
+        except Exception:
+            pass
+
     should_rollback = verdict in {"discard", "crash", "malformed"}
     pause_loop = verdict == "anomaly"
 
