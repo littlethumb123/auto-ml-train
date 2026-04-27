@@ -36,7 +36,7 @@ if hasattr(signal, "SIGALRM"):
     signal.alarm(HARD_TIMEOUT)
 
 # ─── Experiment config — Executor edits ONLY this section ───────────────────
-DESCRIPTION = "A_hp: LightGBM n_estimators=1500 (vs 1000) — lr=0.02, num_leaves=63, min_child_samples=5, spw=578"
+DESCRIPTION = "A_hp: LightGBM n_estimators=2000 (vs 1500) — lr=0.02, num_leaves=63, min_child_samples=5, spw=578"
 # ────────────────────────────────────────────────────────────────────────────
 
 t_start = time.time()
@@ -68,7 +68,7 @@ t_train_start = time.time()
 import lightgbm as lgb
 
 model = lgb.LGBMClassifier(
-    n_estimators=1500,
+    n_estimators=2000,
     learning_rate=0.02,
     num_leaves=63,
     scale_pos_weight=scale_pw,
