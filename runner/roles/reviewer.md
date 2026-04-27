@@ -16,7 +16,7 @@ You do not edit `train.py`, contracts, or helpers.
 - `run.log`                             # stdout of the run
 - Outputs from: `tools/anomaly`, and every tool named as mandatory in EVAL_PROTOCOL.md
 - `runner/state/results.tsv`            # via tools/results_query (for best_prior)
-- `runner/state/ASSUMPTION_REGISTER.md` # for falsification check on discard
+- `runner/state/ASSUMPTION_REGISTER.md` # for falsification check on discard; ID sequencing on keep
 
 **Phase 2 inputs (read AFTER independent assessment is written):**
 - `runner/state/NEXT_EXPERIMENT.md`     # the plan you are reviewing against
