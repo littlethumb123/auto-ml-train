@@ -52,10 +52,14 @@ For each pattern found:
 ### Step 4 — Assumption audit
 For each ASSUMPTION_REGISTER.md entry with `verification_status` ≠ `verified` and `load_bearing: yes`:
 1. Assess whether covered-window evidence supports or undermines the claim.
-2. Update `verification_status` if warranted: `partially_verified` or `falsified`.
-3. Append to `evidence_against` if new contradictory evidence found.
-4. Update `last_audited: round <N> by Historian`.
-5. **Flag critical assumptions**: load-bearing + unverified after ≥ 2 Historian audits. These go into STRATEGY_MEMO.md §3 with an explicit recommendation.
+2. **Write back directly to the entry in ASSUMPTION_REGISTER.md** — update these fields in place:
+   - `last_audited: round <current_round> by Historian`
+   - `verification_status`: update to `partially_verified` or `falsified` if warranted (leave `unverified` if no new evidence)
+   - `evidence_against`: append any new contradictory evidence found (leave unchanged if none)
+3. **Flag critical assumptions** (load_bearing: yes AND verification_status: unverified AND this is ≥ 2nd Historian audit): mark with `⚠ CRITICAL` in STRATEGY_MEMO.md §3 with a recommended verification action.
+4. After updating all entries, update ASSUMPTION_REGISTER.md frontmatter: `last_updated: "<date>"`.
+
+**Concrete writeback instruction:** For every entry you assess, the `last_audited` field MUST be updated in the file, even if `verification_status` and `evidence_against` remain unchanged. This creates a clear audit trail showing which Historian run reviewed each assumption.
 
 ### Step 5 — Bottleneck diagnosis
 Classify the current bottleneck into exactly one category:
@@ -123,8 +127,13 @@ Entry format:
 
 ### Step 9 — Update ASSUMPTION_REGISTER.md
 Audit updates only — do NOT create new entries (that is the Reviewer's job on `keep`).
-For entries you audited in Step 4: update `verification_status`, `evidence_against`, `last_audited`.
-Update the frontmatter `last_updated` field.
+
+For every entry you assessed in Step 4, write these updates directly into the file:
+- `last_audited: round <N> by Historian`  ← REQUIRED even if no other fields change
+- `verification_status`: update if evidence warrants change
+- `evidence_against`: append new contradictory evidence if found
+
+Update frontmatter `last_updated` field.
 
 ### Step 10 — Emit completion line
 As the LAST line of your response, emit exactly:
