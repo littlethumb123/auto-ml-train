@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
-count: 2
-last_updated: "2026-04-27"
+count: 3
+last_updated: "2026-04-27 (round 9 historian)"
 ---
 
 <!-- Historian appends entries during periodic/C2 runs. -->
@@ -23,3 +23,19 @@ last_updated: "2026-04-27"
 - **Confidence:** low (1 data point)
 - **Status:** active
 - **Implication for Planner:** Avoid Amount-based feature engineering (log1p, Amount×V interactions, Amount^2). The PCA transformation likely already captures Amount's contribution to fraud patterns. Feature engineering budget is better spent on Time-based features if any.
+
+### P-2 UPDATE (round 9 historian)
+
+P-2 originally applied only to Amount-based features. Round 9 (Time_mod_86400, Δ=-0.044) generalizes the pattern to ALL raw-column feature additions. P-2 is now generalized as P-3.
+
+### P-1 UPDATE (round 9 historian)
+
+P-1 (simple perturbations degrade) was LOW confidence at round 4. It has been PARTIALLY FALSIFIED by rounds 6-8 (n_estimators increases consistently improved PR-AUC — simple HP perturbations CAN help). Rounds 9 confirms feature additions degrade. Revised understanding: HP perturbations within LGBM (especially n_estimators) can improve PR-AUC; feature additions and model family changes cannot. See P-3 for updated generalization.
+
+### P-3 — Feature additions from raw data columns consistently hurt PR-AUC
+
+- **Pattern:** Adding engineered features from raw Time or Amount columns to the 30-feature V1-V28 PCA space consistently produces large PR-AUC drops. The PCA feature space is self-contained and informationally complete for fraud detection; appending raw-column transformations introduces noise that disrupts tree split allocation.
+- **Supporting evidence:** round 4 (log1p_Amount as feature 31: Δ=-0.035), round 9 (Time_mod_86400 as feature 31: Δ=-0.044) — two independent tests, both large negative
+- **Confidence:** high (two independent confirmations, large effect sizes >5× noise_floor)
+- **Status:** active
+- **Implication for Planner:** ALL feature addition experiments using Time/Amount columns are dead ends. Do not attempt Feature engineering from raw columns. The 30-feature PCA space is optimal for this dataset.
