@@ -33,25 +33,26 @@ Query `tools/results_query` for the top-5 by val_<primary_metric> and by last 5 
 ### Step 3 — Query dead-ends
 Query `tools/dead_ends_query` for patterns the current idea might collide with.
 
-### Step 4 — Assumption-aware novelty check (required when consecutive_discards ≥ 2)
+### Step 4 — Assumption-aware novelty check (required when consecutive_discards ≥ 2; fires one round before the formal plateau_trigger as an early warning)
 1. Read `state/UNEXPLORED_TECHNIQUES.md`. List every technique class with `Status = Unexplored`
    AND `Expected Δ > noise_floor`.
-2. Read `state/ASSUMPTION_REGISTER.md`. Identify all entries with `load_bearing: yes` AND
+2. Read `STRATEGY_MEMO.md` (all sections, if exists) once now. Sub-point 3 uses §3; Step 5 uses §4.
+3. Read `state/ASSUMPTION_REGISTER.md`. Identify all entries with `load_bearing: yes` AND
    `verification_status: unverified`.
-3. Read `STRATEGY_MEMO.md §3` (if exists) for Historian-flagged critical assumptions (⚠ CRITICAL).
-4. **Priority decision:**
+4. Read `STRATEGY_MEMO.md §3` (already loaded above) for Historian-flagged critical assumptions (⚠ CRITICAL).
+5. **Priority decision:**
    - If critical unverified assumptions exist AND `consecutive_discards >= 2`: SHOULD prioritize
      an experiment that tests the most critical assumption. Frame as `A_validate` with the
      assumption ID in `assumptions_tested` frontmatter.
    - Otherwise: select from UNEXPLORED_TECHNIQUES.md as before.
    - If overriding either default: write one sentence explaining why.
-5. You MUST either (a) select one of these techniques/assumptions as your plan, or (b) write one
+6. You MUST either (a) select one of these techniques/assumptions as your plan, or (b) write one
    explicit sentence per class/assumption explaining why it is not appropriate.
 
 ### Step 5 — Pattern-informed strategy (new)
 1. Read `state/PATTERN_BOOK.md`. For each `active` pattern with `confidence: high`: check
    whether your candidate experiment collides with it. If it does: state why you are trying it anyway.
-2. Read `STRATEGY_MEMO.md §4` (Bottleneck Diagnosis) if exists. Candidate selection should
+2. Consult `STRATEGY_MEMO.md §4` (Bottleneck Diagnosis, loaded in Step 4). Candidate selection should
    address the diagnosed bottleneck category — or explicitly state why you disagree.
 
 ### Step 6 — Pre-selection reasoning (required)
