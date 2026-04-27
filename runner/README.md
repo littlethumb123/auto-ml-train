@@ -195,7 +195,7 @@ Optional flags (passed through to the driver when present):
 - `--bootstrap-se` (`review-finalize`): float; optional input for C3 measurement-bottleneck advisory in JSON response.
 - `--commit-diff-files` (`execute-finalize`): JSON array of paths changed in the Executor commit; optional write-scope gate vs `train.py` + `helpers_declared`.
 
-**After `./runner/run_round.sh resolve-c2`:** the next `plan-check` requires `action_type: A_diagnose` until that round completes (`c2_pending_diagnose` in `CAMPAIGN_STATE.json`).
+**After `./runner/run_round.sh resolve-c2`:** the driver automatically triggers the Historian role before the next Planner turn. The Historian writes `state/STRATEGY_MEMO.md`; the Planner reads it before writing the next plan. (The old `c2_pending_diagnose → A_diagnose` protocol has been removed.)
 
 ---
 
