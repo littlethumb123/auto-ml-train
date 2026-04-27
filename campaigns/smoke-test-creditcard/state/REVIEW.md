@@ -2,7 +2,7 @@
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
 last_verdict: discard
-last_round: 2
+last_round: 3
 ---
 
 <!-- Reviewer appends one block per round. -->
@@ -78,4 +78,43 @@ LightGBM leads by >2× noise_floor → Strategy Guide says commit to LightGBM as
 - No tool regression
 
 **Bootstrap SE:** 0.0392 (95% CI: [0.7129, 0.8674])
+**Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
+
+## Round 3 — 2026-04-27
+
+**Commit:** f37e3551ace126f7cf5780fd67f57d1272dc244b
+**Action type:** A_hp
+**Description:** LightGBM num_leaves=127 (vs 63) — n_estimators=600, lr=0.02, scale_pos_weight=578
+
+### §Independent Assessment (Phase 1 — before reading plan)
+
+**Parsed metrics from run.log:**
+- val_pr_auc: 0.813307
+- lift_at_10: 8.887641
+- macro_f1: 0.917451
+- val_f1: 0.999450
+- training_seconds: 11.4
+- total_seconds: 13.6
+- n_features: 30
+
+**Mandatory tool outputs:**
+
+`runner.tools.anomaly`: fired=False, val_pr_auc=0.813307 within expected range (threshold=0.750000).
+`runner.tools.bootstrap_ci` (n_boot=500): metric=0.813307, ci_lo=0.7395, ci_hi=0.8838, SE=0.0377.
+
+**Prior best:** 0.815530 (round 1, LightGBM). Δ = -0.002223.
+**Preliminary verdict:** DISCARD — Δ < 0 (slight decrease; num_leaves=127 introduces mild overfitting).
+
+### §Plan Comparison
+
+Hypothesis: Increasing num_leaves 63→127 will improve val_pr_auc by giving more model capacity. Expected Δ=+0.008.
+Actual Δ=-0.002. Hypothesis falsified. num_leaves=127 did not help and slightly hurt PR-AUC. The decrease is small (within bootstrap SE ≈ 0.038) so this may be noise, but the direction is wrong.
+
+### §Verdict: DISCARD
+
+- Δ = -0.002223 < 0
+- Anomaly: did not fire
+- No tool regression
+
+**Bootstrap SE:** 0.0377 (95% CI: [0.7395, 0.8838])
 **Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
