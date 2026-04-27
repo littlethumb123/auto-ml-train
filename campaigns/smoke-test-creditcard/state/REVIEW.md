@@ -357,3 +357,44 @@ Actual Δ=-0.044. Hypothesis falsified. n_features increased 30→31. This is th
 
 **Bootstrap SE:** ~0.040 (95% CI: [~0.706, ~0.862])
 **Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
+
+## Round 10 — 2026-04-27 (FINAL)
+
+**Commit:** 97f97059da8530711726f2cacdc4dc36078bf97a
+**Action type:** A_hp
+**Description:** A_hp: LightGBM n_estimators=2500 (vs 2000) — lr=0.02, num_leaves=63, min_child_samples=5, spw=578
+
+### §Independent Assessment (Phase 1 — before reading plan)
+
+**Parsed metrics from run.log:**
+- val_pr_auc: 0.830332
+- lift_at_10: 9.190628
+- macro_f1: 0.926022
+- val_f1: 0.999515
+- training_seconds: 22.4
+- total_seconds: 24.6
+- n_features: 30
+
+**Mandatory tool outputs:**
+
+`runner.tools.anomaly`: fired=False, val_pr_auc=0.830332 within expected range (threshold=0.750000).
+`runner.tools.bootstrap_ci` (n_boot=500): metric=0.829431, ci_lo=0.7552, ci_hi=0.8968, SE=0.0366.
+
+**Prior best:** 0.829948 (round 8, LightGBM n_est=2000). Δ = +0.000384.
+**Preliminary verdict:** KEEP — Δ > 0 (though far below noise_floor; consistent with geometric convergence decay).
+
+### §Plan Comparison
+
+Hypothesis: n_estimators=2500 yields Δ~0.001 consistent with geometric convergence decay (halving each 500-step).
+Actual Δ=+0.000384. Hypothesis directionally confirmed — positive Δ predicted and observed. Convergence series: 0.009 → 0.004 → 0.002 → 0.0004 (steeper decay than expected but direction correct).
+
+### §Verdict: KEEP — CAMPAIGN FINAL CHAMPION
+
+- Δ = +0.000384 > 0 (below noise_floor; treated as positive by verdict rule)
+- Anomaly: did not fire
+- Bootstrap CI: [0.7552, 0.8968] — no regression vs prior [0.7556, 0.8964]
+- Final campaign champion: val_pr_auc=0.830332
+- budget_exhausted → halt_loop=True
+
+**Bootstrap SE:** 0.0366 (95% CI: [0.7552, 0.8968])
+**Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]

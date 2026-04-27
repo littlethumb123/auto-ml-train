@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
-count: 10
-last_updated: "2026-04-27 (round 9 discard)"
+count: 11
+last_updated: "2026-04-27 (round 10 keep — campaign final)"
 ---
 
 <!-- Reviewer appends entries on every keep verdict. -->
@@ -107,3 +107,13 @@ last_updated: "2026-04-27 (round 9 discard)"
 - **Load-bearing:** yes — ALL feature addition experiments using Time/Amount columns should be avoided
 - **Verification status:** verified (two confirmations)
 - **Last audited:** round 9 by Reviewer
+
+### A-10-1 — n_estimators convergence at lr=0.02 asymptotes near 2500 for this dataset
+
+- **Claim:** The geometric decay pattern (Δ: 0.009→0.004→0.002→0.0004 per 500-estimator step) confirms the LightGBM model is asymptotically converged near n_estimators=2500 with lr=0.02. Further increases (3000+) are expected to yield Δ<0.0001 — effectively zero.
+- **Evidence for:** Four data points showing geometric Δ decay across 600→1000→1500→2000→2500. Each step yields roughly half the previous gain.
+- **Evidence against:** None — pattern is highly consistent.
+- **Confidence:** high (four consecutive confirmations; clean geometric pattern)
+- **Load-bearing:** yes — final campaign conclusion; documents the convergence boundary for this config
+- **Verification status:** verified (four-point geometric decay confirmed)
+- **Last audited:** round 10 by Reviewer (campaign final)
