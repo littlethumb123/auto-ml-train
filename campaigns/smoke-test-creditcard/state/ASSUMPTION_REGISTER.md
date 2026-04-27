@@ -2,7 +2,7 @@
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
 count: 3
-last_updated: "2026-04-27"
+last_updated: "2026-04-27 (historian audit r4)"
 ---
 
 <!-- Reviewer appends entries on every keep verdict. -->
@@ -16,7 +16,7 @@ last_updated: "2026-04-27"
 - **Confidence:** low
 - **Load-bearing:** yes — next planner should not re-try scale_pos_weight variants as high-ROI actions
 - **Verification status:** unverified
-- **Last audited:** round 1 by Reviewer
+- **Last audited:** round 4 by Historian (no new evidence for or against; dead-end recorded in DEAD_ENDS.md)
 
 ### A-1-2 — LightGBM is a viable model family for this problem
 
@@ -26,7 +26,7 @@ last_updated: "2026-04-27"
 - **Confidence:** high
 - **Load-bearing:** yes — establishes LightGBM as the champion family baseline for future A_model comparisons
 - **Verification status:** verified (round 1 reproduction; round 2 cross-family comparison)
-- **Last audited:** round 2 by Reviewer
+- **Last audited:** round 4 by Historian (XGBoost default underperformed; LGBM family confirmed superior at tested configs)
 
 ### A-1-3 — val split has adequate positive count for PR-AUC estimation but wide CI
 
@@ -36,4 +36,4 @@ last_updated: "2026-04-27"
 - **Confidence:** high
 - **Load-bearing:** yes — Reviewer must account for SE≈0.038 when interpreting Δ results; improvements < noise_floor=0.005 are unreliable
 - **Verification status:** verified (round 1 bootstrap CI)
-- **Last audited:** round 1 by Reviewer
+- **Last audited:** round 4 by Historian (bootstrap SE ≈ 0.038 confirmed across rounds 1-4)
