@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
-count: 9
-last_updated: "2026-04-27 (round 8 keep)"
+count: 10
+last_updated: "2026-04-27 (round 9 discard)"
 ---
 
 <!-- Reviewer appends entries on every keep verdict. -->
@@ -97,3 +97,13 @@ last_updated: "2026-04-27 (round 8 keep)"
 - **Load-bearing:** yes — guides round 9 plan; if this holds, should shift to different HP or direction
 - **Verification status:** unverified
 - **Last audited:** round 8 by Reviewer
+
+### A-9-1 — Feature additions from raw data columns consistently hurt PR-AUC
+
+- **Claim:** Adding engineered features from raw Time or Amount columns to the 30-feature V1-V28 PCA space severely degrades LightGBM PR-AUC. Two independent tests confirm: log1p(Amount) (Δ=-0.035, round 4) and Time_mod_86400 (Δ=-0.044, round 9). The PCA feature space is informationally complete for fraud detection; appending raw-column transformations introduces noise.
+- **Evidence for:** Two data points from rounds 4 and 9, both large negative Δ (>5× noise_floor). Consistent across different feature types (amount transform vs time transform).
+- **Evidence against:** Only Time and Amount tested. PCA-derived features from external data (if available) are untested and not a dead end.
+- **Confidence:** high (two independent confirmations, large effect sizes)
+- **Load-bearing:** yes — ALL feature addition experiments using Time/Amount columns should be avoided
+- **Verification status:** verified (two confirmations)
+- **Last audited:** round 9 by Reviewer

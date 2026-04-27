@@ -316,3 +316,44 @@ Actual Δ=+0.002198. Hypothesis confirmed — small but positive improvement. Di
 
 **Bootstrap SE:** 0.0365 (95% CI: [0.7556, 0.8964])
 **Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
+
+## Round 9 — 2026-04-27
+
+**Commit:** b2002873874f2d6e521f0357dd49f9e89f6597c7 (rolled back)
+**Action type:** A_feature
+**Description:** Time_mod_86400 as feature 31 with LightGBM n_estimators=2000, lr=0.02, num_leaves=63
+
+### §Independent Assessment (Phase 1 — before reading plan)
+
+**Parsed metrics from run.log:**
+- val_pr_auc: 0.786073
+- lift_at_10: 9.089632
+- macro_f1: 0.922099
+- val_f1: 0.999484
+- training_seconds: ~22.0
+- total_seconds: ~24.0
+- n_features: 31
+
+**Mandatory tool outputs:**
+
+`runner.tools.anomaly`: fired=False, val_pr_auc=0.786073 within expected range (threshold=0.750000).
+`runner.tools.bootstrap_ci` (n_boot=500): metric=0.786073, ci_lo=~0.706, ci_hi=~0.862, SE=~0.040.
+
+**Prior best:** 0.829948 (round 8, LightGBM n_est=2000). Δ = -0.043875.
+**Preliminary verdict:** DISCARD — large negative Δ (-0.044). Feature addition Time_mod_86400 severely hurt PR-AUC.
+
+### §Plan Comparison
+
+Hypothesis: Time_mod_86400 (time of day proxy) improves val_pr_auc via diurnal fraud patterns.
+Actual Δ=-0.044. Hypothesis falsified. n_features increased 30→31. This is the second feature addition to fail badly (cf. round 4 log1p(Amount) Δ=-0.035). Pattern: adding any feature to the V1-V28 PCA space disrupts model training.
+
+### §Verdict: DISCARD
+
+- Δ = -0.043875 < 0 → discard
+- Anomaly: did not fire (0.786073 > 0.750000 threshold)
+- n_features increased 30→31 — additional features consistently hurt PR-AUC
+- Consistent with DEAD_ENDS round 4 pattern (feature additions hurt)
+- should_rollback=true → git reset --hard HEAD~1 executed
+
+**Bootstrap SE:** ~0.040 (95% CI: [~0.706, ~0.862])
+**Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]

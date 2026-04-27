@@ -125,3 +125,18 @@ campaign_id: "smoke-test-creditcard"
 **Actual val_pr_auc:** 0.829948 (Δ = +0.002198 vs prior best 0.827750)
 **Verdict:** keep — NEW CHAMPION at val_pr_auc=0.829948
 **Key finding:** Convergence pattern confirmed: Δ per 500 estimators decays geometrically (0.009 → 0.004 → 0.002). The model is near convergence at n_estimators=2000. Predicted next step (2000→2500) gain: ~0.001 — below noise_floor. With 2 rounds remaining, shifting strategy to something other than n_estimators tuning is warranted.
+
+## Round 9 — 2026-04-27
+
+**Action:** A_feature — Add Time_mod_86400 (time of day proxy) as feature 31 to test diurnal fraud patterns
+**Trigger:** n_estimators convergence reached (Δ halving each step → predicted ~0.001 gain); pivoting to feature engineering
+**Alternatives rejected:**
+- A_hp (n_estimators=2500): predicted Δ~0.001, below noise_floor; diminishing returns confirmed
+- A_hp (colsample_bytree): still a valid option, deprioritized vs feature signal test
+
+**Independent assessment:** Run completed in ~24s. val_pr_auc=0.786073 — massive drop vs champion 0.829948. Δ=-0.044. n_features=31. Feature addition Time_mod_86400 catastrophically hurt PR-AUC.
+
+**Expected Δ (val_pr_auc):** +0.005 (weak signal, testing diurnal hypothesis)
+**Actual val_pr_auc:** 0.786073 (Δ = -0.043875 vs prior best 0.829948)
+**Verdict:** DISCARD — ROLLBACK
+**Key finding:** Second consecutive feature addition to fail (round 4: log1p(Amount) Δ=-0.035; round 9: Time_mod_86400 Δ=-0.044). Pattern confirmed: adding any feature to the 30-feature V1-V28 PCA space disrupts LightGBM training for PR-AUC. Feature additions from raw data are a dead end for this dataset. Champion reverts to n_estimators=2000, val_pr_auc=0.829948.
