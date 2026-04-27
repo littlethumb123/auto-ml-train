@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
-count: 3
-last_updated: "2026-04-27 (historian audit r4)"
+count: 5
+last_updated: "2026-04-27 (round 6 keep)"
 ---
 
 <!-- Reviewer appends entries on every keep verdict. -->
@@ -37,3 +37,23 @@ last_updated: "2026-04-27 (historian audit r4)"
 - **Load-bearing:** yes — Reviewer must account for SE≈0.038 when interpreting Δ results; improvements < noise_floor=0.005 are unreliable
 - **Verification status:** verified (round 1 bootstrap CI)
 - **Last audited:** round 4 by Historian (bootstrap SE ≈ 0.038 confirmed across rounds 1-4)
+
+### A-6-1 — LightGBM with n_estimators=1000 outperforms n_estimators=600
+
+- **Claim:** LightGBM trained for 1000 boosting rounds (lr=0.02, num_leaves=63, spw=578) achieves val_pr_auc=0.824075, which is meaningfully above the 600-round champion (0.815530). The model was not yet converged at 600 rounds.
+- **Evidence for:** val_pr_auc=0.824075 vs 0.815530 (Δ=+0.008545). Bootstrap CI [0.749, 0.892] — CI lower bound exceeds champion CI lower bound (0.740). Training time 12.7s (well within 90s timeout).
+- **Evidence against:** None
+- **Confidence:** medium (single run; Δ is slightly above bootstrap SE=0.037, so borderline statistically significant)
+- **Load-bearing:** yes — n_estimators=1000 is now the champion config; future experiments inherit this setting
+- **Verification status:** unverified (seed stability not tested)
+- **Last audited:** round 6 by Reviewer
+
+### A-6-2 — LightGBM with lr=0.02 needs >600 boosting rounds for convergence on this dataset
+
+- **Claim:** With lr=0.02, LightGBM requires more than 600 boosting rounds to converge for the creditcard fraud dataset. 1000 rounds is better; the optimal may be 800-1500.
+- **Evidence for:** n_estimators=1000 outperforms 600 by 0.009. The improvement suggests additional iterations still find signal.
+- **Evidence against:** 1000 vs 600 is the only comparison; we don't know if 1200 or 1500 would further improve.
+- **Confidence:** low
+- **Load-bearing:** yes — guides future n_estimators choices
+- **Verification status:** unverified
+- **Last audited:** round 6 by Reviewer

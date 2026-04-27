@@ -1,1 +1,1 @@
-Campaign tokens — total: 0 | avg/round: 0 | historian avg: 0 | top cost: r1 (A_imbalance, 0) | trend: stable (last 2 rounds avg=0)
+Campaign tokens — total: 0 | avg/round: 0 | historian avg: 0 | top cost: r1 (A_imbalance, 0) | trend: stable (last 6 rounds avg=0)
