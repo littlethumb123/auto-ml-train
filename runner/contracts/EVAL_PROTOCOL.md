@@ -56,7 +56,16 @@ Reviewer verdict = `keep` iff Δ > 0 AND `tools/anomaly` did not fire AND `tools
 
 ## 3. How plateau is handled
 
-After 3 consecutive non-keep verdicts, the next Planner MUST emit a plan with `escalation: "C2"` (plateau/family switch proposal).
+After `plateau_trigger.consecutive_discards` consecutive non-keep verdicts, `review_finalize`
+automatically sets `historian_trigger_pending = true`. Before the next Planner turn, the
+outer loop invokes the Historian role (`run_round.sh historian`), which produces
+`state/STRATEGY_MEMO.md` with trajectory analysis, pattern extraction, assumption audit,
+and bottleneck diagnosis. After the Historian run, `historian-finalize` resets
+`consecutive_discards = 0`. The Planner then reads `STRATEGY_MEMO.md` as a required input
+and plans the next experiment with full trajectory context.
+
+The Planner does NOT need to emit `escalation: C2` — the driver manages the Historian trigger
+automatically. The `resolve_c2` shell command is available for human manual override only.
 
 ## 4. Contract change policy
 
