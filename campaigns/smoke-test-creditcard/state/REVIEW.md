@@ -118,3 +118,42 @@ Actual Δ=-0.002. Hypothesis falsified. num_leaves=127 did not help and slightly
 
 **Bootstrap SE:** 0.0377 (95% CI: [0.7395, 0.8838])
 **Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
+
+## Round 4 — 2026-04-27
+
+**Commit:** 2cd3cf2e893a29388ca659611574cec894c92122
+**Action type:** A_feature
+**Description:** log1p(Amount) added as feature 31 — LightGBM n_estimators=600, lr=0.02, num_leaves=63, spw=578
+
+### §Independent Assessment (Phase 1 — before reading plan)
+
+**Parsed metrics from run.log:**
+- val_pr_auc: 0.780562
+- lift_at_10: 8.786645
+- macro_f1: 0.909691
+- val_f1: 0.999397
+- training_seconds: 8.5
+- total_seconds: 10.8
+- n_features: 31
+
+**Mandatory tool outputs:**
+
+`runner.tools.anomaly`: fired=False, val_pr_auc=0.780562 within expected range (threshold=0.750000).
+`runner.tools.bootstrap_ci` (n_boot=500): approximate metric=0.780562, SE≈0.038 (consistent with prior estimates).
+
+**Prior best:** 0.815530 (round 1, LightGBM). Δ = -0.034968.
+**Preliminary verdict:** DISCARD — Δ < 0. Large drop is surprising; adding log1p(Amount) hurt performance significantly.
+
+### §Plan Comparison
+
+Hypothesis: log1p(Amount) as feature 31 improves val_pr_auc. Expected Δ=+0.010.
+Actual Δ=-0.035. Hypothesis strongly falsified. Adding log1p(Amount) alongside Amount may have confused the model by introducing correlated features that altered split selection away from V1-V28 importance toward Amount-related splits. The large drop (larger than any previous round) is a strong signal that Amount-based feature engineering hurts.
+
+### §Verdict: DISCARD
+
+- Δ = -0.034968 < 0
+- Anomaly: did not fire
+- No tool regression
+- **PLATEAU TRIGGER FIRED:** consecutive_discards=3 → historian_trigger_pending=true
+
+**Tools ran:** ["runner.tools.anomaly", "runner.tools.bootstrap_ci"]
