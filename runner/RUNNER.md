@@ -44,3 +44,24 @@ The driver (`runner/run_round.sh`) tells you which role to play.
 ## 3. Fossil record
 
 Harness rules, lessons, and rules that apply across campaigns live in `runner/AGENTS.md`. Read it every role invocation.
+
+## Token tracking
+
+`review_finalize` accepts optional token counts from the outer loop. Pass them via:
+
+```bash
+python runner/run_round.sh review-finalize \
+  ...existing args... \
+  --planner-tokens <int> \
+  --executor-tokens <int> \
+  --reviewer-tokens <int>
+```
+
+Similarly for `historian-finalize`:
+```bash
+python runner/run_round.sh historian-finalize \
+  ...existing args... \
+  --tokens-used <int>
+```
+
+These values come from the API response metadata (e.g., Anthropic API usage.input_tokens + usage.output_tokens). If not available, omit the flags — token columns will record 0, which is valid. TOKEN_SUMMARY.txt is generated after each review-finalize regardless.

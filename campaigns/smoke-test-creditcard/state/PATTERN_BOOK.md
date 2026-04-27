@@ -21,7 +21,7 @@ last_updated: "2026-04-27 (round 9 historian)"
 - **Pattern:** Adding log1p(Amount) as a feature alongside the original 30 features caused a large PR-AUC drop (Δ=-0.035). Amount-related feature engineering is likely counterproductive because V1-V28 PCA features already encode amount information from the original transaction data.
 - **Supporting evidence:** round 4 (log1p_Amount as feature 31: val_pr_auc=0.780562 vs champion 0.815530, Δ=-0.035)
 - **Confidence:** low (1 data point)
-- **Status:** active
+- **Status:** superseded_by P-3
 - **Implication for Planner:** Avoid Amount-based feature engineering (log1p, Amount×V interactions, Amount^2). The PCA transformation likely already captures Amount's contribution to fraud patterns. Feature engineering budget is better spent on Time-based features if any.
 
 ### P-2 UPDATE (round 9 historian)
