@@ -110,3 +110,18 @@ campaign_id: "smoke-test-creditcard"
 **Actual val_pr_auc:** 0.827750 (Δ = +0.003675 vs prior best 0.824075)
 **Verdict:** keep — NEW CHAMPION at val_pr_auc=0.827750
 **Key finding:** n_estimators=1500 continues improving PR-AUC. Diminishing returns pattern confirmed: Δ_{600→1000}=+0.009 vs Δ_{1000→1500}=+0.004. Next step (1500→2000) likely yields <0.003 — near noise_floor. The model is approaching convergence with lr=0.02.
+
+## Round 8 — 2026-04-27
+
+**Action:** A_hp — LightGBM n_estimators 1500→2000 to test convergence limit (testing A-7-1, A-7-2)
+**Trigger:** A-7-1: still improving at 1500; A-7-2: diminishing returns — testing if next step still yields positive Δ
+**Alternatives rejected:**
+- A_validate (seed stability test): lower priority than convergence frontier with 2 rounds remaining
+- A_ensemble: XGBoost underperformed; unlikely to produce competitive ensemble
+
+**Independent assessment:** Run completed in 21.4s. val_pr_auc=0.829948 — above prior champion 0.827750. Δ=+0.002. Still positive but below noise_floor. Diminishing returns confirmed (Δ halves each 500-estimator step: 0.009 → 0.004 → 0.002).
+
+**Expected Δ (val_pr_auc):** +0.003 (expected ~half of previous step based on diminishing returns pattern)
+**Actual val_pr_auc:** 0.829948 (Δ = +0.002198 vs prior best 0.827750)
+**Verdict:** keep — NEW CHAMPION at val_pr_auc=0.829948
+**Key finding:** Convergence pattern confirmed: Δ per 500 estimators decays geometrically (0.009 → 0.004 → 0.002). The model is near convergence at n_estimators=2000. Predicted next step (2000→2500) gain: ~0.001 — below noise_floor. With 2 rounds remaining, shifting strategy to something other than n_estimators tuning is warranted.
