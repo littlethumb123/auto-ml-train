@@ -65,3 +65,18 @@ campaign_id: "smoke-test-creditcard"
 **Actual val_pr_auc:** 0.780562 (Δ = -0.034968 vs prior best 0.815530)
 **Verdict:** discard — PLATEAU TRIGGER FIRED (consecutive_discards=3, historian_trigger_pending=true)
 **Key finding:** Adding log1p(Amount) as an additional feature strongly hurt PR-AUC (Δ=-0.035). This is a key negative result: Amount-based feature engineering hurts when added alongside Amount. The PCA features V1-V28 are likely the primary drivers; Amount is less informative and adding its transform may divert model attention from the PCA structure. Feature engineering on Amount is likely a dead end.
+
+## Round 5 — 2026-04-27
+
+**Action:** A_hp — LightGBM min_child_samples 5→1 for fraud pattern sensitivity
+**Trigger:** Historian bottleneck diagnosis: optimizer_quality; top recommendation was min_child_samples reduction
+**Alternatives rejected:**
+- A_hp (lr=0.05 only): lower priority; Historian recommended min_child_samples first
+- A_validate: no specific assumption to test beyond the CRITICAL HP assumption
+
+**Independent assessment:** Run completed in 10.2s. val_pr_auc=0.793780 — large drop from champion 0.815530 (Δ=-0.022). Interesting: lift_at_10 improved to 9.29 vs champion's 8.99, suggesting min_child_samples=1 improves top-decile targeting while hurting overall PR-AUC.
+
+**Expected Δ (val_pr_auc):** +0.008 (Historian top recommendation)
+**Actual val_pr_auc:** 0.793780 (Δ = -0.021750 vs prior best 0.815530)
+**Verdict:** discard
+**Key finding:** min_child_samples=1 trades PR-AUC for lift_at_10 — it concentrates fraud detection at the very top scores but degrades calibration across the full probability range. This is a consistent pattern: XGBoost (r2) and min_child_samples=1 (r5) both showed improved lift_at_10 with reduced PR-AUC, suggesting a precision-recall tradeoff where aggressive models win at extremes but lose overall.
