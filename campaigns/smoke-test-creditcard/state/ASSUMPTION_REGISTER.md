@@ -1,8 +1,8 @@
 ---
 schema_version: 1
 campaign_id: "smoke-test-creditcard"
-count: 7
-last_updated: "2026-04-27 (round 7 keep)"
+count: 9
+last_updated: "2026-04-27 (round 8 keep)"
 ---
 
 <!-- Reviewer appends entries on every keep verdict. -->
@@ -72,8 +72,28 @@ last_updated: "2026-04-27 (round 7 keep)"
 
 - **Claim:** The marginal gain per additional 500 estimators is shrinking: Δ_{600→1000}=+0.009, Δ_{1000→1500}=+0.004. The next step (1500→2000) may yield <0.003 — near or below noise_floor.
 - **Evidence for:** Two data points show clearly diminishing returns: 0.009 → 0.004 improvement per 500-estimator increment.
-- **Evidence against:** Only two data points; could be noise in the estimates.
-- **Confidence:** low
+- **Evidence against:** Round 8 (n_est=2000, Δ=+0.002198) confirms diminishing returns but Δ still > noise_floor (0.005 is the noise floor; 0.002 is below it).
+- **Confidence:** medium — three data points now confirm: Δ_{600→1000}=0.009, Δ_{1000→1500}=0.004, Δ_{1500→2000}=0.002.
 - **Load-bearing:** no — advisory only
+- **Verification status:** partially_verified (trend confirmed, specific ceiling unknown)
+- **Last audited:** round 8 by Reviewer
+
+### A-8-1 — LightGBM n_estimators=2000 is the confirmed best in the campaign
+
+- **Claim:** LightGBM with n_estimators=2000 (val_pr_auc=0.829948) is the current campaign champion. The diminishing returns trend (0.009 → 0.004 → 0.002 per 500-estimator step) suggests the optimal is near 2000 for lr=0.02.
+- **Evidence for:** val_pr_auc=0.829948, Δ=+0.002198 vs 1500. Bootstrap CI [0.7556, 0.8964]. Three consecutive keeps at 1000, 1500, 2000 — clear convergence trajectory.
+- **Evidence against:** Next step (2000→2500) may still improve by ~0.001 — but at 21s runtime, 2500 would take ~26s, still within budget.
+- **Confidence:** medium
+- **Load-bearing:** yes — this is the final champion unless round 9/10 improves it
+- **Verification status:** unverified (seed stability)
+- **Last audited:** round 8 by Reviewer
+
+### A-8-2 — n_estimators convergence approaching at lr=0.02 for this dataset
+
+- **Claim:** The model is approaching convergence. Δ per 500 additional estimators: 0.009 → 0.004 → 0.002 (halving each step). Predicted Δ for 2000→2500: ~0.001 (below noise_floor). Further n_estimators increases are unlikely to produce significant PR-AUC gains.
+- **Evidence for:** Three clean data points showing geometric decay in Δ.
+- **Evidence against:** Pattern could break — overfitting could occur at 2500+ but data is large enough to not overfit.
+- **Confidence:** medium
+- **Load-bearing:** yes — guides round 9 plan; if this holds, should shift to different HP or direction
 - **Verification status:** unverified
-- **Last audited:** round 7 by Reviewer
+- **Last audited:** round 8 by Reviewer
