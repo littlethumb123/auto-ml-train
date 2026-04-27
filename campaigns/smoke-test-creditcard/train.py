@@ -36,7 +36,7 @@ if hasattr(signal, "SIGALRM"):
     signal.alarm(HARD_TIMEOUT)
 
 # ─── Experiment config — Executor edits ONLY this section ───────────────────
-DESCRIPTION = "A_model: LightGBM baseline — n_estimators=600, lr=0.02, num_leaves=63, spw=1"
+DESCRIPTION = "A_imbalance: LightGBM scale_pos_weight=computed_ratio (~578) — n_estimators=600, lr=0.02, num_leaves=63"
 # ────────────────────────────────────────────────────────────────────────────
 
 t_start = time.time()
@@ -71,7 +71,7 @@ model = lgb.LGBMClassifier(
     n_estimators=600,
     learning_rate=0.02,
     num_leaves=63,
-    scale_pos_weight=1,
+    scale_pos_weight=scale_pw,
     subsample=0.8,
     subsample_freq=1,
     colsample_bytree=0.8,
