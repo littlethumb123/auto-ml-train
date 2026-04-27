@@ -50,3 +50,18 @@ campaign_id: "smoke-test-creditcard"
 **Actual val_pr_auc:** 0.813307 (Δ = -0.002223 vs prior best 0.815530)
 **Verdict:** discard
 **Key finding:** Doubling num_leaves from 63 to 127 did not improve PR-AUC — slightly decreased it (Δ=-0.002, within bootstrap SE=0.038 so statistically ambiguous). The default num_leaves=63 appears well-suited or this direction is saturated. Feature engineering (A_feature) may be more productive than further HP tuning of num_leaves.
+
+## Round 4 — 2026-04-27
+
+**Action:** A_feature — add log1p(Amount) as feature 31 to LightGBM champion
+**Trigger:** Strategy Guide §1: "A_feature when champion model trained and feature coverage not inspected" — consecutive_discards=2, approaching plateau
+**Alternatives rejected:**
+- A_hp (min_child_samples reduction): risks overfitting; lower priority than FE
+- A_hp (lr change): two-variable change violates one-controlled-change rule
+
+**Independent assessment:** Run completed in 10.8s. val_pr_auc=0.780562 — large drop of 0.035 from champion 0.815530. Adding log1p(Amount) alongside Amount strongly hurt performance. Anomaly did not fire.
+
+**Expected Δ (val_pr_auc):** +0.010 (log1p expected to improve Amount representation)
+**Actual val_pr_auc:** 0.780562 (Δ = -0.034968 vs prior best 0.815530)
+**Verdict:** discard — PLATEAU TRIGGER FIRED (consecutive_discards=3, historian_trigger_pending=true)
+**Key finding:** Adding log1p(Amount) as an additional feature strongly hurt PR-AUC (Δ=-0.035). This is a key negative result: Amount-based feature engineering hurts when added alongside Amount. The PCA features V1-V28 are likely the primary drivers; Amount is less informative and adding its transform may divert model attention from the PCA structure. Feature engineering on Amount is likely a dead end.

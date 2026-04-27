@@ -5,23 +5,23 @@
     "primary_metric": 0.81553
   },
   "budget_total": 10,
-  "budget_used": 3,
+  "budget_used": 4,
   "campaign_id": "smoke-test-creditcard",
-  "consecutive_discards": 2,
+  "consecutive_discards": 3,
   "created_at": "2026-04-27T02:32:57Z",
-  "exp_id_counter": 3,
+  "exp_id_counter": 4,
   "historian_interval": 5,
-  "historian_trigger_pending": false,
+  "historian_trigger_pending": true,
   "last_commit": "2023897d3a544060477463e9e9cc7af70d25dcaf",
   "last_historian_round": null,
   "last_verdict": "discard",
-  "round": 3,
-  "rounds_since_last_historian": 3,
+  "round": 4,
+  "rounds_since_last_historian": 4,
   "total_tokens": {
     "executor": 0,
     "historian": 0,
     "planner": 0,
     "reviewer": 0
   },
-  "updated_at": "2026-04-27T04:15:00Z"
+  "updated_at": "2026-04-27T04:30:00Z"
 }
