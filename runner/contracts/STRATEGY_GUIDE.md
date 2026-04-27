@@ -4,13 +4,15 @@ campaign_id: "apr21-creditcard-fraud"
 document_type: "strategy_guide"
 scope: "planner_advisory"
 binding: "advisory"
-updated_at: "2026-04-22"
+updated_at: "2026-04-26"
 notes: >
   This document is ADVISORY, not contractual. The Planner SHOULD consult it
   when selecting hypotheses, but MAY override any heuristic with stated reasoning.
   Heuristics are drawn from ML engineering best practice and prior campaign lessons.
   schema_version 2: replaced phase table and budget rule with evidence-conditioned
-  triggers; added pre-selection reasoning requirement and A_diagnose-first mandate.
+  triggers; added pre-selection reasoning requirement.
+  2026-04-26: removed A_diagnose-first mandate; plateau diagnosis now handled
+  automatically by the Historian role (see §3.7 for Planner guidance).
 ---
 
 # Strategy Guide — ML Experiment Planning Heuristics
@@ -55,9 +57,9 @@ implication is your default next move.
 | 2+ families tried; best leads by > 2× noise_floor | Family search is done. Commit to the winner. Further family exploration has low expected Δ. |
 | 2+ families within noise_floor of each other | Tune both briefly (1–2 rounds each) before committing. The winner after tuning often differs from the default-parameter ranking. |
 | Champion family selected; no systematic HP search yet | A_hp is the next highest-ROI layer. Run Optuna with a wide search space before moving to features or ensemble. |
-| 2+ A_hp rounds on same family; Δ shrinking toward noise_floor | HP space likely saturated. Move to A_feature or A_diagnose — more HP search on the same family has low expected Δ. |
+| 2+ A_hp rounds on same family; Δ shrinking toward noise_floor | HP space likely saturated. Move to A_feature or A_model — more HP search on the same family has low expected Δ. |
 | A_feature round discarded; feature importance not inspected | Do not declare FE a dead end yet. Inspect permutation importance on the champion. The features may add signal that other concurrent changes masked. |
-| consecutive_discards ≥ 3 (C2 plateau fires) | Run A_diagnose **before** any structural change (A_ensemble, A_model). See §3.7. |
+| consecutive_discards ≥ 3 (C2 plateau fires) | driver auto-triggers Historian; read `state/STRATEGY_MEMO.md` before next plan. |
 | Considering A_ensemble | Verify each candidate is individually tuned AND that their feature importance profiles differ. If one family leads the other by > 2× noise_floor, blending dilutes signal — see §4 anti-patterns. |
 | Target gap ≤ 2× bootstrap_se (from tools/bootstrap_ci) | The bottleneck is measurement, not modeling. More experiments will not reliably close this gap. Trigger C3 to upgrade the CV scheme before continuing. |
 
@@ -85,7 +87,6 @@ produces evidence that contradicts them.
 
 | Action type | Typical Δ range | When highest ROI | When low ROI |
 |---|---|---|---|
-| A_diagnose | ~0 (resolves uncertainty) | After plateau; before A_ensemble | Never — costs only one round and prevents wasted structural changes |
 | A_feature | 0.005–0.020 | Champion model trained and tuned; feature coverage not inspected | PCA-only feature space already saturated (V1–V28 dominate importance) |
 | A_model | 0.005–0.015 | Early campaign; alternative families not yet compared | 2+ families compared and one clearly dominates |
 | A_hp | 0.001–0.008 | First systematic tune of a new champion family | After 2+ A_hp rounds on same family with shrinking Δ |
@@ -158,8 +159,9 @@ state. They supplement the triggers in §1, not replace them.
 - **Building blocks must be individually strong.** An ensemble of bad models is
   a bad model. Only ensemble after you have ≥ 2 individually tuned models.
 - **Verify complementarity before blending.** If the two families' feature
-  importance profiles overlap heavily, blending adds noise, not signal. Run
-  A_diagnose first (§3.7) to confirm coverage differs.
+  importance profiles overlap heavily, blending adds noise, not signal. Check
+  `state/STRATEGY_MEMO.md` (Historian output after C2 plateau) for a
+  complementarity assessment before committing to an ensemble.
 - **Prefer simple averaging or stacking over complex schemes.** Blending /
   averaging is easy to debug. Stacking with a meta-learner is the next step if
   averaging plateaus.
@@ -177,33 +179,29 @@ state. They supplement the triggers in §1, not replace them.
 - **Review what changed between the last keep and the discards.** Narrow the
   root cause before trying another experiment.
 
-### 3.7 Diagnose before any structural change (A_diagnose-first rule)
+### §3.7 Plateau diagnosis (formerly A_diagnose)
 
-When the C2 plateau trigger fires (`consecutive_discards ≥ 3`), the default
-next action is **A_diagnose**, not A_ensemble or A_model.
+The `A_diagnose` action type has been removed. When `consecutive_discards >= plateau_trigger`,
+the driver automatically triggers the Historian role before the next Planner turn.
+The Historian produces `state/STRATEGY_MEMO.md` with:
+- Trajectory narrative and phase classification
+- Pattern extraction from CAMPAIGN_JOURNAL.md
+- Assumption audit (flags critical unverified assumptions)
+- Bottleneck diagnosis with highest-ROI technique recommendation
 
-**What A_diagnose must produce:**
+The Planner reads STRATEGY_MEMO.md as a required input. To propose a targeted verification
+experiment, use `action_type: A_validate` with `assumptions_tested: [A-N-N]` in frontmatter.
 
-1. Permutation feature importance from the champion model: which features drive
-   predictions, which are ignored.
-2. Error analysis: where does the champion fail? (false-positive / false-negative
-   patterns, score distribution on val positives vs. negatives)
-3. CI check: is bootstrap_se small enough that the target gap is detectable?
-
-**How to use the outputs:**
+**How to use the Historian outputs:**
 
 - If champion ignores several features → A_feature targeting those features.
 - If two candidate families use meaningfully different feature subsets → A_ensemble
-  is warranted (complementarity confirmed).
+  is warranted (complementarity confirmed by STRATEGY_MEMO.md).
 - If bootstrap_se > target_gap / 2 → C3 to upgrade the CV scheme before
   continuing. More experiments on the current split will not produce reliable
   decisions.
 - If all features used, no obvious failure pattern, CI adequate → A_model with
   a structurally different approach.
-
-Skipping A_diagnose and jumping to A_ensemble after plateau combines unknowns:
-you do not know whether the families are complementary. That makes expected Δ
-unestimable, which means you cannot justify the choice against alternatives.
 
 ---
 
