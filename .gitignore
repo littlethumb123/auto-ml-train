@@ -1,6 +1,8 @@
 # Auto-train experiment artifacts
 run.log
 results.tsv
+catboost_info/
+.cache/
 abes_state.json
 progress.png
 __pycache__/
