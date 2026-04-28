@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 from typing import Any, Literal
 
@@ -92,6 +93,68 @@ def _normalize_mandatory_tool_name(name: str) -> str:
     if "/" in n:
         return n.replace("/", ".")
     return n
+
+
+def _estimate_tokens(text: str, overhead: float = 3.0) -> int:
+    """Rough character→token estimate with input-overhead multiplier. Min 100."""
+    return max(100, int(len(text) * overhead / 4))
+
+
+def _auto_estimate_round_tokens(
+    campaign_dir: str,
+    commit: str,
+    planner_tokens: int,
+    executor_tokens: int,
+    reviewer_tokens: int,
+) -> tuple[int, int, int]:
+    """Fill in zero token counts from artifact sizes when caller provides none.
+
+    Only activates when ALL THREE are 0 (i.e. caller omitted them entirely).
+    Estimates are directionally correct but not exact — useful for relative
+    cost comparisons in TOKEN_SUMMARY.txt.
+    """
+    if planner_tokens or executor_tokens or reviewer_tokens:
+        return planner_tokens, executor_tokens, reviewer_tokens
+
+    camp = Path(campaign_dir)
+
+    # Planner: NEXT_EXPERIMENT.md (output of the Planner role)
+    nxt = camp / "state" / "NEXT_EXPERIMENT.md"
+    if nxt.exists():
+        planner_tokens = _estimate_tokens(nxt.read_text(encoding="utf-8"))
+
+    # Executor: diff of the experiment commit (what the executor changed)
+    try:
+        diff = subprocess.check_output(
+            ["git", "show", "--unified=0", commit],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        executor_tokens = _estimate_tokens(diff, overhead=1.5) if diff.strip() else 500
+    except Exception:
+        executor_tokens = 500
+
+    # Reviewer: latest CAMPAIGN_JOURNAL.md entry (output of the Reviewer role)
+    journal = camp / "state" / "CAMPAIGN_JOURNAL.md"
+    if journal.exists():
+        text = journal.read_text(encoding="utf-8")
+        parts = text.split("\n## Round ")
+        if len(parts) > 1:
+            reviewer_tokens = _estimate_tokens("## Round " + parts[-1])
+        else:
+            reviewer_tokens = _estimate_tokens(text)
+
+    return planner_tokens, executor_tokens, reviewer_tokens
+
+
+def _auto_estimate_historian_tokens(campaign_dir: str, tokens_used: int) -> int:
+    """Estimate historian token count from STRATEGY_MEMO.md when not provided."""
+    if tokens_used:
+        return tokens_used
+    memo = Path(campaign_dir) / "state" / "STRATEGY_MEMO.md"
+    if memo.exists():
+        return _estimate_tokens(memo.read_text(encoding="utf-8"))
+    return 1000
 
 
 def _assumption_register_skeleton(campaign_id: str) -> str:
@@ -373,6 +436,10 @@ def historian_finalize(
     import datetime as _dt
 
     state = json.loads(state_path.read_text())
+
+    # Auto-estimate from STRATEGY_MEMO.md when caller provides no count
+    tokens_used = _auto_estimate_historian_tokens(str(camp), tokens_used)
+
     state["rounds_since_last_historian"] = 0
     state["last_historian_round"] = int(state.get("round", 0))
     state["historian_trigger_pending"] = False
@@ -497,6 +564,15 @@ def review_finalize(
 
     # Historian tokens stored by historian_finalize for the round that triggered it
     historian_tokens = int(state.get("pending_historian_tokens", 0))
+
+    # Auto-estimate from artifacts when caller provides no token counts
+    planner_tokens, executor_tokens, reviewer_tokens = _auto_estimate_round_tokens(
+        campaign_dir=str(camp),
+        commit=commit or "",
+        planner_tokens=planner_tokens,
+        executor_tokens=executor_tokens,
+        reviewer_tokens=reviewer_tokens,
+    )
 
     log.append_result(
         commit=commit if commit else "none",

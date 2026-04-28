@@ -47,7 +47,16 @@ Harness rules, lessons, and rules that apply across campaigns live in `runner/AG
 
 ## Token tracking
 
-`review_finalize` accepts optional token counts from the outer loop. Pass them via:
+The driver auto-estimates token costs from round artifacts when exact counts are unavailable:
+
+- **Planner tokens** — estimated from `NEXT_EXPERIMENT.md` size (3× input overhead)
+- **Executor tokens** — estimated from the experiment commit diff (`git show`)
+- **Reviewer tokens** — estimated from the latest `CAMPAIGN_JOURNAL.md` entry
+- **Historian tokens** — estimated from `STRATEGY_MEMO.md` size
+
+Estimates are directionally correct (±50%) and sufficient for relative cost comparisons in TOKEN_SUMMARY.txt. The Planner reads TOKEN_SUMMARY.txt each round and can see which action types cost more.
+
+**To supply exact counts** (e.g. from Anthropic API `usage.input_tokens + usage.output_tokens`), pass them explicitly — they take precedence over estimates:
 
 ```bash
 python runner/run_round.sh review-finalize \
@@ -57,11 +66,10 @@ python runner/run_round.sh review-finalize \
   --reviewer-tokens <int>
 ```
 
-Similarly for `historian-finalize`:
 ```bash
 python runner/run_round.sh historian-finalize \
   ...existing args... \
   --tokens-used <int>
 ```
 
-These values come from the API response metadata (e.g., Anthropic API usage.input_tokens + usage.output_tokens). If not available, omit the flags — token columns will record 0, which is valid. TOKEN_SUMMARY.txt is generated after each review-finalize regardless.
+TOKEN_SUMMARY.txt is written after every `review-finalize` regardless.

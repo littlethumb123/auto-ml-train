@@ -436,6 +436,72 @@ def test_review_finalize_historian_tokens_from_pending_state(campaign: Path):
     assert data[headers.index("historian_tokens")] == "99000"
 
 
+def test_review_finalize_auto_estimates_tokens_when_none_provided(campaign: Path):
+    """When no token counts are passed, driver estimates from artifacts (non-zero)."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # Write a NEXT_EXPERIMENT.md so planner estimation has something to work with
+    (campaign / "state" / "NEXT_EXPERIMENT.md").write_text(
+        "---\nhypothesis: test\n---\n" + "x" * 2000
+    )
+    runner_driver.review_finalize(
+        verdict="keep",
+        commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp",
+        hypothesis="h",
+        description="d",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+        # No token args — auto-estimation should kick in
+    )
+    state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    # At least one of planner/executor should be non-zero from estimation
+    total_non_hist = (
+        state["total_tokens"]["planner"]
+        + state["total_tokens"]["executor"]
+        + state["total_tokens"]["reviewer"]
+    )
+    assert total_non_hist > 0, "Auto-estimation should produce non-zero token counts"
+
+
+def test_review_finalize_explicit_tokens_not_overridden(campaign: Path):
+    """Explicit token counts suppress auto-estimation."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    runner_driver.review_finalize(
+        verdict="keep",
+        commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp",
+        hypothesis="h",
+        description="d",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+        planner_tokens=1,
+        executor_tokens=2,
+        reviewer_tokens=3,
+    )
+    state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert state["total_tokens"]["planner"] == 1
+    assert state["total_tokens"]["executor"] == 2
+    assert state["total_tokens"]["reviewer"] == 3
+
+
+def test_historian_finalize_auto_estimates_tokens_when_none_provided(campaign: Path):
+    """historian_finalize estimates tokens from STRATEGY_MEMO.md when tokens_used=0."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # Write a STRATEGY_MEMO.md so estimation has content
+    (campaign / "state" / "STRATEGY_MEMO.md").write_text("# Memo\n" + "x" * 4000)
+    runner_driver.historian_finalize(
+        campaign_dir=str(campaign),
+        trigger="periodic",
+        tokens_used=0,
+    )
+    state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert state.get("pending_historian_tokens", 0) > 0, "Should estimate from STRATEGY_MEMO.md"
+
+
 def test_review_finalize_updates_review_md_frontmatter(campaign: Path):
     """review_finalize should update last_verdict and last_round in REVIEW.md frontmatter."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
