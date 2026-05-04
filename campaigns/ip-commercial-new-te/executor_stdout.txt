@@ -1,0 +1,52 @@
+Loading splits from cache: splits_hybrid_eng5_20250630.npz
+  508,134 train | 752,579 val | 789 features  (27.3s)
+Engineered features added: ['eng_ip_score', 'eng_chronic_score', 'eng_lab_score', 'eng_age_x_ip', 'eng_mm_ip_ratio']
+Data ready: 794 features  (47.7s)
+LGBM_hybrid (iter=170): lift@1%=22.1616  (139.4s)
+LGBM_tabular (iter=158, 538 feats): lift@1%=20.9943  (176.3s)
+LGBM_emb (iter=217): lift@1%=18.5910  (208.2s)
+CB_hybrid: lift@1%=22.0414  (381.6s)
+CB_tabular: lift@1%=21.1488  (530.0s)
+XGB Optuna budget: 450s  (elapsed: 530s)
+XGB Optuna: 21 trials  best AUC-ROC=0.8511
+  best_params={'max_depth': 6, 'learning_rate': 0.2536999076681772, 'subsample': 0.892797576724562, 'colsample_bytree': 0.7993292420985183, 'min_child_weight': 1, 'gamma': 0.7799726016810132, 'scale_pos_weight': 5.871254182522992}
+XGB_hybrid tuned (iter=48): lift@1%=22.1273  (1038.9s)
+XGB_tabular (iter=594): lift@1%=21.5951  (1103.4s)
+Starting DE weight optimization... (1103s elapsed)
+
+=== DE Val Weights ===
+  weights: LGBM_h=0.055 LGBM_t=0.065 LGBM_e=0.059 CB_h=0.248 CB_t=0.066 XGB_h=0.415 XGB_t=0.092
+  val_lift@1%: 23.260252
+  converged: True  nfev: 13868  (1660s)
+
+============================================================
+  FINAL TEST SET EVALUATION
+============================================================
+  test_lift_1pct:   22.483524
+  test_lift_5pct:   9.498785
+  test_lift_10pct:  6.042226
+  test_auc_roc:     0.855927
+  test_n:           752184
+  test_prevalence:  0.0079
+============================================================
+  LGBM_h individual test_lift@1%: 22.2303
+  LGBM_t individual test_lift@1%: 21.5720
+  LGBM_e individual test_lift@1%: 18.5000
+  CB_h individual test_lift@1%: 22.0109
+  CB_t individual test_lift@1%: 21.4708
+  XGB_h individual test_lift@1%: 21.8927
+  XGB_t individual test_lift@1%: 22.2135
+
+  val_lift@1% (for comparison):  23.260252
+  val-test gap:                  +0.776728
+---
+val_lift_1pct:    23.260252
+val_auc_roc:      0.857231
+val_lift_5pct:    9.553966
+val_lift_10pct:   6.179271
+val_auc_pr:       0.111090
+training_seconds: 1611.7
+total_seconds:    1680.0
+n_features:       794
+description:      A_validate: final test-set evaluation with DE-optimized weights from r48
+---

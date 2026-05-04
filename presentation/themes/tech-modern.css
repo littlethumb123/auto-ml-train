@@ -1,0 +1,353 @@
+/* @theme tech-modern */
+/* Developer-friendly dark theme — syntax-inspired palette */
+/* @size 16:9 1280px 720px */
+/* @size 4:3 960px 720px */
+/* @auto-scaling fittingHeader,math,code */
+
+@import 'default';
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --tm-bg: #0d1117;
+  --tm-bg-raised: #161b22;
+  --tm-bg-overlay: #21262d;
+  --tm-border: #30363d;
+  --tm-text: #e6edf3;
+  --tm-text-muted: #8b949e;
+  --tm-text-subtle: #6e7681;
+  --tm-green: #3fb950;
+  --tm-green-soft: rgba(63,185,80,0.15);
+  --tm-blue: #58a6ff;
+  --tm-blue-soft: rgba(88,166,255,0.15);
+  --tm-purple: #bc8cff;
+  --tm-purple-soft: rgba(188,140,255,0.15);
+  --tm-orange: #f0883e;
+  --tm-orange-soft: rgba(240,136,62,0.15);
+  --tm-red: #f85149;
+  --tm-cyan: #79c0ff;
+}
+
+section {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 27px;
+  padding: 50px 70px;
+  background-color: var(--tm-bg);
+  color: var(--tm-text);
+  line-height: 1.55;
+}
+
+h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 1.9em;
+  color: var(--tm-green);
+  border-bottom: 2px solid var(--tm-border);
+  padding-bottom: 10px;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 1.4em;
+  color: var(--tm-text);
+  margin-bottom: 14px;
+}
+
+h3 {
+  font-weight: 500;
+  font-size: 1.05em;
+  color: var(--tm-purple);
+  margin-bottom: 10px;
+}
+
+a {
+  color: var(--tm-blue);
+  text-decoration: none;
+}
+
+strong {
+  color: var(--tm-orange);
+}
+
+blockquote {
+  border-left: 3px solid var(--tm-purple);
+  padding: 12px 20px;
+  margin: 16px 0;
+  background: var(--tm-purple-soft);
+  color: var(--tm-text);
+  font-style: normal;
+  border-radius: 0 6px 6px 0;
+}
+
+blockquote p {
+  margin: 0;
+  color: var(--tm-text);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8em;
+}
+
+th {
+  background-color: var(--tm-bg-overlay);
+  color: var(--tm-text);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  border-bottom: 2px solid var(--tm-border);
+}
+
+td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--tm-border);
+  color: var(--tm-text-muted);
+  background-color: transparent;
+}
+
+tr {
+  background-color: transparent;
+}
+
+tr:nth-child(even) td {
+  background-color: rgba(255,255,255,0.02);
+}
+
+code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: var(--tm-bg-raised);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.82em;
+  color: var(--tm-cyan);
+  border: 1px solid var(--tm-border);
+}
+
+pre {
+  background-color: var(--tm-bg-raised);
+  border-radius: 10px;
+  padding: 22px 26px;
+  border: 1px solid var(--tm-border);
+}
+
+pre code {
+  background-color: transparent;
+  color: var(--tm-text);
+  padding: 0;
+  border: none;
+}
+
+ul, ol {
+  margin: 10px 0;
+}
+
+li {
+  margin: 5px 0;
+  line-height: 1.5;
+  color: var(--tm-text-muted);
+}
+
+li strong {
+  color: var(--tm-orange);
+}
+
+li::marker {
+  color: var(--tm-green);
+}
+
+section::after {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.45em;
+  color: var(--tm-text-subtle);
+  content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
+}
+
+header, footer {
+  font-size: 0.42em;
+  color: var(--tm-text-subtle);
+}
+
+/* Lead — centered hero */
+section.lead {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: radial-gradient(ellipse at center, var(--tm-bg-raised) 0%, var(--tm-bg) 70%);
+}
+
+section.lead h1 {
+  font-size: 2.3em;
+  border-bottom: none;
+  color: var(--tm-green);
+}
+
+section.lead h2 {
+  color: var(--tm-text-muted);
+  font-weight: 400;
+  font-size: 1.05em;
+}
+
+/* Light — white variant */
+section.light {
+  background-color: #f6f8fa;
+  color: #24292f;
+}
+
+section.light h1 {
+  color: #24292f;
+  border-bottom-color: #d0d7de;
+}
+
+section.light h2 {
+  color: #24292f;
+}
+
+section.light h3 {
+  color: #8250df;
+}
+
+section.light a {
+  color: #0969da;
+}
+
+section.light strong {
+  color: #cf222e;
+}
+
+section.light li {
+  color: #57606a;
+}
+
+section.light li strong {
+  color: #cf222e;
+}
+
+section.light th {
+  background-color: #24292f;
+  color: #ffffff;
+  border-bottom-color: #24292f;
+}
+
+section.light td {
+  color: #57606a;
+  border-bottom-color: #d0d7de;
+}
+
+section.light tr:nth-child(even) td {
+  background-color: #ffffff;
+}
+
+section.light code {
+  background: #eff2f5;
+  color: #0550ae;
+  border-color: #d0d7de;
+}
+
+section.light pre {
+  background-color: #24292f;
+  border-color: #d0d7de;
+}
+
+section.light pre code {
+  color: #e6edf3;
+}
+
+section.light blockquote {
+  border-left-color: #8250df;
+  background: rgba(130,80,223,0.08);
+  color: #24292f;
+}
+
+section.light::after {
+  color: #57606a;
+}
+
+/* Highlight — green accent slide */
+section.highlight {
+  background: linear-gradient(135deg, #238636 0%, #1a7f37 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+section.highlight h1 {
+  color: #ffffff;
+  border-bottom-color: rgba(255,255,255,0.3);
+}
+
+section.highlight h2 {
+  color: rgba(255,255,255,0.8);
+}
+
+section.highlight strong {
+  color: #ffffff;
+}
+
+section.highlight a {
+  color: #ffffff;
+}
+
+section.highlight blockquote {
+  border-left-color: #ffffff;
+  background: rgba(255,255,255,0.15);
+  color: #ffffff;
+}
+
+section.highlight blockquote p {
+  color: #ffffff;
+}
+
+section.highlight code {
+  background: rgba(255,255,255,0.2);
+  color: #ffffff;
+  border: none;
+}
+
+section.highlight::after {
+  color: rgba(255,255,255,0.4);
+}
+
+/* Blueprint — blue accent for architecture slides */
+section.blueprint {
+  background-color: #0d1b2a;
+  color: var(--tm-text);
+}
+
+section.blueprint h1 {
+  color: var(--tm-blue);
+  border-bottom-color: rgba(88,166,255,0.3);
+}
+
+section.blueprint h3 {
+  color: var(--tm-cyan);
+}
+
+section.blueprint a {
+  color: var(--tm-blue);
+}
+
+section.blueprint code {
+  color: var(--tm-blue);
+}
+
+section.blueprint th {
+  background-color: rgba(88,166,255,0.15);
+  border-bottom-color: rgba(88,166,255,0.3);
+}
+
+section.blueprint blockquote {
+  border-left-color: var(--tm-blue);
+  background: var(--tm-blue-soft);
+}
+
+section.blueprint::after {
+  color: rgba(88,166,255,0.4);
+}

@@ -1,0 +1,345 @@
+/* @theme cvs-health */
+/* CVS Health brand theme — Digital Pulse Design System */
+/* @size 16:9 1280px 720px */
+/* @size 4:3 960px 720px */
+/* @auto-scaling fittingHeader,math,code */
+
+@import 'default';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --cvs-red: #cc0000;
+  --cvs-red-dark: #a50000;
+  --cvs-red-deepest: #4d0f0f;
+  --cvs-red-light: #fff2f2;
+  --cvs-red-light-20: #ffb3b3;
+  --cvs-charcoal: #262626;
+  --cvs-gray-0: #f5f5f5;
+  --cvs-white: #ffffff;
+  --cvs-muted: #dedede;
+}
+
+section {
+  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 28px;
+  padding: 50px 70px;
+  background-color: var(--cvs-white);
+  color: var(--cvs-charcoal);
+  line-height: 1.5;
+}
+
+h1 {
+  font-weight: 700;
+  font-size: 2em;
+  color: var(--cvs-charcoal);
+  border-bottom: 3px solid var(--cvs-red);
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+}
+
+h2 {
+  font-weight: 600;
+  font-size: 1.5em;
+  color: var(--cvs-charcoal);
+  margin-bottom: 16px;
+}
+
+h3 {
+  font-weight: 600;
+  font-size: 1.2em;
+  color: var(--cvs-red-dark);
+  margin-bottom: 12px;
+}
+
+a {
+  color: var(--cvs-red);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+strong {
+  color: var(--cvs-red-dark);
+}
+
+blockquote {
+  border-left: 4px solid var(--cvs-red);
+  padding: 12px 20px;
+  margin: 16px 0;
+  background: var(--cvs-red-light);
+  color: var(--cvs-charcoal);
+  font-style: italic;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78em;
+}
+
+th {
+  background-color: var(--cvs-charcoal);
+  color: var(--cvs-white);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+}
+
+td {
+  padding: 8px 14px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+tr:nth-child(even) td {
+  background-color: var(--cvs-gray-0);
+}
+
+code {
+  background: var(--cvs-gray-0);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.85em;
+  color: var(--cvs-red-dark);
+}
+
+pre {
+  background-color: var(--cvs-charcoal);
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+
+pre code {
+  background-color: transparent;
+  color: #e0e0e0;
+  padding: 0;
+}
+
+ul, ol {
+  margin: 8px 0;
+}
+
+li {
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+li strong {
+  color: var(--cvs-red-dark);
+}
+
+/* Page number */
+section::after {
+  font-size: 0.5em;
+  color: #999;
+  content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
+}
+
+header, footer {
+  font-size: 0.45em;
+  color: #999;
+}
+
+/* Lead class — centered title slides */
+section.lead {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+section.lead h1 {
+  border-bottom-color: var(--cvs-red);
+}
+
+section.lead h2 {
+  color: var(--cvs-muted);
+  border-bottom: none;
+  font-weight: 400;
+}
+
+/* Invert class — dark slides */
+section.invert {
+  background-color: var(--cvs-charcoal);
+  color: var(--cvs-white);
+}
+
+section.invert h1 {
+  color: var(--cvs-white);
+  border-bottom-color: var(--cvs-red);
+}
+
+section.invert h2 {
+  color: var(--cvs-muted);
+}
+
+section.invert h3 {
+  color: var(--cvs-red-light-20);
+}
+
+section.invert a {
+  color: var(--cvs-red-light-20);
+}
+
+section.invert strong {
+  color: var(--cvs-red-light-20);
+}
+
+section.invert li strong {
+  color: var(--cvs-red-light-20);
+}
+
+section.invert code {
+  background: rgba(255,255,255,0.15);
+  color: var(--cvs-red-light-20);
+}
+
+section.invert th {
+  background-color: rgba(255,255,255,0.15);
+  color: var(--cvs-white);
+}
+
+section.invert td {
+  color: var(--cvs-white);
+  background-color: transparent;
+  border-bottom-color: rgba(255,255,255,0.15);
+}
+
+section.invert tr:nth-child(even) td {
+  background-color: rgba(255,255,255,0.05);
+}
+
+section.invert table tr {
+  background-color: transparent;
+}
+
+section.invert blockquote {
+  border-left-color: var(--cvs-red);
+  background: rgba(255,255,255,0.1);
+  color: var(--cvs-white);
+}
+
+section.invert blockquote p {
+  color: var(--cvs-white);
+}
+
+section.invert::after {
+  color: rgba(255,255,255,0.4);
+}
+
+/* Impact class — CVS red background */
+section.impact {
+  background-color: var(--cvs-red);
+  color: var(--cvs-white);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+section.impact h1 {
+  color: var(--cvs-white);
+  border-bottom-color: rgba(255,255,255,0.4);
+}
+
+section.impact h2 {
+  color: rgba(255,255,255,0.85);
+}
+
+section.impact a {
+  color: var(--cvs-white);
+  text-decoration: underline;
+}
+
+section.impact strong {
+  color: var(--cvs-white);
+}
+
+section.impact li strong {
+  color: var(--cvs-white);
+}
+
+section.impact blockquote {
+  border-left-color: var(--cvs-white);
+  background: rgba(255,255,255,0.15);
+  color: var(--cvs-white);
+}
+
+section.impact blockquote p {
+  color: var(--cvs-white);
+}
+
+section.impact code {
+  background: rgba(255,255,255,0.2);
+  color: var(--cvs-white);
+}
+
+section.impact::after {
+  color: rgba(255,255,255,0.4);
+}
+
+/* Deep class — red deepest background */
+section.deep {
+  background-color: var(--cvs-red-deepest);
+  color: var(--cvs-white);
+}
+
+section.deep h1 {
+  color: var(--cvs-white);
+  border-bottom-color: var(--cvs-red);
+}
+
+section.deep h3 {
+  color: var(--cvs-red-light-20);
+}
+
+section.deep a {
+  color: var(--cvs-red-light-20);
+}
+
+section.deep strong {
+  color: var(--cvs-red-light-20);
+}
+
+section.deep li strong {
+  color: var(--cvs-red-light-20);
+}
+
+section.deep code {
+  background: rgba(255,255,255,0.15);
+  color: var(--cvs-red-light-20);
+}
+
+section.deep th {
+  background-color: rgba(255,255,255,0.15);
+  color: var(--cvs-white);
+}
+
+section.deep td {
+  color: var(--cvs-white);
+  background-color: transparent;
+  border-bottom-color: rgba(255,255,255,0.15);
+}
+
+section.deep tr:nth-child(even) td {
+  background-color: rgba(255,255,255,0.05);
+}
+
+section.deep table tr {
+  background-color: transparent;
+}
+
+section.deep blockquote {
+  border-left-color: var(--cvs-red);
+  background: rgba(255,255,255,0.1);
+  color: var(--cvs-white);
+}
+
+section.deep::after {
+  color: rgba(255,255,255,0.3);
+}
