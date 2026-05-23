@@ -205,6 +205,7 @@ def test_review_finalize_keep_updates_state(campaign: Path, tmp_path: Path):
         model_family="lightgbm",
         n_features=10,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
     )
     state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
     assert state["round"] == 1
@@ -358,6 +359,7 @@ def test_review_finalize_sets_historian_trigger_at_interval(campaign: Path):
         model_family="lightgbm",
         n_features=10,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
     )
     state_after = json.loads(state_path.read_text())
     assert state_after["historian_trigger_pending"] is True
@@ -394,6 +396,7 @@ def test_review_finalize_accumulates_tokens_in_state(campaign: Path):
         model_family="lightgbm",
         n_features=10,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
         planner_tokens=100,
         executor_tokens=200,
         reviewer_tokens=150,
@@ -424,6 +427,7 @@ def test_review_finalize_historian_tokens_from_pending_state(campaign: Path):
         model_family="lightgbm",
         n_features=10,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
     )
     # pending_historian_tokens should be cleared after use
     state_after = json.loads(state_path.read_text())
@@ -453,6 +457,7 @@ def test_review_finalize_auto_estimates_tokens_when_none_provided(campaign: Path
         model_family="lightgbm",
         n_features=10,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
         # No token args — auto-estimation should kick in
     )
     state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
@@ -478,6 +483,7 @@ def test_review_finalize_explicit_tokens_not_overridden(campaign: Path):
         model_family="lightgbm",
         n_features=10,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
         planner_tokens=1,
         executor_tokens=2,
         reviewer_tokens=3,
@@ -519,6 +525,7 @@ def test_review_finalize_updates_review_md_frontmatter(campaign: Path):
         model_family="lightgbm",
         n_features=10,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
     )
     content = (campaign / "state" / "REVIEW.md").read_text()
     assert "last_verdict: keep" in content

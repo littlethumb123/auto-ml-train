@@ -103,8 +103,8 @@ def test_discard_not_overridden_when_tools_missing(campaign: Path):
     assert res["verdict"] == "discard"
 
 
-def test_tools_ran_defaults_to_none_for_backward_compat(campaign: Path):
-    """Callers that omit tools_ran don't break (backward compat)."""
+def test_keep_rejected_when_tools_ran_is_none(campaign: Path):
+    """Fail-closed: tools_ran=None with mandatory tools must reject keep."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
     res = runner_driver.review_finalize(
         verdict="keep",
@@ -116,7 +116,8 @@ def test_tools_ran_defaults_to_none_for_backward_compat(campaign: Path):
         model_family="lightgbm",
         n_features=10,
         campaign_dir=str(campaign),
-        # tools_ran intentionally omitted
+        # tools_ran intentionally omitted (defaults to None)
     )
-    # When tools_ran is None, the driver cannot verify → should pass through unchanged
-    assert res["verdict"] == "keep"
+    assert res["verdict"] == "malformed", (
+        "Mandatory tools configured but tools_ran=None should reject keep"
+    )

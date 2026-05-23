@@ -39,6 +39,7 @@ def test_c3_advisory_emitted_when_gap_within_noise(campaign: Path):
         model_family="xgboost",
         n_features=30,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
     )
     res = runner_driver.review_finalize(
         verdict="discard",
@@ -69,6 +70,7 @@ def test_no_c3_advisory_when_gap_large(campaign: Path):
         model_family="logreg",
         n_features=30,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
     )
     res = runner_driver.review_finalize(
         verdict="discard",
@@ -98,6 +100,7 @@ def test_no_c3_advisory_when_se_not_provided(campaign: Path):
         model_family="xgboost",
         n_features=30,
         campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
     )
     res = runner_driver.review_finalize(
         verdict="discard",

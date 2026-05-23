@@ -49,6 +49,17 @@ def check_anomaly(
         except (TypeError, ValueError):
             continue
     threshold = max(floor, relative * best_prior) if best_prior > 0 else floor
+    # Upper-bound: suspiciously perfect results suggest leakage
+    if value > 0.99:
+        family = latest_row.get("model_family", "unknown")
+        return {
+            "fired": True,
+            "reason": f"{primary_metric}={value:.6f} suspiciously perfect (>0.99) — potential data leakage",
+            "proposed_diagnostic": (
+                f"Check for target leakage: inspect feature correlations with target, "
+                f"verify train/val split has no row overlap, check for future-peeking features."
+            ),
+        }
     if 0 < value < threshold:
         family = latest_row.get("model_family", "unknown")
         return {

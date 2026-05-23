@@ -84,6 +84,7 @@ def test_happy_three_rounds(campaign: Path):
             model_family="lightgbm",
             n_features=10,
             campaign_dir=str(campaign),
+            tools_ran=["tools/anomaly.py"] if verdict == "keep" else [],
         )
         assert res["halt_loop"] is False or i == 3
 

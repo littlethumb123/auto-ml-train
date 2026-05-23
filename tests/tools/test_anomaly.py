@@ -56,3 +56,15 @@ def test_anomaly_determinism():
         primary_metric="val_pr_auc",
     )
     assert anomaly.check_anomaly(**args) == anomaly.check_anomaly(**args)
+
+
+def test_anomaly_fires_suspiciously_perfect():
+    """Scores > 0.99 should be flagged as potential leakage."""
+    res = anomaly.check_anomaly(
+        latest_row={"val_pr_auc": 0.999, "status": "keep", "model_family": "lgb"},
+        history=[{"val_pr_auc": 0.80, "status": "keep"}],
+        floor=0.75,
+        primary_metric="val_pr_auc",
+    )
+    assert res["fired"] is True
+    assert "perfect" in res["reason"].lower() or "suspicious" in res["reason"].lower()

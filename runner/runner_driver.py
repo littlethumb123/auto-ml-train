@@ -552,7 +552,9 @@ def review_finalize(
 
     mandatory_gate_reason = ""
     mandatory_raw = list(eval_fm.get("mandatory_tools") or [])
-    if tools_ran is not None and mandatory_raw and verdict == "keep":
+    if mandatory_raw and verdict == "keep":
+        if tools_ran is None:
+            tools_ran = []  # fail-closed: missing tools_ran treated as no tools run
         mandatory_norm = {_normalize_mandatory_tool_name(m) for m in mandatory_raw if m}
         ran_norm = {_normalize_mandatory_tool_name(t) for t in tools_ran if t}
         missing = mandatory_norm - ran_norm

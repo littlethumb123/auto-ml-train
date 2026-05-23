@@ -58,6 +58,8 @@ def test_run_round_review_finalize_bootstrap_se_via_shell(tmp_path: Path):
             "10",
             "--bootstrap-se",
             "0.04",
+            "--tools-ran",
+            '["tools/anomaly.py"]',
             "--campaign-dir",
             str(runner),
         ],

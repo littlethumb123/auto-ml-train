@@ -12,6 +12,9 @@ __pycache__/
 # Data (too large for git — 150MB CSV)
 data/
 
+# Prediction artifacts (binary numpy arrays)
+campaigns/*/artifacts/
+
 # Reference implementation (read-only copy)
 autoresearch-master/
 other_repos/

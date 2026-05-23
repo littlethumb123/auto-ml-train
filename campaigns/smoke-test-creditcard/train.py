@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import average_precision_score, f1_score, precision_recall_curve
+from shared.metrics import lift_at_percentage
 
 warnings.filterwarnings("ignore")
 
@@ -55,6 +56,12 @@ X_train, X_val, y_train, y_val = train_test_split(
 )
 
 y_val_arr = np.asarray(y_val)
+
+# Sanity: validation split must have enough positives for reliable metrics
+assert y_val_arr.sum() >= 30, (
+    f"Validation split has only {int(y_val_arr.sum())} positives — need ≥30 for reliable lift/PR-AUC"
+)
+
 n_pos = int(y_train.sum())
 n_neg = len(y_train) - n_pos
 scale_pw = round(n_neg / n_pos, 2)
@@ -85,18 +92,26 @@ print(f"LGBM trained  ({time.time()-t_start:.1f}s)")
 
 y_prob_val = model.predict_proba(X_val)[:, 1]
 
+# Save prediction artifacts for Reviewer tools (bootstrap CI, metric re-computation)
+_artifact_dir = os.path.join(os.path.dirname(__file__), "artifacts")
+os.makedirs(_artifact_dir, exist_ok=True)
+np.save(os.path.join(_artifact_dir, "y_val_true.npy"), y_val_arr)
+np.save(os.path.join(_artifact_dir, "y_val_prob.npy"), y_prob_val)
+
+# Sanity: probability output must be valid
+assert not np.isnan(y_prob_val).any(), "predict_proba returned NaN"
+assert y_prob_val.min() >= 0.0 and y_prob_val.max() <= 1.0, (
+    f"predict_proba out of [0,1]: min={y_prob_val.min():.6f}, max={y_prob_val.max():.6f}"
+)
+assert y_prob_val.std() > 1e-8, (
+    f"predict_proba is near-constant (std={y_prob_val.std():.2e}) — model may not have learned"
+)
+
 # Primary metric
 val_pr_auc = float(average_precision_score(y_val_arr, y_prob_val))
 
 # Lift at top 10%
-def _lift_at_pct(y_true: np.ndarray, y_score: np.ndarray, pct: float) -> float:
-    thresh = np.percentile(y_score, 100.0 * (1.0 - pct))
-    flagged = y_score >= thresh
-    if flagged.sum() == 0:
-        return 0.0
-    return float(y_true[flagged].mean() / (y_true.mean() + 1e-12))
-
-lift_at_10 = _lift_at_pct(y_val_arr, y_prob_val, 0.10)
+lift_at_10 = lift_at_percentage(y_val_arr, y_prob_val, 0.10)
 
 # F1 at PR-optimal threshold
 _prec, _rec, _thr = precision_recall_curve(y_val_arr, y_prob_val)
@@ -126,4 +141,6 @@ print(f"training_seconds: {training_time:.1f}")
 print(f"total_seconds:    {total_time:.1f}")
 print(f"n_features:       {n_features}")
 print(f"description:      {DESCRIPTION}")
+print(f"y_val_true_path:  artifacts/y_val_true.npy")
+print(f"y_val_prob_path:  artifacts/y_val_prob.npy")
 print("---")
