@@ -550,3 +550,85 @@ def test_review_finalize_review_md_absent_does_not_crash(campaign: Path):
     # Just verifying no exception was raised
     state = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
     assert state["last_verdict"] == "discard"
+
+
+# --- Tree search integration tests ---
+
+def test_init_creates_experiment_tree(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    tree_path = campaign / "state" / "EXPERIMENT_TREE.json"
+    assert tree_path.exists()
+    data = json.loads(tree_path.read_text())
+    assert "nodes" in data
+    assert "ROOT" in data["nodes"]
+
+
+def test_review_finalize_keep_updates_experiment_tree(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    runner_driver.review_finalize(
+        verdict="keep",
+        commit="abc123",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp",
+        hypothesis="tighter range",
+        description="initial lgbm",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    tree_path = campaign / "state" / "EXPERIMENT_TREE.json"
+    data = json.loads(tree_path.read_text())
+    assert "abc123" in data["nodes"]
+    node = data["nodes"]["abc123"]
+    assert node["strategy_class"] == "A_hp"
+    assert node["metric_value"] == 0.80
+    assert node["verdict"] == "keep"
+
+
+def test_review_finalize_discard_updates_experiment_tree(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # First: a keep to establish baseline
+    runner_driver.review_finalize(
+        verdict="keep", commit="base",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_model", hypothesis="base", description="base",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign), tools_ran=["tools/anomaly.py"],
+    )
+    # Second: a discard
+    runner_driver.review_finalize(
+        verdict="discard", commit="bad",
+        metrics={"val_pr_auc": 0.75, "lift_at_10": 3.0, "macro_f1": 0.7, "val_f1": 0.6},
+        action_type="A_hp", hypothesis="bad hp", description="bad",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+    )
+    tree_path = campaign / "state" / "EXPERIMENT_TREE.json"
+    data = json.loads(tree_path.read_text())
+    assert "bad" in data["nodes"]
+    assert data["nodes"]["bad"]["verdict"] == "discard"
+
+
+def test_review_finalize_tree_parent_is_best_so_far(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # Keep 'a' as baseline
+    runner_driver.review_finalize(
+        verdict="keep", commit="a",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_model", hypothesis="a", description="a",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign), tools_ran=["tools/anomaly.py"],
+    )
+    # Keep 'b' as improvement
+    runner_driver.review_finalize(
+        verdict="keep", commit="b",
+        metrics={"val_pr_auc": 0.85, "lift_at_10": 6.0, "macro_f1": 0.85, "val_f1": 0.8},
+        action_type="A_hp", hypothesis="b", description="b",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign), tools_ran=["tools/anomaly.py"],
+    )
+    tree_path = campaign / "state" / "EXPERIMENT_TREE.json"
+    data = json.loads(tree_path.read_text())
+    # 'b' should be a child of 'a' (best_so_far at time of 'b')
+    assert data["nodes"]["b"]["parent_commit"] == "a"

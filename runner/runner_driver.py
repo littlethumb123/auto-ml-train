@@ -21,6 +21,7 @@ from typing import Any, Literal
 import log
 from runner.tools import schema
 from runner.tools._common import FrontmatterError, parse_frontmatter
+from runner.strategy.tree_search import ExperimentTree
 
 Channel = Literal["RUN_COMPLETE", "RUN_FAILED", "REVIEW_REQUIRED"]
 Verdict = Literal["keep", "discard", "anomaly", "crash", "malformed"]
@@ -254,6 +255,12 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     pb_path = state_dir / "PATTERN_BOOK.md"
     if not pb_path.exists():
         pb_path.write_text(_pattern_book_skeleton(state["campaign_id"]))
+
+    # Create experiment tree for tree-search exploration/exploitation
+    tree_path = state_dir / "EXPERIMENT_TREE.json"
+    if not tree_path.exists():
+        tree = ExperimentTree()
+        tree.save(tree_path)
 
     return state
 
@@ -593,6 +600,22 @@ def review_finalize(
         reviewer_tokens=reviewer_tokens,
         historian_tokens=historian_tokens,
     )
+    # Update experiment tree
+    tree_path = camp / "state" / "EXPERIMENT_TREE.json"
+    if tree_path.exists():
+        tree = ExperimentTree.load(tree_path)
+        # Parent is the best_so_far commit at time of this experiment
+        parent_commit = (state.get("best_so_far") or {}).get("commit") or "ROOT"
+        pm_value = metrics.get(metric_name)
+        tree.add_experiment(
+            commit=commit or "unknown",
+            parent_commit=parent_commit,
+            strategy_class=action_type,
+            metric_value=float(pm_value) if pm_value is not None else None,
+            verdict=verdict,
+        )
+        tree.save(tree_path)
+
     state_after = json.loads(state_path.read_text())
 
     # Clear consumed pending_historian_tokens; increment rounds_since_last_historian
