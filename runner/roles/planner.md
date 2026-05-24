@@ -21,6 +21,7 @@ You NEVER write code, edit `train.py`, or run experiments. You write a plan; the
 - `runner/state/PATTERN_BOOK.md`                  # cross-round structural regularities
 - `runner/state/STRATEGY_MEMO.md`                 # Historian trajectory analysis (read if exists)
 - `runner/state/TOKEN_SUMMARY.txt`                # operational cost digest (read if exists, informational)
+- `runner/state/EXPERIMENT_TREE.json`             # tree search context — see §11
 
 ## 3. Required procedure
 
@@ -80,6 +81,54 @@ If the plan needs `experiment_helpers/<exp_id>/` files, list them explicitly in 
 
 ### Step 10 — Write NEXT_EXPERIMENT.md
 Write `state/NEXT_EXPERIMENT.md` per schema below.
+
+### Step 11 — UCB1-guided strategy selection (NEW)
+
+Read the tree search context from `state/EXPERIMENT_TREE.json` (the driver computes UCB1 scores and phase automatically). The context contains:
+
+- **phase**: One of `diversify`, `deepen`, `exploit`.
+  - `diversify` (first ~30% of budget): MUST try at least one experiment from each strategy class that has UCB1 = inf (never tried). Do NOT deepen any single direction until all major classes have been sampled.
+  - `deepen` (middle ~40%): Select the strategy class with the **highest UCB1 score**. If that class has a diminishing-returns flag, skip to the next highest.
+  - `exploit` (last ~30%): Ensemble, stack, or final HP tune the champion. Reserve 1-2 experiments for one high-risk moonshot.
+
+- **ucb1_scores**: Per-strategy-class scores. Higher = explore this more.
+  - `inf` means untried — MUST be tried before any class with a finite score.
+  - Diminishing-returns classes have halved scores.
+
+- **diminishing_returns**: Strategy classes where the last 2+ experiments improved by < noise_floor. Avoid deepening these further.
+
+- **best_branch_point**: Commit to branch from if trying a new direction (not necessarily HEAD — may be an earlier experiment).
+
+- **strategy_stats**: Per-class attempt counts, keep rates, and mean deltas.
+
+**Integration with Step 6 (pre-selection reasoning):**
+When enumerating 2-3 candidates in Step 6, the UCB1 scores MUST be cited. Format:
+
+```
+Candidate 1: A_feature (UCB1 = 0.31, 2 attempts, mean Δ = +0.004)
+Candidate 2: A_ensemble (UCB1 = inf, untried — mandatory diversification)
+Candidate 3: A_hp (UCB1 = 0.18, diminishing returns flagged — skip)
+
+Selection: A_ensemble (mandatory diversification — never tried)
+```
+
+### Step 12 — Template catalog check (NEW)
+
+Before writing §3 Plan in NEXT_EXPERIMENT.md, check `runner/strategy/templates.py` catalog:
+
+```python
+from runner.strategy.templates import get_catalog
+catalog = get_catalog()  # Returns list of available template names + usage
+```
+
+If the chosen technique has a matching template (e.g., `target_encode`, `group_agg_features`, `temporal_split`), reference it in §3 Plan so the Executor knows to use validated code:
+
+```
+§3 Plan:
+1. Use `templates.target_encode(train, val, columns=['county_cd'], target='y')` from runner/strategy/templates.py
+2. Add the encoded columns to the feature matrix
+3. Retrain champion model with the new features
+```
 
 ## 4. NEXT_EXPERIMENT.md schema additions
 

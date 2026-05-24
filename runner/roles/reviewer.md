@@ -31,6 +31,27 @@ You do not edit `train.py`, contracts, or helpers.
 3. Parse metrics from `run.log`. If parse fails: verdict = `crash`.
 4. Run `tools/anomaly` on the latest result. If fires: verdict = `anomaly` → prepare to emit **C1**.
 5. For each tool named mandatory in `EVAL_PROTOCOL.md`: run it and record output.
+
+### Step 5b — Error analysis (optional but recommended)
+
+If `artifacts/y_val_true.npy` and `artifacts/y_val_prob.npy` exist, and the feature DataFrame is available:
+
+```bash
+python -m runner.tools.error_analysis \
+    --y-true artifacts/y_val_true.npy \
+    --y-prob artifacts/y_val_prob.npy \
+    --features artifacts/X_val.csv \
+    --threshold 0.5
+```
+
+Record the output in REVIEW.md §Independent Assessment under "Error Analysis":
+- Number of FP and FN cases
+- Top 3 features with highest z_diff in FP/FN subsets
+- Calibration gap summary
+- Recommendations (verbatim from tool output)
+
+The Planner reads these recommendations in the next round to guide feature engineering.
+
 6. Compute Δ = val_<primary_metric> − best_prior.
 7. Write `REVIEW.md §Independent Assessment`:
    - What does the evidence show? What is surprising?
