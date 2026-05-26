@@ -72,10 +72,30 @@ The Planner reads these recommendations in the next round to guide feature engin
 
 ### Phase 3 — Verdict and State Updates
 
-11. **Final verdict:**
+11. **Verdict rationalization table (MANDATORY — GAP 4):**
+
+    Before stating the verdict, write this table in REVIEW.md:
+
+    ```markdown
+    | Check | Result | Verdict implication |
+    |-------|--------|---------------------|
+    | Δ(primary_metric) | +0.008 | Above noise_floor (0.005) → keep-eligible |
+    | Mandatory tools | All passed | No gate violation |
+    | Anomaly check | Clean | No anomaly |
+    | Phase 1 preliminary | keep | — |
+    | Hypothesis confirmed? | Partially | Mechanism unclear but metric improved |
+    | **Final verdict** | **keep** | **Δ > noise_floor, no tool flags** |
+    ```
+
+    Rules:
+    - Every row must have a concrete value (not "see above" or "as expected").
+    - The final verdict row MUST explain the deciding factor.
+    - If Phase 1 says discard but Phase 3 says keep: this is a violation of §7a.
+
+12. **Final verdict:**
     - `keep`   if Δ > 0 AND no mandatory tool flagged regression AND not anomaly
     - `discard` otherwise
-12. **If `keep`:** Write ≥ 1 assumption entry to `state/ASSUMPTION_REGISTER.md` (MANDATORY).
+13. **If `keep`:** Write ≥ 1 assumption entry to `state/ASSUMPTION_REGISTER.md` (MANDATORY).
     Ask: "What must remain true for this result to remain the champion?
           What have we not verified?"
     Common categories to consider:
