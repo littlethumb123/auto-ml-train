@@ -8,19 +8,21 @@ Split cache at campaigns/ip-commercial-new-te/.cache/splits_<feature_set>_<cutof
 Usage: python3 train.py
 """
 
-import os
-import signal
-import time
-import warnings
+import os, signal, time, warnings, sys
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
 warnings.filterwarnings("ignore")
-import sys
 sys.stdout.reconfigure(line_buffering=True)
+
+_CAMPAIGN_DIR = str(Path(__file__).resolve().parent)
+if _CAMPAIGN_DIR not in sys.path:
+    sys.path.insert(0, _CAMPAIGN_DIR)
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
 from prepare import RANDOM_SEED, OOT_CUTOFF_DATE, CACHE_PATH, get_splits
 from shared.metrics import compute_split_metrics, lift_at_percentage
@@ -50,7 +52,7 @@ _USE_ENGINEERED = False
 # ---------------------------------------------------------------------------
 
 t_start = time.time()
-_cache_dir = Path("campaigns/ip-commercial-new-te/.cache")
+_cache_dir = Path(_CAMPAIGN_DIR).parent / "ip-commercial-new-te" / ".cache"
 _cache_dir.mkdir(parents=True, exist_ok=True)
 _feat_suffix = "_eng5" if _USE_ENGINEERED else ""
 _split_cache = _cache_dir / f"splits_{FEATURE_SET}{_feat_suffix}_{OOT_CUTOFF_DATE.replace('-', '')}.npz"
@@ -153,7 +155,7 @@ print(f"  test_auc_roc: {_roc_auc_score(y_test_arr, y_prob_test):.4f}")
 metrics = compute_split_metrics(y_val_arr, y_prob_val, prefix="val")
 
 # Save val scores/labels for downstream tools (anomaly, bootstrap_ci, error_analysis)
-_scores_dir = Path("campaigns/ip-commercial-new-te-round2/state")
+_scores_dir = Path(_CAMPAIGN_DIR) / "state"
 _scores_dir.mkdir(parents=True, exist_ok=True)
 np.save(_scores_dir / "current_val_scores.npy", np.asarray(y_prob_val, dtype=float))
 np.save(_scores_dir / "current_val_labels.npy", np.asarray(y_val, dtype=int))
