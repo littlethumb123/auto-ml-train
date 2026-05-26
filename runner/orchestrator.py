@@ -216,6 +216,8 @@ _TOOL_KEYWORDS: dict[str, str] = {
     "feature_importance": "runner.tools.feature_importance",
     "lift": "runner.tools.lift_curve",
     "error_analysis": "runner.tools.error_analysis",
+    "substantive_diff": "runner.tools.substantive_diff",
+    "reproduce_check": "runner.tools.reproduce_check",
 }
 
 
