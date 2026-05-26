@@ -1,1 +1,0 @@
-Campaign tokens — total: 196K | avg/round: 4K | historian avg: 1K | top cost: r18 (A_ensemble, 6K) | trend: stable (last 10 rounds avg=5K)
