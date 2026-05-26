@@ -234,13 +234,20 @@ bash runner/run_round.sh review-finalize \
 
 8. **Context hygiene:** "Review done: \<verdict\>. Best so far: \<metric\>."
 
-### 2.5 — Round Checkpoint (MANDATORY — context rot mitigation)
+### 2.5 — Round Checkpoint (MANDATORY — context rot mitigation, GAP 8)
 
 After completing all phases for a round:
 
 1. Re-read `state/CAMPAIGN_STATE.json` for the updated round number and best metric.
 
-2. Print a checkpoint summary:
+2. **Context refresh (every 3 rounds):** If `round % 3 == 0`:
+   - Re-read `contracts/EVAL_PROTOCOL.md` (primary metric, noise_floor, budgets)
+   - Re-read `state/DEAD_ENDS.md` (prevents retrying dead ends after context drift)
+   - Re-read `state/ASSUMPTION_REGISTER.md` (prevents violating load-bearing assumptions)
+   This is not optional. Context rot causes the most insidious failures — the agent
+   "forgets" constraints and starts repeating discarded approaches.
+
+3. Print a checkpoint summary:
 ```
 ═══ ROUND <N> COMPLETE ═══
 Verdict: <keep|discard|...>
@@ -249,10 +256,11 @@ Primary metric: <value>
 Best so far: <best_metric> (commit <best_commit>)
 Budget: <used>/<total>
 Historian pending: <yes|no>
+Context refresh: <yes (re-read contracts) | no>
 ══════════════════════════
 ```
 
-3. Continue to §2.0 for the next round.
+4. Continue to §2.0 for the next round.
 
 ---
 

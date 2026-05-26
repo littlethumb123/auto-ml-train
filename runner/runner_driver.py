@@ -12,6 +12,7 @@ state/CAMPAIGN_STATE.json (campaign-relative) and on disk in the other artifacts
 """
 from __future__ import annotations
 
+import datetime as _dt
 import json
 import re
 import subprocess
@@ -25,6 +26,26 @@ from runner.strategy.tree_search import ExperimentTree
 
 Channel = Literal["RUN_COMPLETE", "RUN_FAILED", "REVIEW_REQUIRED"]
 Verdict = Literal["keep", "discard", "anomaly", "crash", "malformed"]
+
+
+def _emit_event(campaign_dir: str, event: str, data: dict[str, Any]) -> None:
+    """Append a structured JSONL event to state/driver_events.jsonl (GAP 11).
+
+    Non-critical — never raises. If the file or directory doesn't exist, silently skips.
+    """
+    try:
+        events_path = Path(campaign_dir) / "state" / "driver_events.jsonl"
+        if not events_path.parent.exists():
+            return
+        record = {
+            "ts": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "event": event,
+            **data,
+        }
+        with open(events_path, "a") as f:
+            f.write(json.dumps(record, separators=(",", ":"), sort_keys=True) + "\n")
+    except Exception:
+        pass
 
 
 class GateError(Exception):
@@ -313,7 +334,13 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
                         )
                         break
 
-    return {"status": "ok", "errors": [], "warnings": warnings}
+    result = {"status": "ok", "errors": [], "warnings": warnings}
+    _emit_event(campaign_dir, "plan_check", {
+        "status": result["status"],
+        "warnings": warnings,
+        "action_type": fm_plan.get("action_type") if fm_plan else None,
+    })
+    return result
 
 
 def resolve_c2(
@@ -758,6 +785,14 @@ def review_finalize(
         result["c3_advisory_reason"] = c3_advisory_reason
     if noise_floor_override:
         result["noise_floor_override"] = noise_floor_override
+    _emit_event(campaign_dir, "review_finalize", {
+        "verdict": verdict,
+        "commit": commit,
+        "should_rollback": should_rollback,
+        "halt_loop": halt_loop,
+        "noise_floor_override": noise_floor_override or None,
+        "mandatory_gate_reason": mandatory_gate_reason or None,
+    })
     return result
 
 
