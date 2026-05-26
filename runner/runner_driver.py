@@ -278,7 +278,7 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
     fm_plan: dict[str, Any] | None = None
     escalation = None
     try:
-        fm_plan, _ = parse_frontmatter(plan_path)
+        fm_plan, body = parse_frontmatter(plan_path)
         escalation = fm_plan.get("escalation")
     except FrontmatterError:
         pass
@@ -288,7 +288,32 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
         return {"status": "pause_c2", "errors": []}
     if escalation == "C3":
         return {"status": "pause_c3", "errors": []}
-    return {"status": "ok", "errors": []}
+
+    # ── Semantic checks (GAP 3 — plan revision loop support) ──────────
+    warnings: list[str] = []
+    if fm_plan is not None:
+        # Check hypothesis is non-empty and not a placeholder
+        hypothesis = str(fm_plan.get("hypothesis", "")).strip()
+        if not hypothesis or hypothesis.lower() in ("tbd", "todo", "n/a", "none", ""):
+            warnings.append("hypothesis is empty or placeholder — plan needs a concrete hypothesis")
+
+        # Check for dead-end repetition
+        dead_ends_path = camp / "state" / "DEAD_ENDS.md"
+        if dead_ends_path.exists() and hypothesis:
+            dead_ends_text = dead_ends_path.read_text(encoding="utf-8").lower()
+            # Simple substring check — if the hypothesis closely matches a dead end
+            hyp_words = set(hypothesis.lower().split())
+            if len(hyp_words) >= 3:
+                for line in dead_ends_text.splitlines():
+                    line_words = set(line.strip().lower().split())
+                    overlap = hyp_words & line_words
+                    if len(overlap) >= len(hyp_words) * 0.7:
+                        warnings.append(
+                            f"hypothesis overlaps with DEAD_ENDS.md entry: '{line.strip()[:80]}'"
+                        )
+                        break
+
+    return {"status": "ok", "errors": [], "warnings": warnings}
 
 
 def resolve_c2(

@@ -193,6 +193,67 @@ x
     assert status["status"] == "pause_c2"
 
 
+def _make_valid_plan(hypothesis="test lr sweep", description="Sweep learning rate from 0.01 to 0.1", action_type="A_hp", escalation=None):
+    esc_line = f'escalation: "{escalation}"' if escalation else "escalation: null"
+    return f"""---
+schema_version: 1
+campaign_id: "tiny"
+round: 1
+planner_invocation_at: "2026-04-21T18:00:00Z"
+action_type: "{action_type}"
+hypothesis: "{hypothesis}"
+expected_effect_size: 0.0
+base_commit: "HEAD"
+touches_helpers: false
+helpers_declared: []
+{esc_line}
+---
+
+## 1. Context summary
+{description}
+## 2. Evidence from memory
+Prior experiments show baseline at 0.80.
+## 3. Plan
+{description}
+## 4. Helpers
+None.
+## 5. How this differs from prior experiments
+Uses a different approach than prior rounds.
+## 6. Escalation (only if `escalation` frontmatter is non-null)
+N/A
+"""
+
+
+def test_plan_check_warns_on_empty_hypothesis(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    plan = _make_valid_plan(hypothesis="")
+    (campaign / "state" / "NEXT_EXPERIMENT.md").write_text(plan)
+    status = runner_driver.plan_check(campaign_dir=str(campaign))
+    assert status["status"] == "ok"
+    assert any("hypothesis" in w.lower() for w in status.get("warnings", []))
+
+
+def test_plan_check_warns_on_dead_end_overlap(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    (campaign / "state" / "DEAD_ENDS.md").write_text(
+        "- tried learning rate sweep with adam optimizer; no improvement\n"
+    )
+    plan = _make_valid_plan(hypothesis="learning rate sweep with adam optimizer")
+    (campaign / "state" / "NEXT_EXPERIMENT.md").write_text(plan)
+    status = runner_driver.plan_check(campaign_dir=str(campaign))
+    assert status["status"] == "ok"
+    assert any("dead_end" in w.lower() or "overlap" in w.lower() for w in status.get("warnings", []))
+
+
+def test_plan_check_no_warnings_on_good_plan(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    plan = _make_valid_plan(hypothesis="add county-level features for geographic signal", description="Engineer county FIPS features to capture geographic variation in IP risk")
+    (campaign / "state" / "NEXT_EXPERIMENT.md").write_text(plan)
+    status = runner_driver.plan_check(campaign_dir=str(campaign))
+    assert status["status"] == "ok"
+    assert status.get("warnings", []) == []
+
+
 def test_review_finalize_keep_updates_state(campaign: Path, tmp_path: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
     status = runner_driver.review_finalize(

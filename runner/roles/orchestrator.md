@@ -113,7 +113,8 @@ If warnings are returned, note them — you MUST include them when planning.
 bash runner/run_round.sh plan-check --campaign_dir <CAMPAIGN_DIR>
 ```
 7. Read the JSON output:
-   - `status == "ok"` → proceed to §2.3 (Executor)
+   - `status == "ok"` → check `warnings` array (if present and non-empty, note them but proceed to §2.3)
+   - `status == "ok"` with `warnings` containing "dead_end" or "hypothesis" → **revision required**: re-write `state/NEXT_EXPERIMENT.md` addressing the warning, then re-check (counts toward the 2 retries below)
    - `status == "malformed"` → re-read errors, fix `state/NEXT_EXPERIMENT.md`, re-check (max 2 retries)
    - `status == "pause_c2"` → print "C2 plateau — Historian will run next round" and loop back to §2.0
    - `status == "pause_c3"` → print "C3 contract change requested — human review required" and **STOP**

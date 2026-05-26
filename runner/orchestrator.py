@@ -20,7 +20,14 @@ from typing import Any
 # ── Stuck detection ───────────────────────────────────────────────────
 
 def detect_stuck(campaign_dir: Path) -> list[str]:
-    """Parse results.tsv for repetitive action_type patterns. Return warning strings."""
+    """Parse results.tsv for repetitive patterns. Return warning strings.
+
+    Detects:
+      - Same action_type for 3+ consecutive rows
+      - A-B-A-B alternation in last 4 rows
+      - Same hypothesis text repeated in last 3 rows (GAP 5 extension)
+      - Metric stagnation: primary metric unchanged for 4+ rounds (GAP 5 extension)
+    """
     results_path = campaign_dir / "state" / "results.tsv"
     if not results_path.exists():
         return []
@@ -30,34 +37,79 @@ def detect_stuck(campaign_dir: Path) -> list[str]:
         return []
 
     header = lines[0].split("\t")
-    try:
-        at_idx = header.index("action_type")
-    except ValueError:
-        return []
+    col_idx: dict[str, int] = {}
+    for name in ("action_type", "hypothesis"):
+        try:
+            col_idx[name] = header.index(name)
+        except ValueError:
+            pass
 
-    action_types = []
+    # Find primary metric column from EVAL_PROTOCOL
+    primary_metric_col: str | None = None
+    eval_path = campaign_dir / "contracts" / "EVAL_PROTOCOL.md"
+    if eval_path.exists():
+        try:
+            from runner.tools._common import parse_frontmatter
+            efm, _ = parse_frontmatter(eval_path)
+            primary_metric_col = (efm.get("primary_metric") or {}).get("name")
+        except Exception:
+            pass
+    if primary_metric_col and primary_metric_col in header:
+        col_idx["primary_metric"] = header.index(primary_metric_col)
+
+    rows = []
     for line in lines[1:]:
         cols = line.split("\t")
-        if len(cols) > at_idx:
-            action_types.append(cols[at_idx])
+        rows.append(cols)
 
     warnings: list[str] = []
 
-    # Same action_type for last 3 consecutive rows
-    if len(action_types) >= 3 and len(set(action_types[-3:])) == 1:
-        warnings.append(
-            f"STUCK WARNING: Last 3 experiments all used action_type='{action_types[-1]}'. "
-            f"You MUST try a different action_type."
-        )
+    # ── action_type repetition ────────────────────────────────────────
+    if "action_type" in col_idx:
+        at_idx = col_idx["action_type"]
+        action_types = [r[at_idx] for r in rows if len(r) > at_idx]
 
-    # A-B-A-B alternation in last 4
-    if len(action_types) >= 4:
-        last4 = action_types[-4:]
-        if last4[0] == last4[2] and last4[1] == last4[3] and last4[0] != last4[1]:
+        if len(action_types) >= 3 and len(set(action_types[-3:])) == 1:
             warnings.append(
-                f"STUCK WARNING: A-B-A-B alternation detected ({last4[0]}/{last4[1]}). "
-                f"Break this pattern — try a completely different approach."
+                f"STUCK WARNING: Last 3 experiments all used action_type='{action_types[-1]}'. "
+                f"You MUST try a different action_type."
             )
+
+        if len(action_types) >= 4:
+            last4 = action_types[-4:]
+            if last4[0] == last4[2] and last4[1] == last4[3] and last4[0] != last4[1]:
+                warnings.append(
+                    f"STUCK WARNING: A-B-A-B alternation detected ({last4[0]}/{last4[1]}). "
+                    f"Break this pattern — try a completely different approach."
+                )
+
+    # ── hypothesis repetition (GAP 5) ─────────────────────────────────
+    if "hypothesis" in col_idx:
+        h_idx = col_idx["hypothesis"]
+        hypotheses = [r[h_idx].strip().lower() for r in rows if len(r) > h_idx]
+        if len(hypotheses) >= 3 and len(set(hypotheses[-3:])) == 1 and hypotheses[-1]:
+            warnings.append(
+                f"STUCK WARNING: Last 3 experiments used the same hypothesis: "
+                f"'{hypotheses[-1][:80]}'. Formulate a genuinely different hypothesis."
+            )
+
+    # ── metric stagnation (GAP 5) ─────────────────────────────────────
+    if "primary_metric" in col_idx:
+        pm_idx = col_idx["primary_metric"]
+        vals: list[float] = []
+        for r in rows:
+            if len(r) > pm_idx:
+                try:
+                    vals.append(float(r[pm_idx]))
+                except (ValueError, IndexError):
+                    pass
+        if len(vals) >= 4:
+            last4_vals = vals[-4:]
+            if max(last4_vals) - min(last4_vals) < 1e-6:
+                warnings.append(
+                    f"STUCK WARNING: Primary metric unchanged for last 4 rounds "
+                    f"(value={last4_vals[-1]:.6f}). The current approach is not making progress."
+                )
 
     return warnings
 
