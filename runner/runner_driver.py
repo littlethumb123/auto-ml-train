@@ -89,9 +89,14 @@ _READ_ONLY_PREFIXES = (
 
 
 def _path_in_write_scope(path: str, allowed: set[str]) -> bool:
-    if path == "train.py":
+    # Accept bare "train.py" or any repo-relative path ending in "/train.py"
+    if path == "train.py" or path.endswith("/train.py"):
         return True
     if path in allowed:
+        return True
+    # Allow helpers declared relative to campaign dir (may arrive with campaign prefix)
+    basename = path.split("/")[-1] if "/" in path else path
+    if basename in allowed:
         return True
     return any(path.startswith(a + "/") for a in allowed if a != "train.py")
 
