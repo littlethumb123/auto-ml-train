@@ -571,6 +571,25 @@ def review_finalize(
                 f"mandatory_tools: missing normalized tool(s) {sorted(missing)} (spec §8.3 item 8)"
             )
 
+    # ── Noise-floor hard gate (GAP 7 — anti-sycophancy) ─────────────────
+    noise_floor_override = ""
+    noise_floor = pm.get("noise_floor")
+    if noise_floor is not None and verdict == "keep":
+        noise_floor = float(noise_floor)
+        best_metric = (state.get("best_so_far") or {}).get("primary_metric")
+        current_metric_val = metrics.get(metric_name)
+        if best_metric is not None and current_metric_val is not None:
+            if direction == "maximize":
+                delta = float(current_metric_val) - float(best_metric)
+            else:
+                delta = float(best_metric) - float(current_metric_val)
+            if delta < noise_floor:
+                verdict = "discard"
+                noise_floor_override = (
+                    f"noise_floor_gate: delta={delta:.4f} < noise_floor={noise_floor} — "
+                    f"mechanical override from keep→discard"
+                )
+
     # Historian tokens stored by historian_finalize for the round that triggered it
     historian_tokens = int(state.get("pending_historian_tokens", 0))
 
@@ -712,6 +731,8 @@ def review_finalize(
     if c3_advisory:
         result["c3_advisory"] = True
         result["c3_advisory_reason"] = c3_advisory_reason
+    if noise_floor_override:
+        result["noise_floor_override"] = noise_floor_override
     return result
 
 

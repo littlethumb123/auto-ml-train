@@ -157,7 +157,20 @@ python3 -c "from runner.orchestrator import train_py_sha256; from pathlib import
 ```
 If SHA matches the pre-executor SHA from step 8 of §2.2: this is a no-op experiment.
 
-9. **Context hygiene:** "Executor done: \<RUN_COMPLETE|RUN_FAILED\> \<sha\>."
+9. **Substantive-diff check (GAP 2):**
+```bash
+DIFF_TEXT=$(git show --unified=0 <sha>)
+TRAIN_PY="<CAMPAIGN_DIR>/train.py"
+HELPERS='[]'  # populate from NEXT_EXPERIMENT.md helpers_declared if non-empty
+bash runner/run_round.sh substantive-check \
+    --diff_text "$DIFF_TEXT" \
+    --train_py "$TRAIN_PY" \
+    --helpers_declared "$HELPERS"
+```
+If `substantive == false`: log "no-op experiment (cosmetic-only diff)" and set verdict to `malformed` when reaching §2.4.
+If `helpers_wired == false`: log the unwired helpers for the Reviewer.
+
+10. **Context hygiene:** "Executor done: \<RUN_COMPLETE|RUN_FAILED\> \<sha\>."
 
 ### 2.4 — Reviewer Phase
 
@@ -182,6 +195,21 @@ print(json.dumps(metrics))
 "
 ```
 
+5b. **Reproduce-check (GAP 10):** If prediction artifacts exist, verify metrics match:
+```bash
+Y_TRUE="<CAMPAIGN_DIR>/artifacts/y_val_true.npy"
+Y_PROB="<CAMPAIGN_DIR>/artifacts/y_val_prob.npy"
+RUN_LOG="<CAMPAIGN_DIR>/run.log"
+if [ -f "$Y_TRUE" ] && [ -f "$Y_PROB" ]; then
+    bash runner/run_round.sh reproduce-check \
+        --y_true "$Y_TRUE" \
+        --y_prob "$Y_PROB" \
+        --run_log "$RUN_LOG" \
+        --tolerance 0.001
+fi
+```
+If `passed == false`: add mismatches to the Reviewer's evidence. If critical mismatches exist (delta > 0.01), flag `malformed`.
+
 6. Call the driver to finalize:
 ```bash
 bash runner/run_round.sh review-finalize \
@@ -199,6 +227,7 @@ bash runner/run_round.sh review-finalize \
 
 7. Read the JSON output:
    - `should_rollback == true` → run `git reset --hard HEAD~1` from the repo root
+   - `noise_floor_override` present → log: "Noise-floor gate: <reason>". The driver already changed the verdict.
    - `halt_loop == true` → print halt reason and go to §3
    - `pause_loop == true` → print "Anomaly (C1) — human review required at state/REVIEW.md" and **STOP**
 

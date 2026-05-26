@@ -96,6 +96,26 @@ elif stage == "resume-phase":
     state = json.loads(open(state_path).read()) if state_path.exists() else {"round": 0}
     phase = determine_resume_phase(camp, state)
     print(json.dumps({"phase": phase}))
+elif stage == "substantive-check":
+    from runner.tools.substantive_diff import check_substantive
+    from pathlib import Path
+    diff_text = args.get("diff_text", "")
+    train_py_path = args.get("train_py")
+    helpers = json.loads(args.get("helpers_declared", "[]"))
+    train_text = None
+    if train_py_path:
+        train_text = Path(train_py_path).read_text()
+    res = check_substantive(diff_text, train_text, helpers)
+    print(json.dumps(res))
+elif stage == "reproduce-check":
+    from runner.tools.reproduce_check import reproduce_check
+    res = reproduce_check(
+        y_true_path=args.get("y_true"),
+        y_prob_path=args.get("y_prob"),
+        run_log_path=args.get("run_log"),
+        tolerance=float(args.get("tolerance", "0.001")),
+    )
+    print(json.dumps(res))
 else:
     print(f"unknown stage: {stage}", file=sys.stderr)
     sys.exit(2)
