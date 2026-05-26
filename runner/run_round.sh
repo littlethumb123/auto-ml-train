@@ -2,7 +2,7 @@
 # runner/run_round.sh — thin CLI wrapper over runner_driver.py.
 set -euo pipefail
 
-STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize|resolve-c2|historian|historian-finalize"}
+STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize|resolve-c2|historian|historian-finalize|campaign-status|stuck-check|resume-phase"}
 shift || true
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -80,6 +80,22 @@ elif stage == "historian-finalize":
         tokens_used=int(args.get("tokens_used", 0) or 0),
     )
     print(json.dumps(res))
+elif stage == "campaign-status":
+    res = runner_driver.get_campaign_status(campaign_dir=args.get("campaign_dir", "runner/"))
+    print(json.dumps(res, indent=2))
+elif stage == "stuck-check":
+    from runner.orchestrator import detect_stuck
+    from pathlib import Path
+    warnings = detect_stuck(Path(args.get("campaign_dir", "runner/")))
+    print(json.dumps({"warnings": warnings}))
+elif stage == "resume-phase":
+    from runner.orchestrator import determine_resume_phase
+    from pathlib import Path
+    camp = Path(args.get("campaign_dir", "runner/"))
+    state_path = camp / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(open(state_path).read()) if state_path.exists() else {"round": 0}
+    phase = determine_resume_phase(camp, state)
+    print(json.dumps({"phase": phase}))
 else:
     print(f"unknown stage: {stage}", file=sys.stderr)
     sys.exit(2)
