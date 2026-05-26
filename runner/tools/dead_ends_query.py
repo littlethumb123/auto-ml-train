@@ -31,7 +31,7 @@ def dead_ends_query(
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Query runner/state/DEAD_ENDS.md.")
+    p = argparse.ArgumentParser(description="Query state/DEAD_ENDS.md.")
     p.add_argument("--pattern", default=None, help="Substring or regex.")
     p.add_argument("--campaign-dir", default="runner/")
     p.add_argument("--json", action="store_true", dest="json_output")

@@ -1,0 +1,690 @@
+nohup: ignoring input
+Starting campaign from round 4
+Budget: 50 total, 3 used
+
+============================================================
+  ROUND 4 / 50
+============================================================
+Current best lift@1%: 21.5440
+Plan: A_model: hybrid LightGBM default comparison
+  action=A_model, feature_set=hybrid, model=lgbm
+  Committed: 20543512
+  Running experiment...
+  ERROR in round 4: Command '['/opt/conda/bin/python3', '/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/train.py']' timed out after 1800 seconds
+Traceback (most recent call last):
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 931, in main
+    should_continue = run_one_round(round_num)
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 808, in run_one_round
+    result = subprocess.run(
+  File "/opt/conda/lib/python3.10/subprocess.py", line 505, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/opt/conda/lib/python3.10/subprocess.py", line 1154, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+  File "/opt/conda/lib/python3.10/subprocess.py", line 2022, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/opt/conda/lib/python3.10/subprocess.py", line 1198, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/opt/conda/bin/python3', '/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/train.py']' timed out after 1800 seconds
+
+============================================================
+  ROUND 5 / 50
+============================================================
+Current best lift@1%: 21.5440
+Plan: A_model: hybrid XGBoost default comparison
+  action=A_model, feature_set=hybrid, model=xgboost
+  Committed: f1201328
+  Running experiment...
+  val_lift@1%: 21.7668  (elapsed: 663s)
+  Δ = +0.2228, verdict = keep, SE = 0.497
+  Round 5 complete: keep
+
+============================================================
+  ROUND 6 / 50
+============================================================
+Current best lift@1%: 21.7668
+Plan: A_model: tabular_only LightGBM comparison
+  action=A_model, feature_set=tabular_only, model=lgbm
+  Committed: 362ad47c
+  Running experiment...
+  ERROR in round 6: Command '['/opt/conda/bin/python3', '/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/train.py']' timed out after 1800 seconds
+Traceback (most recent call last):
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 931, in main
+    should_continue = run_one_round(round_num)
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 808, in run_one_round
+    result = subprocess.run(
+  File "/opt/conda/lib/python3.10/subprocess.py", line 505, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/opt/conda/lib/python3.10/subprocess.py", line 1154, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+  File "/opt/conda/lib/python3.10/subprocess.py", line 2022, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/opt/conda/lib/python3.10/subprocess.py", line 1198, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/opt/conda/bin/python3', '/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/train.py']' timed out after 1800 seconds
+
+============================================================
+  ROUND 7 / 50
+============================================================
+Current best lift@1%: 21.7668
+Plan: A_feature: hybrid CatBoost with engineered features
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: ae35f24d
+  Running experiment...
+  val_lift@1%: 22.1788  (elapsed: 514s)
+  Δ = +0.4120, verdict = keep, SE = 0.501
+  Round 7 complete: keep
+
+============================================================
+  ROUND 8 / 50
+============================================================
+Current best lift@1%: 22.1788
+Plan: A_feature: hybrid LightGBM with engineered features
+  action=A_feature, feature_set=hybrid, model=lgbm
+  Committed: 4ca21722
+  Running experiment...
+nohup: ignoring input
+Starting campaign from round 6
+Budget: 50 total, 5 used
+
+============================================================
+  ROUND 6 / 50
+============================================================
+Current best lift@1%: 22.1788
+Plan: A_feature: hybrid CatBoost with engineered features
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: 428d91f1
+  Running experiment...
+  val_lift@1%: 22.3848  (elapsed: 420s)
+  Δ = +0.2060, verdict = keep, SE = 0.501
+  Round 6 complete: keep
+
+============================================================
+  ROUND 7 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: hybrid XGBoost with engineered features
+  action=A_feature, feature_set=hybrid, model=xgboost
+  Committed: 2a21f49c
+  Running experiment...
+  val_lift@1%: 21.8870  (elapsed: 651s)
+  Δ = -0.4978, verdict = discard, SE = 0.490
+  Round 7 complete: discard
+
+============================================================
+  ROUND 8 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: Optuna CatBoost on hybrid+engineered
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: 4aaf6d4d
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 809s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 8 complete: discard
+
+============================================================
+  ROUND 9 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: Optuna CatBoost on tabular
+  action=A_hp, feature_set=tabular_only, model=catboost
+  Committed: 8585b579
+  Running experiment...
+  val_lift@1%: 21.8355  (elapsed: 872s)
+  Δ = -0.5493, verdict = discard, SE = 0.496
+  Round 9 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 10 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: XGBoost depth=8 hybrid+eng
+  action=A_hp, feature_set=hybrid, model=xgboost
+  ERROR in round 10: Unsupported model family: xgboost
+Traceback (most recent call last):
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 971, in main
+    should_continue = run_one_round(round_num)
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 810, in run_one_round
+    train_code = generate_train_py(round_num, action_type, feature_set, model_family, description)
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 687, in generate_train_py
+    return make_optuna_experiment(feature_set, model_family, description,
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 582, in make_optuna_experiment
+    raise ValueError(f"Unsupported model family: {model_family}")
+ValueError: Unsupported model family: xgboost
+
+============================================================
+  ROUND 11 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: XGBoost depth=8 tabular
+  action=A_hp, feature_set=tabular_only, model=xgboost
+  ERROR in round 11: Unsupported model family: xgboost
+Traceback (most recent call last):
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 971, in main
+    should_continue = run_one_round(round_num)
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 810, in run_one_round
+    train_code = generate_train_py(round_num, action_type, feature_set, model_family, description)
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 687, in generate_train_py
+    return make_optuna_experiment(feature_set, model_family, description,
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 582, in make_optuna_experiment
+    raise ValueError(f"Unsupported model family: {model_family}")
+ValueError: Unsupported model family: xgboost
+
+============================================================
+  ROUND 12 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_imbalance: CatBoost scale_pos_weight=12
+  action=A_imbalance, feature_set=hybrid, model=catboost
+  Committed: 900d10da
+  Running experiment...
+  val_lift@1%: 22.3848  (elapsed: 415s)
+  Δ = +0.0000, verdict = discard, SE = 0.501
+  Round 12 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 13 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost depth=8 lr=0.03 hybrid+eng
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: 37fc4dfe
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 802s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 13 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 14 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost depth=10 lr=0.02 hybrid+eng
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: 7755a009
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 803s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 14 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 15 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost depth=8 lr=0.03 tabular
+  action=A_hp, feature_set=tabular_only, model=catboost
+  Committed: 7696db35
+  Running experiment...
+  val_lift@1%: 21.8355  (elapsed: 684s)
+  Δ = -0.5493, verdict = discard, SE = 0.496
+  Round 15 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 16 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: XGBoost depth=10 lr=0.02 hybrid+eng
+  action=A_hp, feature_set=hybrid, model=xgboost
+  ERROR in round 16: Unsupported model family: xgboost
+Traceback (most recent call last):
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 971, in main
+    if verdict == "discard":
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 810, in run_one_round
+    print(f"Current best lift@1%: {best_lift:.4f}")
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 687, in generate_train_py
+    # After sequence is exhausted, use UCB1 to pick strategy class
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 582, in make_optuna_experiment
+    model_code = dedent(f'''\
+ValueError: Unsupported model family: xgboost
+
+============================================================
+  ROUND 17 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_ensemble: 5-model ensemble with DE weights
+  action=A_ensemble, feature_set=hybrid, model=ensemble
+  Committed: 389e9aee
+  Running experiment...
+  CRASH after 1804s: 
+
+============================================================
+  ROUND 18 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost depth=6 iters=2000 od_wait=150 hybrid+eng
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: 0caccdd3
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 801s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 18 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 19 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost depth=7 subsample=0.7 hybrid+eng
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: fea6b0f4
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 803s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 19 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 20 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: XGBoost lr=0.03 depth=7 hybrid+eng
+  action=A_hp, feature_set=hybrid, model=xgboost
+  ERROR in round 20: Unsupported model family: xgboost
+Traceback (most recent call last):
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 971, in main
+    if verdict == "discard":
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 810, in run_one_round
+    print(f"Current best lift@1%: {best_lift:.4f}")
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 687, in generate_train_py
+    # After sequence is exhausted, use UCB1 to pick strategy class
+  File "/home/jupyter/Thinkubator/auto_train/campaigns/ip-commercial-new-te-round2/auto_run.py", line 582, in make_optuna_experiment
+    model_code = dedent(f'''\
+ValueError: Unsupported model family: xgboost
+
+============================================================
+  ROUND 21 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: CatBoost with freq_encode+missing_ind hybrid
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: 0d4ccab9
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 422s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 21 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 22 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_ensemble: refined 5-model ensemble DE weights
+  action=A_ensemble, feature_set=hybrid, model=ensemble
+  Committed: 61b0fcee
+  Running experiment...
+  CRASH after 1808s: 
+
+============================================================
+  ROUND 23 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_error_analysis: experiment r23
+  action=A_error_analysis, feature_set=hybrid, model=catboost
+  Committed: 441d202a
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 612s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 23 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 24 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_imbalance: experiment r24
+  action=A_imbalance, feature_set=hybrid, model=catboost
+  Committed: 38049604
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 420s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 24 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 25 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_error_analysis: experiment r25
+  action=A_error_analysis, feature_set=hybrid, model=catboost
+  Committed: 4311e521
+  Running experiment...
+  val_lift@1%: 21.8698  (elapsed: 498s)
+  Δ = -0.5150, verdict = discard, SE = 0.491
+  Round 25 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 26 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_imbalance: experiment r26
+  action=A_imbalance, feature_set=hybrid, model=catboost
+  Committed: 199fbd74
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 612s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 26 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 27 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r27
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: ec11ba51
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 419s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 27 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 28 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_error_analysis: experiment r28
+  action=A_error_analysis, feature_set=hybrid, model=catboost
+  Committed: 7f6f34d4
+  Running experiment...
+  val_lift@1%: 21.8698  (elapsed: 498s)
+  Δ = -0.5150, verdict = discard, SE = 0.491
+  Round 28 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 29 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_imbalance: experiment r29
+  action=A_imbalance, feature_set=hybrid, model=catboost
+  Committed: 9e71a728
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 611s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 29 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 30 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r30
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: 97494043
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 416s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 30 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 31 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r31
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: 4f59dbae
+  Running experiment...
+  val_lift@1%: 21.8698  (elapsed: 501s)
+  Δ = -0.5150, verdict = discard, SE = 0.491
+  Round 31 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 32 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_imbalance: experiment r32
+  action=A_imbalance, feature_set=hybrid, model=catboost
+  Committed: 84ebbaa0
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 612s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 32 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 33 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_error_analysis: experiment r33
+  action=A_error_analysis, feature_set=hybrid, model=catboost
+  Committed: afd87347
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 418s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 33 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 34 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r34
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: 5ecb9d15
+  Running experiment...
+  val_lift@1%: 21.8698  (elapsed: 496s)
+  Δ = -0.5150, verdict = discard, SE = 0.491
+  Round 34 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 35 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_error_analysis: experiment r35
+  action=A_error_analysis, feature_set=hybrid, model=catboost
+  Committed: 9207d73f
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 614s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 35 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 36 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_imbalance: experiment r36
+  action=A_imbalance, feature_set=hybrid, model=catboost
+  Committed: 21bb1132
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 418s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 36 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 37 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r37
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: b53a0e63
+  Running experiment...
+  val_lift@1%: 21.8698  (elapsed: 495s)
+  Δ = -0.5150, verdict = discard, SE = 0.491
+  Round 37 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 38 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_imbalance: experiment r38
+  action=A_imbalance, feature_set=hybrid, model=catboost
+  Committed: 3ec1dcb5
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 614s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 38 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 39 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost Optuna r39
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: dd380898
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 628s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 39 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 40 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_error_analysis: experiment r40
+  action=A_error_analysis, feature_set=hybrid, model=catboost
+  Committed: 37f308dc
+  Running experiment...
+  val_lift@1%: 21.8698  (elapsed: 495s)
+  Δ = -0.5150, verdict = discard, SE = 0.491
+  Round 40 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 41 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost Optuna r41
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: 1dac25e8
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 632s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 41 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 42 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r42
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: 0b1049f6
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 420s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 42 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 43 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost Optuna r43
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: f632f271
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 630s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 43 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 44 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_imbalance: experiment r44
+  action=A_imbalance, feature_set=hybrid, model=catboost
+  Committed: dddda890
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 616s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 44 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 45 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r45
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: f630f848
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 421s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 45 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 46 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost Optuna r46
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: db961e47
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 631s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 46 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 47 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_error_analysis: experiment r47
+  action=A_error_analysis, feature_set=hybrid, model=catboost
+  Committed: e70d11e5
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 615s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 47 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 48 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r48
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: 1fa51f70
+  Running experiment...
+  val_lift@1%: 22.3161  (elapsed: 420s)
+  Δ = -0.0687, verdict = discard, SE = 0.498
+  Round 48 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 49 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_hp: CatBoost Optuna r49
+  action=A_hp, feature_set=hybrid, model=catboost
+  Committed: b0929c95
+  Running experiment...
+  val_lift@1%: 22.2818  (elapsed: 633s)
+  Δ = -0.1030, verdict = discard, SE = 0.500
+  Round 49 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+  ROUND 50 / 50
+============================================================
+Current best lift@1%: 22.3848
+Plan: A_feature: engineered features variant r50
+  action=A_feature, feature_set=hybrid, model=catboost
+  Committed: 9a20d94a
+  Running experiment...
+  val_lift@1%: 21.8526  (elapsed: 612s)
+  Δ = -0.5322, verdict = discard, SE = 0.498
+  Round 50 complete: discard
+  [Historian trigger pending — running historian...]
+
+============================================================
+CAMPAIGN COMPLETE
+============================================================
+Rounds completed: 46
+Best lift@1%: 22.384773
+Keep rate: 0/46 (0%)

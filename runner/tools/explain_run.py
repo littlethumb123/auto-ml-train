@@ -17,7 +17,7 @@ from runner.tools._common import (
 
 def explain_run(
     commit: str,
-    output_path: str = "runner/state/run_card.md",
+    output_path: str = "state/run_card.md",
     campaign_dir: str = "runner/",
 ) -> str:
     camp = Path(campaign_dir)
@@ -69,7 +69,7 @@ def explain_run(
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Generate a run card for a commit.")
     p.add_argument("--commit", required=True)
-    p.add_argument("--output-path", default="runner/state/run_card.md")
+    p.add_argument("--output-path", default="state/run_card.md")
     p.add_argument("--campaign-dir", default="runner/")
     p.add_argument("--json", action="store_true", dest="json_output")
     args = p.parse_args(argv)

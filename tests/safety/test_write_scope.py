@@ -68,7 +68,7 @@ def test_rejects_commit_touching_contracts(campaign: Path):
     res = runner_driver.execute_finalize(
         executor_stdout="RUN_COMPLETE: abc123\n",
         campaign_dir=str(campaign),
-        commit_diff_files=["train.py", "runner/contracts/EVAL_PROTOCOL.md"],
+        commit_diff_files=["train.py", "contracts/EVAL_PROTOCOL.md"],
     )
     assert res["synthetic_verdict"] == "malformed"
 
