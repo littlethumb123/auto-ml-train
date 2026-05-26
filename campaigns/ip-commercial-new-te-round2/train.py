@@ -43,7 +43,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_feature: hybrid CatBoost (tabular+embedding) — three-way comparison final step"
+DESCRIPTION = "A_hp: LightGBM n_estimators=600 num_leaves=63 — fuller convergence"
 FEATURE_SET = "hybrid"
 _USE_ENGINEERED = False
 
@@ -120,32 +120,52 @@ else:
 print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 
 # ---------------------------------------------------------------------------
-# Model: Single CatBoost — tabular_only baseline
+# Model: LightGBM on hybrid — 75K stratified val subsample for early stopping
 # ---------------------------------------------------------------------------
 
-from catboost import CatBoostClassifier, Pool
+import lightgbm as lgb
+from lightgbm import LGBMClassifier
 from sklearn.metrics import roc_auc_score as _roc_auc_score
 
+# Stratified 75K subsample of val for early stopping
+_es_n = 75_000
+_rng_es = np.random.default_rng(RANDOM_SEED)
+_pos_idx = np.where(np.asarray(y_val) == 1)[0]
+_neg_idx = np.where(np.asarray(y_val) == 0)[0]
+_pos_n = min(len(_pos_idx), int(_es_n * len(_pos_idx) / len(y_val)) + 1)
+_neg_n = _es_n - _pos_n
+_es_idx = np.concatenate([
+    _rng_es.choice(_pos_idx, _pos_n, replace=False),
+    _rng_es.choice(_neg_idx, _neg_n, replace=False),
+])
+X_val_es = X_val.iloc[_es_idx].reset_index(drop=True)
+y_val_es = y_val.iloc[_es_idx].reset_index(drop=True)
+print(f"Early-stopping val subsample: {len(X_val_es):,} rows "
+      f"({y_val_es.sum()} pos / {(y_val_es==0).sum()} neg)")
+
 t_train_start = time.time()
-cat_idx = [i for i, c in enumerate(X_train.columns) if c in set(_cat_cols_names)]
 
-cb = CatBoostClassifier(
-    iterations=1000, depth=6, learning_rate=0.05, od_wait=80,
-    grow_policy="SymmetricTree", auto_class_weights="Balanced",
-    use_best_model=True, random_seed=RANDOM_SEED, verbose=0,
+model = LGBMClassifier(
+    n_estimators=600, learning_rate=0.05, num_leaves=63, max_depth=-1,
+    min_child_samples=20, subsample=0.8, colsample_bytree=0.8,
+    reg_alpha=0.1, reg_lambda=1.0, class_weight="balanced",
+    random_state=RANDOM_SEED, n_jobs=4, verbose=-1,
 )
-cb.fit(Pool(X_train, y_train, cat_features=cat_idx),
-       eval_set=Pool(X_val, y_val, cat_features=cat_idx))
+model.fit(
+    X_train, y_train,
+    eval_set=[(X_val_es, y_val_es)],
+    callbacks=[lgb.early_stopping(80, verbose=False), lgb.log_evaluation(-1)],
+)
 
-y_prob_val = cb.predict_proba(Pool(X_val, cat_features=cat_idx))[:, 1]
-y_prob_test = cb.predict_proba(Pool(X_test, cat_features=cat_idx))[:, 1]
+y_prob_val = model.predict_proba(X_val)[:, 1]
+y_prob_test = model.predict_proba(X_test)[:, 1]
 
 training_time = time.time() - t_train_start
 
 y_val_arr = np.asarray(y_val)
 y_test_arr = np.asarray(y_test)
 
-print(f"\nCatBoost tabular_only baseline:")
+print(f"\nLightGBM hybrid (best_iter={model.best_iteration_}):")
 print(f"  val_lift@1%:  {lift_at_percentage(y_val_arr, y_prob_val, 0.01):.4f}")
 print(f"  val_auc_roc:  {_roc_auc_score(y_val_arr, y_prob_val):.4f}")
 print(f"  test_lift@1%: {lift_at_percentage(y_test_arr, y_prob_test, 0.01):.4f}")
