@@ -8,7 +8,7 @@ Split into four stages, each invoked by `runner/run_round.sh <stage>`:
   4. review-finalize   — apply verdict: update state, decide rollback/pause/halt
 
 The driver is intentionally stateless between stages. State lives in
-runner/state/CAMPAIGN_STATE.json and on disk in the other artifacts.
+state/CAMPAIGN_STATE.json (campaign-relative) and on disk in the other artifacts.
 """
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ def _parse_success_target(problem_contract_path: Path, primary_metric_name: str)
 _READ_ONLY_PREFIXES = (
     "prepare.py",
     "data/",
-    "runner/contracts/",
+    "contracts/",
     "runner/roles/",
     "runner/tools/",
     "log.py",
@@ -713,3 +713,49 @@ def review_finalize(
         result["c3_advisory"] = True
         result["c3_advisory_reason"] = c3_advisory_reason
     return result
+
+
+def get_campaign_status(campaign_dir: str = "runner/") -> dict[str, Any]:
+    """Return a compact status dict for the orchestrator to display and act on."""
+    camp = Path(campaign_dir)
+    state_path = camp / "state" / "CAMPAIGN_STATE.json"
+    if not state_path.exists():
+        return {"status": "uninitialized", "next_role": "init"}
+
+    state = json.loads(state_path.read_text())
+    best = state.get("best_so_far") or {}
+
+    # Determine next role from state
+    next_role = "planner"
+    if state.get("historian_trigger_pending", False):
+        next_role = "historian"
+    plan_path = camp / "state" / "NEXT_EXPERIMENT.md"
+    run_log = camp / "run.log"
+    if plan_path.exists() and not run_log.exists():
+        next_role = "executor"
+    elif run_log.exists():
+        log_text = run_log.read_text(encoding="utf-8", errors="replace")
+        if re.search(r"^(RUN_COMPLETE|RUN_FAILED):", log_text, re.MULTILINE):
+            next_role = "reviewer"
+
+    return {
+        "round": int(state.get("round", 0)),
+        "budget_used": int(state.get("budget_used", 0)),
+        "budget_total": int(state.get("budget_total", 0)),
+        "best_metric": best.get("primary_metric"),
+        "best_commit": best.get("commit"),
+        "last_verdict": state.get("last_verdict"),
+        "consecutive_discards": int(state.get("consecutive_discards", 0)),
+        "historian_trigger_pending": bool(state.get("historian_trigger_pending", False)),
+        "next_role": next_role,
+    }
+
+
+def should_run_historian(campaign_dir: str = "runner/") -> bool:
+    """Check if the Historian should run before the next Planner turn."""
+    camp = Path(campaign_dir)
+    state_path = camp / "state" / "CAMPAIGN_STATE.json"
+    if not state_path.exists():
+        return False
+    state = json.loads(state_path.read_text())
+    return bool(state.get("historian_trigger_pending", False))
