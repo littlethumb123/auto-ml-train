@@ -43,8 +43,8 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_validate: tabular_only CatBoost baseline — establish floor"
-FEATURE_SET = "tabular_only"
+DESCRIPTION = "A_feature: hybrid CatBoost (tabular+embedding) — three-way comparison final step"
+FEATURE_SET = "hybrid"
 _USE_ENGINEERED = False
 
 # ---------------------------------------------------------------------------
