@@ -2,20 +2,22 @@
 
 You are running an autonomous ML experiment campaign. **Read this file first, then follow pointers.**
 
+> **Path convention:** All `contracts/` and `state/` paths below are relative to the campaign directory (e.g., `campaigns/<name>/contracts/`). Harness paths (`runner/tools/`, `runner/roles/`, `runner/AGENTS.md`) are relative to repo root.
+
 ## 0. Orientation
 
-- Problem + success criteria: `runner/contracts/PROBLEM_CONTRACT.md` (G1)
-- Data contract: `runner/contracts/DATA_CONTRACT.md` (G2)
-- Evaluation protocol: `runner/contracts/EVAL_PROTOCOL.md` (G3) — names mandatory tools, budgets
-- Current state: `runner/state/CAMPAIGN_STATE.json`
-- History: `runner/state/results.tsv`, `runner/state/REVIEW.md`
-- Memory: `runner/state/DEAD_ENDS.md`, `runner/state/NOTEBOOK.md`
-- Retrospective: `runner/state/CAMPAIGN_JOURNAL.md` — planned reasoning vs actual outcome per round
-- Exploration frontier: `runner/state/UNEXPLORED_TECHNIQUES.md` — technique classes not yet tried (Planner reads every round; mandatory when consecutive_discards ≥ 2)
-- Priors (cross-campaign): `runner/contracts/PRIORS.md`
-- Meta-cognitive: `runner/state/ASSUMPTION_REGISTER.md`, `runner/state/PATTERN_BOOK.md`
-- Historian synthesis: `runner/state/STRATEGY_MEMO.md` (exists after first Historian run)
-- Token digest: `runner/state/TOKEN_SUMMARY.txt` (informational)
+- Problem + success criteria: `contracts/PROBLEM_CONTRACT.md` (G1)
+- Data contract: `contracts/DATA_CONTRACT.md` (G2)
+- Evaluation protocol: `contracts/EVAL_PROTOCOL.md` (G3) — names mandatory tools, budgets
+- Current state: `state/CAMPAIGN_STATE.json`
+- History: `state/results.tsv`, `state/REVIEW.md`
+- Memory: `state/DEAD_ENDS.md`, `state/NOTEBOOK.md`
+- Retrospective: `state/CAMPAIGN_JOURNAL.md` — planned reasoning vs actual outcome per round
+- Exploration frontier: `state/UNEXPLORED_TECHNIQUES.md` — technique classes not yet tried (Planner reads every round; mandatory when consecutive_discards ≥ 2)
+- Priors (cross-campaign): `contracts/PRIORS.md`
+- Meta-cognitive: `state/ASSUMPTION_REGISTER.md`, `state/PATTERN_BOOK.md`
+- Historian synthesis: `state/STRATEGY_MEMO.md` (exists after first Historian run)
+- Token digest: `state/TOKEN_SUMMARY.txt` (informational)
 
 ## 1. Your role for this turn
 
@@ -27,6 +29,18 @@ Pick the role that matches the current state:
 - **Historian** — invoked by the outer loop when `historian_trigger_pending` is true in `CAMPAIGN_STATE.json`. Runs before the next Planner turn. Read `runner/roles/historian.md`.
 
 The driver (`runner/run_round.sh`) tells you which role to play.
+
+## 1b. Autonomous operation (orchestrator loop)
+
+For fully autonomous multi-round operation, read `runner/roles/orchestrator.md` instead
+of picking a single role. The orchestrator drives the full Plan → Execute → Review →
+Historian cycle, calling the driver between phases for validation.
+
+**Interactive:** "Read runner/roles/orchestrator.md and run the campaign at campaigns/\<name\>"
+
+**Headless:** `claude -p "Read runner/roles/orchestrator.md and run campaigns/<name>" --dangerously-skip-permissions`
+
+**Resume:** "Read runner/roles/orchestrator.md and resume campaigns/\<name\> with --resume"
 
 ## 2. Hard invariants (never bypass)
 
