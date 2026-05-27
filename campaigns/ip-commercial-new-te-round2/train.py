@@ -43,7 +43,7 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_ensemble: CB(2000)+LGB(63) rank-percentile ensemble — rank averaging for lift@1%"
+DESCRIPTION = "A_ensemble: CB(2000)+LGB(63)+XGB(500) 3-model rank-percentile ensemble — XGB diversity via rank avg"
 FEATURE_SET = "hybrid"
 _USE_ENGINEERED = False
 
@@ -126,6 +126,7 @@ print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 from catboost import CatBoostClassifier, Pool
 import lightgbm as lgb
 from lightgbm import LGBMClassifier
+from xgboost import XGBClassifier
 from scipy.stats import rankdata
 from sklearn.metrics import roc_auc_score as _roc_auc_score
 
@@ -180,27 +181,55 @@ y_prob_lgb_test = lgb_model.predict_proba(X_test)[:, 1]
 print(f"  LightGBM best_iter={lgb_model.best_iteration_} "
       f"val_lift@1%={lift_at_percentage(np.asarray(y_val), y_prob_lgb_val, 0.01):.4f}")
 
-# --- Rank-percentile ensemble ---
+# --- XGBoost ---
+_pos_count = int(np.asarray(y_train).sum())
+_neg_count = len(y_train) - _pos_count
+_scale_pos_weight = _neg_count / _pos_count
+
+print("Training XGBoost (n_estimators=500, max_depth=6, tree_method=hist)...")
+xgb_model = XGBClassifier(
+    n_estimators=500, max_depth=6, learning_rate=0.05,
+    subsample=0.8, colsample_bytree=0.8,
+    reg_alpha=0.1, reg_lambda=1.0,
+    scale_pos_weight=_scale_pos_weight,
+    tree_method="hist", device="cpu",
+    random_state=RANDOM_SEED, n_jobs=4,
+    early_stopping_rounds=80, eval_metric="logloss",
+    verbosity=0,
+)
+xgb_model.fit(
+    X_train, y_train,
+    eval_set=[(X_val_es, y_val_es)],
+    verbose=False,
+)
+y_prob_xgb_val  = xgb_model.predict_proba(X_val)[:, 1]
+y_prob_xgb_test = xgb_model.predict_proba(X_test)[:, 1]
+print(f"  XGBoost best_iter={xgb_model.best_iteration} "
+      f"val_lift@1%={lift_at_percentage(np.asarray(y_val), y_prob_xgb_val, 0.01):.4f}")
+
+# --- 3-model rank-percentile ensemble ---
 _nv = len(y_prob_cb_val)
 _nt = len(y_prob_cb_test)
 y_rank_cb_val   = rankdata(y_prob_cb_val,  method="average") / _nv
 y_rank_lgb_val  = rankdata(y_prob_lgb_val, method="average") / _nv
+y_rank_xgb_val  = rankdata(y_prob_xgb_val, method="average") / _nv
 y_rank_cb_test  = rankdata(y_prob_cb_test, method="average") / _nt
 y_rank_lgb_test = rankdata(y_prob_lgb_test,method="average") / _nt
+y_rank_xgb_test = rankdata(y_prob_xgb_test,method="average") / _nt
 
-y_prob_val  = (y_rank_cb_val  + y_rank_lgb_val)  / 2.0
-y_prob_test = (y_rank_cb_test + y_rank_lgb_test) / 2.0
+y_prob_val  = (y_rank_cb_val  + y_rank_lgb_val  + y_rank_xgb_val)  / 3.0
+y_prob_test = (y_rank_cb_test + y_rank_lgb_test + y_rank_xgb_test) / 3.0
 
-# Also compute prob-avg for reference
-_y_probavg_val = (y_prob_cb_val + y_prob_lgb_val) / 2.0
-print(f"  prob-avg ensemble val_lift@1%={lift_at_percentage(np.asarray(y_val), _y_probavg_val, 0.01):.4f}")
+# 2-model rank avg reference
+_y_2model_val = (y_rank_cb_val + y_rank_lgb_val) / 2.0
+print(f"  2-model rank-avg (CB+LGB) val_lift@1%={lift_at_percentage(np.asarray(y_val), _y_2model_val, 0.01):.4f}")
 
 training_time = time.time() - t_train_start
 
 y_val_arr = np.asarray(y_val)
 y_test_arr = np.asarray(y_test)
 
-print(f"\nCB+LGB rank-percentile ensemble on hybrid:")
+print(f"\nCB+LGB+XGB 3-model rank-percentile ensemble on hybrid:")
 print(f"  val_lift@1%:  {lift_at_percentage(y_val_arr, y_prob_val, 0.01):.4f}")
 print(f"  val_auc_roc:  {_roc_auc_score(y_val_arr, y_prob_val):.4f}")
 print(f"  test_lift@1%: {lift_at_percentage(y_test_arr, y_prob_test, 0.01):.4f}")
