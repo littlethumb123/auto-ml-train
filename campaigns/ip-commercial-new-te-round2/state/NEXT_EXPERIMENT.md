@@ -1,63 +1,41 @@
 ---
 schema_version: 1
 campaign_id: "ip-commercial-new-te"
-round: 1
-planner_invocation_at: "2026-05-26T15:05:00Z"
-action_type: "A_validate"
-hypothesis: "Tabular-only CatBoost baseline — establish val_lift_1pct floor (~21.578 expected from prior campaign)"
-expected_effect_size: 0.0
-base_commit: "9eb8e68e7a57d5c1b10f87e2d3a4b5c6d7e8f9a0"
+round: 17
+planner_invocation_at: "2026-05-27T05:20:00Z"
+action_type: "A_ensemble"
+hypothesis: "CB(2000)+LGB(63) rank-percentile ensemble — rank averaging aligns better with lift@1% (a rank metric) than probability averaging"
+expected_effect_size: 0.1
+base_commit: "05422c4f164e6e69c65d4ad58fcedf3ed6056982"
 touches_helpers: false
 helpers_declared: []
 escalation: null
-assumptions_tested: []
+assumptions_tested: ["rank averaging outperforms probability averaging for top-k rank metrics"]
 ---
 
 ## 1. Context summary
 
-Round 1 of 50. Campaign is freshly initialized. No experiments have run in this campaign instance. Target: val_lift_1pct >= 24.0. Primary metric: val_lift_1pct. Noise floor: 0.3. Budget: 0/50 used.
+Round 17 of 50. Budget: 17/50. Best: 22.487771. Consecutive discards: 8.
 
-STRATEGY_GUIDE mandates a three-way comparison (tabular_only → embedding_only → hybrid) before any HP tuning. The tabular_only CatBoost baseline (~21.578) and hybrid (~22.213) are known from a prior campaign run, but must be re-established here as the official results.tsv floor. embedding_only is completely untested.
+**Dead ends confirmed**: feature selection (top-300 hurts both CB and LGB), XGB(300 iter) too weak, LGB(127 leaves) overfits. The 2-model CB(2000)+LGB(63) ensemble peaked at 22.745 (R13) with probability averaging — 0.043 below the 22.788 noise floor.
 
-The existing train.py is already correctly configured for this experiment: `A_validate: tabular_only CatBoost baseline`, FEATURE_SET="tabular_only", _USE_ENGINEERED=False, CatBoost defaults (depth=6, lr=0.05, od_wait=80, auto_class_weights=Balanced, use_best_model=True). The Executor only needs to commit and run it.
+**Single variable change from R13**: Replace probability averaging with rank-percentile averaging:
+- Old: y_prob = (y_prob_cb + y_prob_lgb) / 2.0
+- New: y_prob = (rank(y_prob_cb)/n + rank(y_prob_lgb)/n) / 2.0
 
-## 2. Evidence from memory
+**Rationale**: lift@1% is a purely rank-based metric. When CatBoost and LightGBM have different probability calibrations (different scales/distributions), probability averaging distorts their relative rankings. Rank averaging normalizes both to [0,1] percentiles before combining, potentially better preserving the signal in the top 1% of ranked scores.
 
-**No prior results.** Results.tsv is empty. PATTERN_BOOK is empty. ASSUMPTION_REGISTER is empty.
+**Diagnostic info printed**: probability-averaged ensemble lift also printed for comparison.
 
-PRIORS.md known facts:
-- tabular_only prior: ~21.578 val_lift_1pct (from prior campaign)
-- hybrid prior: ~22.213 val_lift_1pct
-- embedding_only: unknown — open question in PRIORS.md
-
-### Rationalization table
-
-| Candidate | Action | UCB1 | Expected Δ | Dead-end? | Assumption risk | Selection rationale |
-|-----------|--------|------|-----------|-----------|-----------------|---------------------|
-| 1 | A_validate tabular_only CatBoost | ∞ | 0 (floor) | No | None — establishes baseline | **Mandatory: STRATEGY_GUIDE three-way comparison step 1** |
-| 2 | A_validate embedding_only CatBoost | ∞ | 0 (floor) | No | None | Blocked: must come after tabular_only |
-| 3 | A_validate hybrid CatBoost | ∞ | +0.6 vs tabular | No | None | Blocked: three-way comparison order |
-| **Selected** | **A_validate tabular_only** | | | | | **First mandatory step; train.py already staged** |
+**Timing**: same as R13 (~1060s).
 
 ## 3. Plan
 
-The existing `train.py` is correctly configured. The Executor MUST NOT change it. Steps:
-
-1. **Verify** DESCRIPTION="A_validate: tabular_only CatBoost baseline — establish floor", FEATURE_SET="tabular_only", _USE_ENGINEERED=False, HARD_TIMEOUT=1800
-2. **git add + commit** the current train.py
-3. **Run**: `python3 campaigns/ip-commercial-new-te-round2/train.py > campaigns/ip-commercial-new-te-round2/run.log 2>&1`
-4. **Expected output:** val_lift_1pct ≈ 21.578 (±0.3 per prior campaign), val_auc_roc ≈ 0.853
-
-The split cache at `campaigns/ip-commercial-new-te/.cache/splits_tabular_only_20250630.npz` likely already exists from prior runs (saves ~30s rebuild time).
-
-## 4. Helpers
-
-None.
-
-## 5. How this differs from prior experiments
-
-This is the first experiment in this campaign instance. train.py has not been modified — the Executor just commits and runs the pre-staged baseline.
+1. Edit train.py: same CB(2000)+LGB(63) as R13, replace final average with rank averaging
+2. Commit + run
+3. If rank > prob: validates hypothesis, likely clears noise floor
+4. If rank ≈ prob: calibrations are similar, averaging method doesn't matter much
 
 ## 6. Escalation
 
-null — mandatory baseline step.
+If still below 22.788: next is CB(3000 iter) + prob averaging — testing whether more CB iterations provide the final +0.043.
