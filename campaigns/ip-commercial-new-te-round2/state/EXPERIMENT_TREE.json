@@ -8,6 +8,14 @@
       "metric_value": null,
       "verdict": null,
       "children": []
+    },
+    "69fa263143fe2ffb7e9a781d5a03efdd3ee7336b": {
+      "commit": "69fa263143fe2ffb7e9a781d5a03efdd3ee7336b",
+      "parent_commit": "05422c4f164e6e69c65d4ad58fcedf3ed6056982",
+      "strategy_class": "A_ensemble",
+      "metric_value": 22.813929,
+      "verdict": "keep",
+      "children": []
     }
   }
 }
