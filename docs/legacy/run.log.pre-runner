@@ -1,0 +1,19 @@
+Dataset: 170,883 train, 56,962 val, 56,962 test
+Features: 33
+Fraud rate (train): 0.1726%
+Time budget: 60s (hard limit: 90s)
+Optuna best (200-tree proxy): pr_auc=0.810117
+  params: {'num_leaves': 31, 'learning_rate': 0.01914309156278316, 'min_child_samples': 27, 'subsample': 0.8560121871248767, 'colsample_bytree': 0.992469228850504, 'reg_alpha': 3.1560654934371346, 'reg_lambda': 0.09912124210136668, 'scale_pos_weight': 15.966581324678774}
+lift_at_10:       9.29
+macro_f1:         0.912553
+---
+val_pr_auc:       0.809597
+val_roc_auc:      0.974699
+val_f1:           0.825397
+val_precision:    0.866667
+val_recall:       0.787879
+training_seconds: 7.0
+total_seconds:    35.0
+n_features:       33
+description:      A_restart: LightGBM Optuna 50-trial with searchable scale_pos_weight
+---

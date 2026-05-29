@@ -1,0 +1,24 @@
+commit	val_pr_auc	lift_at_10	macro_f1	val_f1	status	n_features	model_family	action_type	hypothesis	description
+708c12b	0.838794	9.60	0.913838	0.827957	keep	33	xgboost	A_model	XGBoost canonical baseline	baseline: XGBoost canonical + log_amount + amount_interactions
+3af3f0a	0.830102	9.29	0.926852	0.853933	discard	33	lightgbm	A_model	LightGBM class_weight=balanced gives fair family benchmark	A_model: LightGBM canonical class_weight=balanced on same feature set
+630dd1e	0.814856	9.39	0.907058	0.814433	discard	33	catboost	A_model	CatBoost canonical SqrtBalanced gives fair family benchmark	A_model: CatBoost canonical SqrtBalanced depth=4 on same feature set
+f87434e	0.816348	9.39	0.903364	0.807018	discard	33	rf	A_model	RandomForest class_weight=balanced gives fair family benchmark	A_model: RandomForest class_weight=balanced on same feature set
+4f5c757	0.838666	9.39	0.920638	0.841530	discard	33	xgboost	A_hp	Deviate from A_model: max_depth=6 may recover capacity after family plateau	A_hp: XGBoost max_depth=6 on canonical baseline
+c1a9b95	0.835195	9.29	0.916976	0.834225	discard	36	xgboost	A_feature	Add magnitude_features group may capture fraud extremeness beyond base interactions	A_feature: add magnitude_features (abs V14/V17, V14_sq)
+5e7de7b	0.814550	9.19	0.910666	0.821622	discard	33	xgboost	A_imbalance	ADASYN(0.1) may improve recall-quality tradeoff vs static class weighting	A_imbalance: ADASYN sampling_strategy=0.1 with scale_pos_weight=1
+7de86e3	0.818763	9.09	0.898660	0.797619	discard	33	et	A_model	ExtraTrees class_weight=balanced completes fair family benchmark	A_model: ExtraTrees class_weight=balanced on same feature set
+b32f5a9	0.835190	9.19	0.916976	0.834225	discard	33	xgboost	A_restart	Basin restart via screened config may escape local optimum after 7 discards	A_restart: screen_configs(12) selected depth=3,lr=0.130,sub=0.793,col=0.671,alpha=0.292,lambda=0.189,mcw=5
+14b0a55	0.836239	9.39	0.910377	0.821053	discard	33	xgboost	A_restart	Force plateau restart: promote top3 screened configs to full fit and select best	A_restart: screen16 + full-fit top3 selected depth=5,lr=0.0836,sub=0.79,col=0.50,alpha=6.53,lambda=0.105,mcw=7
+a060eb0	0.845984	9.19	0.922954	0.846154	keep	33	xgboost	A_restart	Plateau restart to known high-performing basin can break local optimum	A_restart: tuned basin depth=6,lr=0.0777,n_est=1500,mcw=7,sub=0.806,col=0.943,alpha=0,lambda=0.5
+61b0fef	0.845925	9.19	0.926111	0.852459	discard	33	xgboost	A_hp	Increasing trees to 1600 may improve convergence in the new best basin	A_hp: n_estimators=1600 with depth=6,lr=0.0777 basin
+7555d10	0.681913	8.59	0.833004	0.666667	discard	33	lightgbm	A_model	LightGBM tuned fair trial with scale_pos_weight may close gap to tuned XGBoost	A_model: LightGBM n_est=1500 num_leaves=63 scale_pos_weight
+b3eef16	0.836353	9.19	0.918346	0.836957	discard	35	xgboost	A_feature	Adding rank_features may capture nonlinear distribution tails not learned by raw values	A_feature: add rank_features (Amount_rank, V14_rank)
+59d5b51	0.824894	9.29	0.931584	0.863388	discard	33	catboost	A_model	Second CatBoost trial with higher capacity may close gap to XGBoost	A_model: CatBoost depth=6 iterations=1500 SqrtBalanced
+0818f7c	0.838787	9.29	0.931584	0.863388	discard	32	xgboost	A_feature	If log_amount is redundant in tuned basin, removing it should simplify with no PR-AUC loss	A_feature: remove log_amount from best basin
+bd58fe5	0.681913	8.59	0.833004	0.666667	discard	33	lightgbm	A_diagnose	Diagnose LightGBM anomaly: predict_proba head near-zero indicates severe probability suppression	A_diagnose: rerun anomalous LightGBM, proba head ~1e-10 to 1e-07
+1300459	0.830511	9.29	0.926111	0.852459	discard	33	lightgbm	A_diagnose	Class_weight fix raises PR-AUC but still underperforms; proba head remains near-zero on sampled rows	A_diagnose: LightGBM class_weight=balanced with predict_proba diagnostics
+784f382	0.843523	9.19	0.926908	0.854054	discard	33	xgboost	A_imbalance	Stronger fraud weighting may improve PR-AUC in the tuned basin	A_imbalance: scale_pos_weight=1.25x ratio
+a826bf4	0.833132	9.09	0.922332	0.844920	discard	33	xgboost	A_restart	Final restart sweep may discover a deeper alternate basin via screen20	A_restart: screen20 best cfg promoted with n_estimators=2000
+2c9bcf9	0.839790	9.29	0.921494	0.843243	discard	33	xgboost	A_restart	Optuna 50-trial with fresh seed=7 and broader HP space may find alternate basin	A_restart: Optuna seed=7, 50 trials, 7-dim search (depth,lr,mcw,sub,col,alpha,lambda)
+9b8dcc8	0.834923	9.29	0.928457	0.857143	discard	34	xgboost	A_restart	Amount*V14 adds signal since V14 is dominant and Amount*V1/V2 help	A_restart: add Amount*V14 to best XGBoost config
+0703d39	0.714033	9.29	0.822194	0.645161	discard	33	other	A_restart	HistGBM different impl may find different optimum	A_restart: HistGradientBoostingClassifier class_weight=balanced
