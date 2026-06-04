@@ -12,6 +12,7 @@ state/CAMPAIGN_STATE.json (campaign-relative) and on disk in the other artifacts
 """
 from __future__ import annotations
 
+import datetime as _dt
 import json
 import re
 import subprocess
@@ -25,6 +26,26 @@ from runner.strategy.tree_search import ExperimentTree
 
 Channel = Literal["RUN_COMPLETE", "RUN_FAILED", "REVIEW_REQUIRED"]
 Verdict = Literal["keep", "discard", "anomaly", "crash", "malformed"]
+
+
+def _emit_event(campaign_dir: str, event: str, data: dict[str, Any]) -> None:
+    """Append a structured JSONL event to state/driver_events.jsonl (GAP 11).
+
+    Non-critical — never raises. If the file or directory doesn't exist, silently skips.
+    """
+    try:
+        events_path = Path(campaign_dir) / "state" / "driver_events.jsonl"
+        if not events_path.parent.exists():
+            return
+        record = {
+            "ts": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "event": event,
+            **data,
+        }
+        with open(events_path, "a") as f:
+            f.write(json.dumps(record, separators=(",", ":"), sort_keys=True) + "\n")
+    except Exception:
+        pass
 
 
 class GateError(Exception):
@@ -68,9 +89,14 @@ _READ_ONLY_PREFIXES = (
 
 
 def _path_in_write_scope(path: str, allowed: set[str]) -> bool:
-    if path == "train.py":
+    # Accept bare "train.py" or any repo-relative path ending in "/train.py"
+    if path == "train.py" or path.endswith("/train.py"):
         return True
     if path in allowed:
+        return True
+    # Allow helpers declared relative to campaign dir (may arrive with campaign prefix)
+    basename = path.split("/")[-1] if "/" in path else path
+    if basename in allowed:
         return True
     return any(path.startswith(a + "/") for a in allowed if a != "train.py")
 
@@ -278,7 +304,7 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
     fm_plan: dict[str, Any] | None = None
     escalation = None
     try:
-        fm_plan, _ = parse_frontmatter(plan_path)
+        fm_plan, body = parse_frontmatter(plan_path)
         escalation = fm_plan.get("escalation")
     except FrontmatterError:
         pass
@@ -288,7 +314,38 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
         return {"status": "pause_c2", "errors": []}
     if escalation == "C3":
         return {"status": "pause_c3", "errors": []}
-    return {"status": "ok", "errors": []}
+
+    # ── Semantic checks (GAP 3 — plan revision loop support) ──────────
+    warnings: list[str] = []
+    if fm_plan is not None:
+        # Check hypothesis is non-empty and not a placeholder
+        hypothesis = str(fm_plan.get("hypothesis", "")).strip()
+        if not hypothesis or hypothesis.lower() in ("tbd", "todo", "n/a", "none", ""):
+            warnings.append("hypothesis is empty or placeholder — plan needs a concrete hypothesis")
+
+        # Check for dead-end repetition
+        dead_ends_path = camp / "state" / "DEAD_ENDS.md"
+        if dead_ends_path.exists() and hypothesis:
+            dead_ends_text = dead_ends_path.read_text(encoding="utf-8").lower()
+            # Simple substring check — if the hypothesis closely matches a dead end
+            hyp_words = set(hypothesis.lower().split())
+            if len(hyp_words) >= 3:
+                for line in dead_ends_text.splitlines():
+                    line_words = set(line.strip().lower().split())
+                    overlap = hyp_words & line_words
+                    if len(overlap) >= len(hyp_words) * 0.7:
+                        warnings.append(
+                            f"hypothesis overlaps with DEAD_ENDS.md entry: '{line.strip()[:80]}'"
+                        )
+                        break
+
+    result = {"status": "ok", "errors": [], "warnings": warnings}
+    _emit_event(campaign_dir, "plan_check", {
+        "status": result["status"],
+        "warnings": warnings,
+        "action_type": fm_plan.get("action_type") if fm_plan else None,
+    })
+    return result
 
 
 def resolve_c2(
@@ -571,6 +628,25 @@ def review_finalize(
                 f"mandatory_tools: missing normalized tool(s) {sorted(missing)} (spec §8.3 item 8)"
             )
 
+    # ── Noise-floor hard gate (GAP 7 — anti-sycophancy) ─────────────────
+    noise_floor_override = ""
+    noise_floor = pm.get("noise_floor")
+    if noise_floor is not None and verdict == "keep":
+        noise_floor = float(noise_floor)
+        best_metric = (state.get("best_so_far") or {}).get("primary_metric")
+        current_metric_val = metrics.get(metric_name)
+        if best_metric is not None and current_metric_val is not None:
+            if direction == "maximize":
+                delta = float(current_metric_val) - float(best_metric)
+            else:
+                delta = float(best_metric) - float(current_metric_val)
+            if delta < noise_floor:
+                verdict = "discard"
+                noise_floor_override = (
+                    f"noise_floor_gate: delta={delta:.4f} < noise_floor={noise_floor} — "
+                    f"mechanical override from keep→discard"
+                )
+
     # Historian tokens stored by historian_finalize for the round that triggered it
     historian_tokens = int(state.get("pending_historian_tokens", 0))
 
@@ -712,6 +788,16 @@ def review_finalize(
     if c3_advisory:
         result["c3_advisory"] = True
         result["c3_advisory_reason"] = c3_advisory_reason
+    if noise_floor_override:
+        result["noise_floor_override"] = noise_floor_override
+    _emit_event(campaign_dir, "review_finalize", {
+        "verdict": verdict,
+        "commit": commit,
+        "should_rollback": should_rollback,
+        "halt_loop": halt_loop,
+        "noise_floor_override": noise_floor_override or None,
+        "mandatory_gate_reason": mandatory_gate_reason or None,
+    })
     return result
 
 

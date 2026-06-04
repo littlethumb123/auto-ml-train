@@ -89,6 +89,73 @@ class TestStuckDetection:
 
         assert orchestrator.detect_stuck(campaign) == []
 
+    def test_warns_on_3_same_hypotheses(self, campaign: Path):
+        """GAP 5: Detect repeated hypothesis text."""
+        runner_driver.init_campaign(campaign_dir=str(campaign))
+        results_path = campaign / "state" / "results.tsv"
+        header = results_path.read_text().splitlines()[0]
+        col_names = header.split("\t")
+        at_idx = col_names.index("action_type")
+        h_idx = col_names.index("hypothesis")
+        n_cols = len(col_names)
+
+        rows = []
+        for i in range(3):
+            row = [""] * n_cols
+            row[0] = f"c{i}"
+            row[at_idx] = ["A_hp", "A_model", "A_feature"][i]
+            row[h_idx] = "increase learning rate"
+            rows.append("\t".join(row))
+        results_path.write_text(header + "\n" + "\n".join(rows) + "\n")
+
+        warnings = orchestrator.detect_stuck(campaign)
+        assert any("hypothesis" in w.lower() for w in warnings)
+
+    def test_warns_on_metric_stagnation(self, campaign: Path):
+        """GAP 5: Detect unchanged primary metric over 4 rounds."""
+        runner_driver.init_campaign(campaign_dir=str(campaign))
+        results_path = campaign / "state" / "results.tsv"
+        header = results_path.read_text().splitlines()[0]
+        col_names = header.split("\t")
+        at_idx = col_names.index("action_type")
+        # Primary metric is val_pr_auc per the test fixture's EVAL_PROTOCOL
+        pm_idx = col_names.index("val_pr_auc")
+        n_cols = len(col_names)
+
+        rows = []
+        for i in range(4):
+            row = [""] * n_cols
+            row[0] = f"c{i}"
+            row[at_idx] = ["A_hp", "A_model", "A_feature", "A_hp"][i]
+            row[pm_idx] = "0.850000"
+            rows.append("\t".join(row))
+        results_path.write_text(header + "\n" + "\n".join(rows) + "\n")
+
+        warnings = orchestrator.detect_stuck(campaign)
+        assert any("unchanged" in w.lower() or "stagnation" in w.lower() for w in warnings)
+
+    def test_no_metric_stagnation_with_improvement(self, campaign: Path):
+        """No warning when metrics are changing."""
+        runner_driver.init_campaign(campaign_dir=str(campaign))
+        results_path = campaign / "state" / "results.tsv"
+        header = results_path.read_text().splitlines()[0]
+        col_names = header.split("\t")
+        at_idx = col_names.index("action_type")
+        pm_idx = col_names.index("val_pr_auc")
+        n_cols = len(col_names)
+
+        rows = []
+        for i, val in enumerate([0.85, 0.86, 0.87, 0.88]):
+            row = [""] * n_cols
+            row[0] = f"c{i}"
+            row[at_idx] = "A_hp"
+            row[pm_idx] = f"{val:.6f}"
+            rows.append("\t".join(row))
+        results_path.write_text(header + "\n" + "\n".join(rows) + "\n")
+
+        warnings = orchestrator.detect_stuck(campaign)
+        assert not any("unchanged" in w.lower() for w in warnings)
+
 
 # ── Metrics parsing ───────────────────────────────────────────────────
 

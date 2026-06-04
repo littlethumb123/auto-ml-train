@@ -113,7 +113,8 @@ If warnings are returned, note them — you MUST include them when planning.
 bash runner/run_round.sh plan-check --campaign_dir <CAMPAIGN_DIR>
 ```
 7. Read the JSON output:
-   - `status == "ok"` → proceed to §2.3 (Executor)
+   - `status == "ok"` → check `warnings` array (if present and non-empty, note them but proceed to §2.3)
+   - `status == "ok"` with `warnings` containing "dead_end" or "hypothesis" → **revision required**: re-write `state/NEXT_EXPERIMENT.md` addressing the warning, then re-check (counts toward the 2 retries below)
    - `status == "malformed"` → re-read errors, fix `state/NEXT_EXPERIMENT.md`, re-check (max 2 retries)
    - `status == "pause_c2"` → print "C2 plateau — Historian will run next round" and loop back to §2.0
    - `status == "pause_c3"` → print "C3 contract change requested — human review required" and **STOP**
@@ -157,7 +158,20 @@ python3 -c "from runner.orchestrator import train_py_sha256; from pathlib import
 ```
 If SHA matches the pre-executor SHA from step 8 of §2.2: this is a no-op experiment.
 
-9. **Context hygiene:** "Executor done: \<RUN_COMPLETE|RUN_FAILED\> \<sha\>."
+9. **Substantive-diff check (GAP 2):**
+```bash
+DIFF_TEXT=$(git show --unified=0 <sha>)
+TRAIN_PY="<CAMPAIGN_DIR>/train.py"
+HELPERS='[]'  # populate from NEXT_EXPERIMENT.md helpers_declared if non-empty
+bash runner/run_round.sh substantive-check \
+    --diff_text "$DIFF_TEXT" \
+    --train_py "$TRAIN_PY" \
+    --helpers_declared "$HELPERS"
+```
+If `substantive == false`: log "no-op experiment (cosmetic-only diff)" and set verdict to `malformed` when reaching §2.4.
+If `helpers_wired == false`: log the unwired helpers for the Reviewer.
+
+10. **Context hygiene:** "Executor done: \<RUN_COMPLETE|RUN_FAILED\> \<sha\>."
 
 ### 2.4 — Reviewer Phase
 
@@ -182,6 +196,21 @@ print(json.dumps(metrics))
 "
 ```
 
+5b. **Reproduce-check (GAP 10):** If prediction artifacts exist, verify metrics match:
+```bash
+Y_TRUE="<CAMPAIGN_DIR>/artifacts/y_val_true.npy"
+Y_PROB="<CAMPAIGN_DIR>/artifacts/y_val_prob.npy"
+RUN_LOG="<CAMPAIGN_DIR>/run.log"
+if [ -f "$Y_TRUE" ] && [ -f "$Y_PROB" ]; then
+    bash runner/run_round.sh reproduce-check \
+        --y_true "$Y_TRUE" \
+        --y_prob "$Y_PROB" \
+        --run_log "$RUN_LOG" \
+        --tolerance 0.001
+fi
+```
+If `passed == false`: add mismatches to the Reviewer's evidence. If critical mismatches exist (delta > 0.01), flag `malformed`.
+
 6. Call the driver to finalize:
 ```bash
 bash runner/run_round.sh review-finalize \
@@ -199,18 +228,26 @@ bash runner/run_round.sh review-finalize \
 
 7. Read the JSON output:
    - `should_rollback == true` → run `git reset --hard HEAD~1` from the repo root
+   - `noise_floor_override` present → log: "Noise-floor gate: <reason>". The driver already changed the verdict.
    - `halt_loop == true` → print halt reason and go to §3
    - `pause_loop == true` → print "Anomaly (C1) — human review required at state/REVIEW.md" and **STOP**
 
 8. **Context hygiene:** "Review done: \<verdict\>. Best so far: \<metric\>."
 
-### 2.5 — Round Checkpoint (MANDATORY — context rot mitigation)
+### 2.5 — Round Checkpoint (MANDATORY — context rot mitigation, GAP 8)
 
 After completing all phases for a round:
 
 1. Re-read `state/CAMPAIGN_STATE.json` for the updated round number and best metric.
 
-2. Print a checkpoint summary:
+2. **Context refresh (every 3 rounds):** If `round % 3 == 0`:
+   - Re-read `contracts/EVAL_PROTOCOL.md` (primary metric, noise_floor, budgets)
+   - Re-read `state/DEAD_ENDS.md` (prevents retrying dead ends after context drift)
+   - Re-read `state/ASSUMPTION_REGISTER.md` (prevents violating load-bearing assumptions)
+   This is not optional. Context rot causes the most insidious failures — the agent
+   "forgets" constraints and starts repeating discarded approaches.
+
+3. Print a checkpoint summary:
 ```
 ═══ ROUND <N> COMPLETE ═══
 Verdict: <keep|discard|...>
@@ -219,10 +256,11 @@ Primary metric: <value>
 Best so far: <best_metric> (commit <best_commit>)
 Budget: <used>/<total>
 Historian pending: <yes|no>
+Context refresh: <yes (re-read contracts) | no>
 ══════════════════════════
 ```
 
-3. Continue to §2.0 for the next round.
+4. Continue to §2.0 for the next round.
 
 ---
 

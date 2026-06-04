@@ -1,28 +1,27 @@
 {
   "$schema_version": 2,
   "best_so_far": {
-    "commit": "428d91f1d2a4eefd90bbacc277916dbc8b7b9e8c",
-    "primary_metric": 22.384773
+    "commit": "69fa263143fe2ffb7e9a781d5a03efdd3ee7336b",
+    "primary_metric": 22.813929
   },
   "budget_total": 50,
-  "budget_used": 46,
+  "budget_used": 17,
   "campaign_id": "ip-commercial-new-te",
-  "consecutive_discards": 40,
-  "created_at": "2026-05-25T02:55:31Z",
-  "exp_id_counter": 46,
+  "consecutive_discards": 0,
+  "created_at": "2026-05-26T15:02:09Z",
+  "exp_id_counter": 17,
   "historian_interval": 10,
   "historian_trigger_pending": false,
-  "last_commit": "9a20d94a0e891ccf7a5d95b3fb78f1f1963a18eb",
-  "last_historian_round": 46,
-  "last_verdict": "discard",
-  "pending_historian_tokens": 1000,
-  "round": 46,
-  "rounds_since_last_historian": 0,
+  "last_commit": "69fa263143fe2ffb7e9a781d5a03efdd3ee7336b",
+  "last_historian_round": null,
+  "last_verdict": "keep",
+  "round": 18,
+  "rounds_since_last_historian": 16,
   "total_tokens": {
-    "executor": 128746,
-    "historian": 36000,
-    "planner": 24698,
-    "reviewer": 7880
+    "executor": 2216,
+    "historian": 0,
+    "planner": 7560,
+    "reviewer": 0
   },
-  "updated_at": "2026-05-25T14:41:47Z"
+  "updated_at": "2026-05-27T06:20:00Z"
 }

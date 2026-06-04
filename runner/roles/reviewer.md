@@ -72,10 +72,30 @@ The Planner reads these recommendations in the next round to guide feature engin
 
 ### Phase 3 — Verdict and State Updates
 
-11. **Final verdict:**
+11. **Verdict rationalization table (MANDATORY — GAP 4):**
+
+    Before stating the verdict, write this table in REVIEW.md:
+
+    ```markdown
+    | Check | Result | Verdict implication |
+    |-------|--------|---------------------|
+    | Δ(primary_metric) | +0.008 | Above noise_floor (0.005) → keep-eligible |
+    | Mandatory tools | All passed | No gate violation |
+    | Anomaly check | Clean | No anomaly |
+    | Phase 1 preliminary | keep | — |
+    | Hypothesis confirmed? | Partially | Mechanism unclear but metric improved |
+    | **Final verdict** | **keep** | **Δ > noise_floor, no tool flags** |
+    ```
+
+    Rules:
+    - Every row must have a concrete value (not "see above" or "as expected").
+    - The final verdict row MUST explain the deciding factor.
+    - If Phase 1 says discard but Phase 3 says keep: this is a violation of §7a.
+
+12. **Final verdict:**
     - `keep`   if Δ > 0 AND no mandatory tool flagged regression AND not anomaly
     - `discard` otherwise
-12. **If `keep`:** Write ≥ 1 assumption entry to `state/ASSUMPTION_REGISTER.md` (MANDATORY).
+13. **If `keep`:** Write ≥ 1 assumption entry to `state/ASSUMPTION_REGISTER.md` (MANDATORY).
     Ask: "What must remain true for this result to remain the champion?
           What have we not verified?"
     Common categories to consider:
@@ -149,3 +169,38 @@ When calling `run_round.sh review-finalize`, you MUST:
   the suspected cause, and proposed next step.
 - C2 (≥3 consecutive discards): the driver automatically sets `historian_trigger_pending`.
   No action needed from the Reviewer — do NOT emit escalation: C2 in NEXT_EXPERIMENT.md.
+
+## 7. Anti-sycophancy guards (GAP 7)
+
+### 7a. Phase 1 finality
+Your Phase 1 preliminary verdict is final for the keep/discard decision.
+Phase 2 may ADD context (e.g. "hypothesis was wrong, but metric still improved")
+but may NEVER flip the Phase 1 verdict. If Phase 1 says discard, Phase 2
+cannot override to keep.
+
+### 7b. Noise-floor hard gate (mechanical — driver-enforced)
+The driver will mechanically override `keep → discard` when:
+    Δ(primary_metric) < noise_floor (from EVAL_PROTOCOL.md)
+You cannot override this. Do not argue against it in REVIEW.md.
+If you believe the noise_floor is miscalibrated, escalate via C3.
+
+### 7c. Forbidden phrases
+Never write any of the following in REVIEW.md:
+- "shows promise"
+- "encouraging direction"
+- "worth exploring further"
+- "slight improvement" (when Δ < noise_floor)
+- "marginal gain" followed by a keep verdict
+
+Replace with concrete statements:
+- "Δ = +0.003, which is below noise_floor = 0.005 → discard"
+- "Δ = +0.012, above noise_floor → keep; CI = [0.008, 0.016]"
+
+### 7d. Reviewer self-check
+Before finalizing your verdict, ask:
+1. Am I keeping this because the numbers justify it, or because I want
+   to be encouraging?
+2. Would I keep this result if I had NOT read the Planner's hypothesis?
+3. Is the Δ large enough that I can state it with a straight face?
+
+If the answer to any is "no" → discard.

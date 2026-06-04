@@ -39,6 +39,9 @@ budgets:
 plateau_trigger:
   consecutive_discards: 3
 historian_interval: 10
+verification_tools:
+  - "runner.tools.substantive_diff"
+  - "runner.tools.reproduce_check"
 anomaly:
   floor: 0.75
   relative: 0.5

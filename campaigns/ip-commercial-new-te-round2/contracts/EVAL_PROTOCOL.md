@@ -47,6 +47,9 @@ budgets:
   max_repair_attempts: 2
 plateau_trigger:
   consecutive_discards: 3
+verification_tools:
+  - "runner.tools.substantive_diff"
+  - "runner.tools.reproduce_check"
 anomaly:
   floor: 1.5
   relative: 0.5

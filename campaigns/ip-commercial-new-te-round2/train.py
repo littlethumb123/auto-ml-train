@@ -8,19 +8,21 @@ Split cache at campaigns/ip-commercial-new-te/.cache/splits_<feature_set>_<cutof
 Usage: python3 train.py
 """
 
-import os
-import signal
-import time
-import warnings
+import os, signal, time, warnings, sys
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
 warnings.filterwarnings("ignore")
-import sys
 sys.stdout.reconfigure(line_buffering=True)
+
+_CAMPAIGN_DIR = str(Path(__file__).resolve().parent)
+if _CAMPAIGN_DIR not in sys.path:
+    sys.path.insert(0, _CAMPAIGN_DIR)
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
 from prepare import RANDOM_SEED, OOT_CUTOFF_DATE, CACHE_PATH, get_splits
 from shared.metrics import compute_split_metrics, lift_at_percentage
@@ -41,8 +43,8 @@ if hasattr(signal, "SIGALRM"):
 # Experiment definition (Executor edits these two lines per plan)
 # ---------------------------------------------------------------------------
 
-DESCRIPTION = "A_validate: tabular_only CatBoost baseline — establish floor"
-FEATURE_SET = "tabular_only"
+DESCRIPTION = "A_ensemble: CB(2000)+LGB(63)+XGB(500) 3-model rank-percentile ensemble — XGB diversity via rank avg"
+FEATURE_SET = "hybrid"
 _USE_ENGINEERED = False
 
 # ---------------------------------------------------------------------------
@@ -50,7 +52,7 @@ _USE_ENGINEERED = False
 # ---------------------------------------------------------------------------
 
 t_start = time.time()
-_cache_dir = Path("campaigns/ip-commercial-new-te/.cache")
+_cache_dir = Path(_CAMPAIGN_DIR).parent / "ip-commercial-new-te" / ".cache"
 _cache_dir.mkdir(parents=True, exist_ok=True)
 _feat_suffix = "_eng5" if _USE_ENGINEERED else ""
 _split_cache = _cache_dir / f"splits_{FEATURE_SET}{_feat_suffix}_{OOT_CUTOFF_DATE.replace('-', '')}.npz"
@@ -118,32 +120,116 @@ else:
 print(f"Data ready: {X_train.shape[1]} features  ({time.time()-t_start:.1f}s)")
 
 # ---------------------------------------------------------------------------
-# Model: Single CatBoost — tabular_only baseline
+# Model: CB(2000iter) + LGB(63 leaves) with rank-percentile ensemble
 # ---------------------------------------------------------------------------
 
 from catboost import CatBoostClassifier, Pool
+import lightgbm as lgb
+from lightgbm import LGBMClassifier
+from xgboost import XGBClassifier
+from scipy.stats import rankdata
 from sklearn.metrics import roc_auc_score as _roc_auc_score
 
+cat_idx = [X_train.columns.tolist().index(c) for c in _cat_cols_names if c in X_train.columns]
+
+# 75K stratified val subsample for LGB early stopping
+_es_n = 75_000
+_rng_es = np.random.default_rng(RANDOM_SEED)
+_pos_idx = np.where(np.asarray(y_val) == 1)[0]
+_neg_idx = np.where(np.asarray(y_val) == 0)[0]
+_pos_n = min(len(_pos_idx), int(_es_n * len(_pos_idx) / len(y_val)) + 1)
+_neg_n = _es_n - _pos_n
+_es_idx = np.concatenate([
+    _rng_es.choice(_pos_idx, _pos_n, replace=False),
+    _rng_es.choice(_neg_idx, _neg_n, replace=False),
+])
+X_val_es = X_val.iloc[_es_idx].reset_index(drop=True)
+y_val_es = y_val.iloc[_es_idx].reset_index(drop=True)
+
 t_train_start = time.time()
-cat_idx = [i for i, c in enumerate(X_train.columns) if c in set(_cat_cols_names)]
 
-cb = CatBoostClassifier(
-    iterations=1000, depth=6, learning_rate=0.05, od_wait=80,
-    grow_policy="SymmetricTree", auto_class_weights="Balanced",
-    use_best_model=True, random_seed=RANDOM_SEED, verbose=0,
+# --- CatBoost ---
+print("Training CatBoost (depth=6, lr=0.05, iter=2000, od_wait=100)...")
+train_pool = Pool(X_train, y_train, cat_features=cat_idx)
+val_pool   = Pool(X_val,   y_val,   cat_features=cat_idx)
+cb_model = CatBoostClassifier(
+    iterations=2000, depth=6, learning_rate=0.05, od_wait=100,
+    auto_class_weights="Balanced", random_seed=RANDOM_SEED,
+    use_best_model=True, verbose=False,
 )
-cb.fit(Pool(X_train, y_train, cat_features=cat_idx),
-       eval_set=Pool(X_val, y_val, cat_features=cat_idx))
+cb_model.fit(train_pool, eval_set=val_pool)
+y_prob_cb_val  = cb_model.predict_proba(Pool(X_val,  cat_features=cat_idx))[:, 1]
+y_prob_cb_test = cb_model.predict_proba(Pool(X_test, cat_features=cat_idx))[:, 1]
+print(f"  CatBoost best_iter={cb_model.best_iteration_} "
+      f"val_lift@1%={lift_at_percentage(np.asarray(y_val), y_prob_cb_val, 0.01):.4f}")
 
-y_prob_val = cb.predict_proba(Pool(X_val, cat_features=cat_idx))[:, 1]
-y_prob_test = cb.predict_proba(Pool(X_test, cat_features=cat_idx))[:, 1]
+# --- LightGBM ---
+print("Training LightGBM (n_estimators=600, num_leaves=63)...")
+lgb_model = LGBMClassifier(
+    n_estimators=600, learning_rate=0.05, num_leaves=63, max_depth=-1,
+    min_child_samples=20, subsample=0.8, colsample_bytree=0.8,
+    reg_alpha=0.1, reg_lambda=1.0, class_weight="balanced",
+    random_state=RANDOM_SEED, n_jobs=4, verbose=-1,
+)
+lgb_model.fit(
+    X_train, y_train,
+    eval_set=[(X_val_es, y_val_es)],
+    callbacks=[lgb.early_stopping(80, verbose=False), lgb.log_evaluation(-1)],
+)
+y_prob_lgb_val  = lgb_model.predict_proba(X_val)[:, 1]
+y_prob_lgb_test = lgb_model.predict_proba(X_test)[:, 1]
+print(f"  LightGBM best_iter={lgb_model.best_iteration_} "
+      f"val_lift@1%={lift_at_percentage(np.asarray(y_val), y_prob_lgb_val, 0.01):.4f}")
+
+# --- XGBoost ---
+_pos_count = int(np.asarray(y_train).sum())
+_neg_count = len(y_train) - _pos_count
+_scale_pos_weight = _neg_count / _pos_count
+
+print("Training XGBoost (n_estimators=500, max_depth=6, tree_method=hist)...")
+xgb_model = XGBClassifier(
+    n_estimators=500, max_depth=6, learning_rate=0.05,
+    subsample=0.8, colsample_bytree=0.8,
+    reg_alpha=0.1, reg_lambda=1.0,
+    scale_pos_weight=_scale_pos_weight,
+    tree_method="hist", device="cpu",
+    random_state=RANDOM_SEED, n_jobs=4,
+    early_stopping_rounds=80, eval_metric="logloss",
+    verbosity=0,
+)
+xgb_model.fit(
+    X_train, y_train,
+    eval_set=[(X_val_es, y_val_es)],
+    verbose=False,
+)
+y_prob_xgb_val  = xgb_model.predict_proba(X_val)[:, 1]
+y_prob_xgb_test = xgb_model.predict_proba(X_test)[:, 1]
+print(f"  XGBoost best_iter={xgb_model.best_iteration} "
+      f"val_lift@1%={lift_at_percentage(np.asarray(y_val), y_prob_xgb_val, 0.01):.4f}")
+
+# --- 3-model rank-percentile ensemble ---
+_nv = len(y_prob_cb_val)
+_nt = len(y_prob_cb_test)
+y_rank_cb_val   = rankdata(y_prob_cb_val,  method="average") / _nv
+y_rank_lgb_val  = rankdata(y_prob_lgb_val, method="average") / _nv
+y_rank_xgb_val  = rankdata(y_prob_xgb_val, method="average") / _nv
+y_rank_cb_test  = rankdata(y_prob_cb_test, method="average") / _nt
+y_rank_lgb_test = rankdata(y_prob_lgb_test,method="average") / _nt
+y_rank_xgb_test = rankdata(y_prob_xgb_test,method="average") / _nt
+
+y_prob_val  = (y_rank_cb_val  + y_rank_lgb_val  + y_rank_xgb_val)  / 3.0
+y_prob_test = (y_rank_cb_test + y_rank_lgb_test + y_rank_xgb_test) / 3.0
+
+# 2-model rank avg reference
+_y_2model_val = (y_rank_cb_val + y_rank_lgb_val) / 2.0
+print(f"  2-model rank-avg (CB+LGB) val_lift@1%={lift_at_percentage(np.asarray(y_val), _y_2model_val, 0.01):.4f}")
 
 training_time = time.time() - t_train_start
 
 y_val_arr = np.asarray(y_val)
 y_test_arr = np.asarray(y_test)
 
-print(f"\nCatBoost tabular_only baseline:")
+print(f"\nCB+LGB+XGB 3-model rank-percentile ensemble on hybrid:")
 print(f"  val_lift@1%:  {lift_at_percentage(y_val_arr, y_prob_val, 0.01):.4f}")
 print(f"  val_auc_roc:  {_roc_auc_score(y_val_arr, y_prob_val):.4f}")
 print(f"  test_lift@1%: {lift_at_percentage(y_test_arr, y_prob_test, 0.01):.4f}")
@@ -153,7 +239,7 @@ print(f"  test_auc_roc: {_roc_auc_score(y_test_arr, y_prob_test):.4f}")
 metrics = compute_split_metrics(y_val_arr, y_prob_val, prefix="val")
 
 # Save val scores/labels for downstream tools (anomaly, bootstrap_ci, error_analysis)
-_scores_dir = Path("campaigns/ip-commercial-new-te-round2/state")
+_scores_dir = Path(_CAMPAIGN_DIR) / "state"
 _scores_dir.mkdir(parents=True, exist_ok=True)
 np.save(_scores_dir / "current_val_scores.npy", np.asarray(y_prob_val, dtype=float))
 np.save(_scores_dir / "current_val_labels.npy", np.asarray(y_val, dtype=int))

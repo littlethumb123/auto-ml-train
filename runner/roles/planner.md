@@ -69,6 +69,27 @@ Enumerate 2–3 candidate action types. For each candidate, write:
 Record these alternatives and estimates in `NEXT_EXPERIMENT.md §2 Evidence from memory`.
 Choose the candidate with the highest expected Δ that is not ruled out by dead-ends or triggers.
 
+### Step 6b — Rationalization table (MANDATORY — GAP 4)
+
+You MUST include the following table in `NEXT_EXPERIMENT.md §2 Evidence from memory`.
+This table is the decision audit trail — it makes your reasoning legible and falsifiable.
+
+```markdown
+| Candidate | Action | UCB1 | Expected Δ | Dead-end? | Assumption risk | Selection rationale |
+|-----------|--------|------|-----------|-----------|-----------------|---------------------|
+| 1 | A_feature | 0.31 | +0.005 | No | Tests A-3-1 | Addresses bottleneck |
+| 2 | A_ensemble | inf | +0.010 | No | None | Mandatory diversification |
+| 3 | A_hp | 0.18 | +0.002 | Partial (DEAD_ENDS #7) | Depends on A-2-1 | Skip: diminishing returns |
+| **Selected** | **A_ensemble** | | | | | **Highest expected Δ + untried** |
+```
+
+Rules:
+- At least 2 candidates, at most 5.
+- Every candidate MUST have a concrete Expected Δ (not "unknown" or "TBD").
+- "Dead-end?" must reference a specific DEAD_ENDS.md entry or state "No".
+- The selected row MUST state why it was chosen over the alternatives.
+- If you cannot fill a cell, write "N/A — <reason>".
+
 ### Step 7 — Hypothesis selection
 Choose ONE hypothesis that:
 (a) does not retry a dead-end

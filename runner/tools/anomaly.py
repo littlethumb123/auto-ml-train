@@ -49,9 +49,11 @@ def check_anomaly(
         except (TypeError, ValueError):
             continue
     threshold = max(floor, relative * best_prior) if best_prior > 0 else floor
-    # Upper-bound: suspiciously perfect results suggest leakage
-    if value > 0.99:
-        family = latest_row.get("model_family", "unknown")
+    # Upper-bound: suspiciously perfect results suggest leakage.
+    # Only applies to [0,1]-bounded metrics (auc, roc, pr, accuracy, f1).
+    # Lift metrics are unbounded (e.g. lift@1% = 22 is valid) — skip for them.
+    _is_bounded = any(tok in primary_metric.lower() for tok in ("auc", "roc", "acc", "f1", "prec", "recall"))
+    if _is_bounded and value > 0.99:
         return {
             "fired": True,
             "reason": f"{primary_metric}={value:.6f} suspiciously perfect (>0.99) — potential data leakage",
