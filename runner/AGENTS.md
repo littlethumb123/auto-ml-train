@@ -48,3 +48,31 @@ Update when:
 - A repeated surprise reveals a missing guardrail.
 - Post-G4 review identifies a rule that applies to future campaigns.
 - A contract mutation (C3) establishes a new invariant.
+
+## Development practices
+
+### Two modes of work
+
+1. **Harness development** — modifying `runner/`, `shared/`, `tests/`. Work on a feature branch, run the full test suite before merging. Never mix harness changes with campaign experiment commits.
+2. **Campaign execution** — running experiments inside `campaigns/<name>/`. Only `train.py` is modified. One commit per experiment. Discards use `git reset --hard HEAD~1`.
+
+### Harness dev rules
+
+- Always run `git diff --stat` before committing to verify you're only touching intended files.
+- One logical change per commit.
+- Run `python -m pytest tests/ -q` before pushing.
+- Never edit files inside `campaigns/*/contracts/` — those are campaign-locked.
+
+### Campaign execution rules
+
+- Create a campaign branch: `campaign/<campaign-id>`.
+- All paths in role prompts are **relative to the campaign directory**.
+- `runner/` is shared harness code — campaigns do not own it.
+- Each campaign maintains its own `contracts/`, `state/`, and `train.py`.
+- New campaigns: copy from `runner/campaign_template/`.
+
+### What NOT to do
+
+- Do not put campaign state in `runner/state/` — that directory is empty by design.
+- Do not hardcode `runner/contracts/` or `runner/state/` paths in role prompts — use campaign-relative `contracts/` and `state/`.
+- Do not mix harness commits with experiment commits on the same branch.

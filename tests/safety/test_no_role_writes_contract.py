@@ -1,4 +1,4 @@
-"""Invariant: no role is allowed to mutate runner/contracts/*.md (spec §1 Executor write scope)."""
+"""Invariant: no role is allowed to mutate contracts/*.md (spec §1 Executor write scope)."""
 from __future__ import annotations
 
 from pathlib import Path

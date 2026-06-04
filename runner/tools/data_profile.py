@@ -13,7 +13,7 @@ from runner.tools._common import EXIT_INTERNAL_ERROR, EXIT_OK, EXIT_USER_ERROR, 
 def data_profile(
     data_path: str,
     target_col: str,
-    output_md: str = "runner/contracts/_data_profile.md",
+    output_md: str = "contracts/_data_profile.md",
 ) -> dict:
     p = Path(data_path)
     if not p.exists():
@@ -90,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Data profile for a CSV.")
     p.add_argument("--data-path", required=True)
     p.add_argument("--target-col", required=True)
-    p.add_argument("--output-md", default="runner/contracts/_data_profile.md")
+    p.add_argument("--output-md", default="contracts/_data_profile.md")
     p.add_argument("--json", action="store_true", dest="json_output")
     args = p.parse_args(argv)
     try:

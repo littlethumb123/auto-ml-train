@@ -30,7 +30,7 @@ CLI (Planner / Reviewer inspection):
         --feature-set hybrid \\
         --method permutation \\
         --top-k 80 \\
-        --output-json runner/state/selected_features.json \\
+        --output-json state/selected_features.json \\
         --json
 """
 from __future__ import annotations

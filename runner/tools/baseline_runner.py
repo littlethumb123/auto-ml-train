@@ -57,7 +57,7 @@ def baseline_runner(
     eval_protocol_path: str,
     data_path: str,
     target_col: str,
-    output_path: str = "runner/state/_baseline.json",
+    output_path: str = "state/_baseline.json",
 ) -> dict[str, Any]:
     fm, _ = parse_frontmatter(Path(eval_protocol_path))
     metric_name = (fm.get("primary_metric") or {}).get("name", "pr_auc")
@@ -125,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--eval-protocol-path", required=True)
     p.add_argument("--data-path", required=True)
     p.add_argument("--target-col", required=True)
-    p.add_argument("--output-path", default="runner/state/_baseline.json")
+    p.add_argument("--output-path", default="state/_baseline.json")
     p.add_argument("--json", action="store_true", dest="json_output")
     args = p.parse_args(argv)
     try:

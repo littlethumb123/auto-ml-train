@@ -632,3 +632,29 @@ def test_review_finalize_tree_parent_is_best_so_far(campaign: Path):
     data = json.loads(tree_path.read_text())
     # 'b' should be a child of 'a' (best_so_far at time of 'b')
     assert data["nodes"]["b"]["parent_commit"] == "a"
+
+
+def test_get_campaign_status(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    status = runner_driver.get_campaign_status(campaign_dir=str(campaign))
+    assert status["round"] == 0
+    assert status["budget_used"] == 0
+    assert status["budget_total"] == 3
+    assert status["best_metric"] is None
+    assert status["historian_trigger_pending"] is False
+    assert status["consecutive_discards"] == 0
+    assert "next_role" in status
+
+
+def test_should_run_historian_false_initially(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    assert runner_driver.should_run_historian(campaign_dir=str(campaign)) is False
+
+
+def test_should_run_historian_true_when_pending(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    state_path = campaign / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    state["historian_trigger_pending"] = True
+    state_path.write_text(json.dumps(state, indent=2))
+    assert runner_driver.should_run_historian(campaign_dir=str(campaign)) is True

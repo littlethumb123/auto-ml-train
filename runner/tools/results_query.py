@@ -66,7 +66,7 @@ def results_query(
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Query runner/state/results.tsv.")
+    p = argparse.ArgumentParser(description="Query state/results.tsv.")
     p.add_argument("--filter", default="status != 'crash'", dest="filter_expr")
     p.add_argument("--order-by", default="val_pr_auc", help="Column to sort by (use primary metric name for the campaign)")
     p.add_argument("--limit", type=int, default=10)
