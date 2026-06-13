@@ -1,0 +1,15 @@
+output/data/
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
+*.egg-info/
+dist/
+build/
+.envrc
+*.parquet
+*.npz
+*.pkl
+.env
+coldstart/params/cohort_params.yaml
+coldstart/params/feature_params.yaml
+coldstart/compiled/

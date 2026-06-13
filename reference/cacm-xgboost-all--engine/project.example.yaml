@@ -1,0 +1,65 @@
+# XGBoost Clinical Prediction — Project Configuration
+# Copy to project.yaml and fill in your endpoint's details.
+# Run `/onboard` with Claude Code for an interactive setup.
+#
+# Section 1 (project)  — identity: name, prefix, owner
+# Section 2 (data)     — BQ table FQNs for features and outcomes
+# Section 3 (features) — pruning and leakage prevention
+# Section 4 (training) — XGBoost hyperparameters
+# Section 5 (tuning)   — Optuna HPO settings
+
+project:
+  name: "<endpoint name>"           # Human-readable, e.g. "CKD Stage 4 Progression"
+  prefix: "<prefix>"                # Short slug for output files, e.g. "xgb_ckd4"
+  owner: "<ntid>"                   # Your username — recorded in EXPERIMENTATION.md
+  costcenter: ""                    # Cost center for BQ table labels
+
+data:
+  gcp_project: "anbc-hcb-dev"
+
+  # Option A — single feature table:
+  feature_table: "<project>.<dataset>.<table>"
+
+  # Option B — multiple feature tables (joined on id_column during step 1):
+  # feature_tables:
+  #   - "<project>.<dataset>.<table_base>"
+  #   - "<project>.<dataset>.<table_ts>"
+
+  outcome_table: "<project>.<dataset>.<table>"
+  # BQ table with the outcome column. Set same as feature_table if outcome is already joined.
+
+  outcome_column: "outcome_flag"    # Binary outcome column (0/1)
+  id_column: "individual_id"        # Member ID column (join key)
+  index_date_column: "index_dt"     # Index date column (used for temporal ordering)
+
+features:
+  useful_threshold: 0.004           # Pass 2 pruning: drop columns with < 0.4% useful rows
+  top_n: 500                        # Number of features to select by XGBoost importance
+  force_keep_patterns: []           # Substring patterns to force-keep despite pruning
+  exclude_patterns:                 # Columns to exclude from model input (leakage prevention)
+    - "outcome_flag"
+  non_feature_columns:              # Columns that are never features (always dropped)
+    - "individual_id"
+    - "index_dt"
+    - "outcome_flag"
+
+training:
+  objective: "binary:logistic"
+  eval_metric: "auc"
+  tree_method: "hist"
+  device: "cuda"                    # "cuda" for GPU, "cpu" for CPU
+  max_depth: 4
+  learning_rate: 0.05
+  n_estimators: 500
+  colsample_bytree: 0.5
+  subsample: 0.8
+  scale_pos_weight: null            # null = not set; calculate as neg_count/pos_count after step 1
+  test_size: 0.2                    # Holdout fraction — NEVER touched until step 5
+  val_size: 0.2                     # Validation fraction — used in steps 3/3b/3c for eval
+  random_state: 42
+  smoke_test_n: 2000                # Quick sanity check sample size
+
+tuning:
+  n_trials: 100                     # Optuna trials (step 3b); more = better but slower
+  cv_folds: 5
+  timeout_seconds: 3600             # Hard stop at 1 hour
