@@ -259,3 +259,94 @@ class ExperimentTree:
 
         tree.root = tree._index.get("ROOT", _make_node("ROOT", None))
         return tree
+
+    @classmethod
+    def rebuild_from_results(
+        cls,
+        results_tsv_path: Path,
+        primary_metric: str,
+        direction: str = "maximize",
+    ) -> tuple[ExperimentTree, bool]:
+        """Reconstruct an ExperimentTree from a TSV history (F5).
+
+        Walks results.tsv in row order, parenting each row to the running-best
+        commit at the time it appeared. Used to restore UCB1 history after a
+        tree wipe or fresh init on top of existing results.
+
+        Args:
+            results_tsv_path: Path to state/results.tsv.
+            primary_metric: Column name of the primary metric (from EVAL_PROTOCOL).
+            direction: "maximize" or "minimize".
+
+        Returns:
+            (tree, degraded) — degraded=True if action_type column was missing
+            from the TSV header (older schemas) and every node was assigned
+            strategy_class="unknown".
+        """
+        tree = cls()
+        degraded = False
+        if not results_tsv_path.exists():
+            return tree, degraded
+
+        text = results_tsv_path.read_text(encoding="utf-8")
+        lines = [ln for ln in text.splitlines() if ln.strip()]
+        if len(lines) < 2:
+            return tree, degraded
+
+        header = lines[0].split("\t")
+        try:
+            commit_idx = header.index("commit")
+        except ValueError:
+            return tree, degraded
+
+        status_idx = header.index("status") if "status" in header else None
+        action_idx = header.index("action_type") if "action_type" in header else None
+        metric_idx = header.index(primary_metric) if primary_metric in header else None
+        if action_idx is None:
+            degraded = True
+
+        running_best_commit: str = "ROOT"
+        running_best_metric: float = float("-inf") if direction == "maximize" else float("inf")
+
+        def _improves(new_val: float) -> bool:
+            if direction == "maximize":
+                return new_val > running_best_metric
+            return new_val < running_best_metric
+
+        for raw in lines[1:]:
+            cols = raw.split("\t")
+            if len(cols) <= commit_idx:
+                continue
+            commit = cols[commit_idx].strip()
+            if not commit:
+                continue
+
+            verdict = cols[status_idx].strip() if status_idx is not None and len(cols) > status_idx else ""
+            strategy_class = (
+                cols[action_idx].strip()
+                if action_idx is not None and len(cols) > action_idx
+                else "unknown"
+            )
+            if not strategy_class:
+                strategy_class = "unknown"
+
+            metric_value: float | None = None
+            if metric_idx is not None and len(cols) > metric_idx:
+                try:
+                    metric_value = float(cols[metric_idx])
+                except (ValueError, TypeError):
+                    metric_value = None
+
+            tree.add_experiment(
+                commit=commit,
+                parent_commit=running_best_commit,
+                strategy_class=strategy_class,
+                metric_value=metric_value,
+                verdict=verdict,
+            )
+
+            if verdict == "keep" and metric_value is not None and _improves(metric_value):
+                running_best_metric = metric_value
+                running_best_commit = commit
+
+        return tree, degraded

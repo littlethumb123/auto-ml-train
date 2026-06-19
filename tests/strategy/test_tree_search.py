@@ -141,3 +141,92 @@ class TestExperimentTree:
         assert "diminishing_returns" in ctx
         assert "best_branch_point" in ctx
         assert "strategy_stats" in ctx
+
+
+# --- F5 rebuild_from_results tests ---
+
+
+def _write_tsv(path: Path, header: list[str], rows: list[list[str]]) -> None:
+    path.write_text("\t".join(header) + "\n" + "\n".join("\t".join(r) for r in rows) + "\n")
+
+
+def test_rebuild_from_results_basic_lineage(tmp_path: Path):
+    """3 keeps + 2 discards in known order — discards parent to running best, keeps chain."""
+    tsv = tmp_path / "results.tsv"
+    header = ["commit", "val_pr_auc", "status", "action_type"]
+    rows = [
+        ["c1", "0.80", "keep", "A_model"],     # parent ROOT, becomes best
+        ["c2", "0.75", "discard", "A_hp"],     # parent c1
+        ["c3", "0.85", "keep", "A_hp"],        # parent c1, becomes best
+        ["c4", "0.82", "discard", "A_feature"],# parent c3
+        ["c5", "0.90", "keep", "A_ensemble"],  # parent c3, becomes best
+    ]
+    _write_tsv(tsv, header, rows)
+    tree, degraded = ExperimentTree.rebuild_from_results(tsv, primary_metric="val_pr_auc")
+    assert not degraded
+    assert tree.get_node("c1")["parent_commit"] == "ROOT"
+    assert tree.get_node("c2")["parent_commit"] == "c1"
+    assert tree.get_node("c3")["parent_commit"] == "c1"
+    assert tree.get_node("c4")["parent_commit"] == "c3"
+    assert tree.get_node("c5")["parent_commit"] == "c3"
+    assert tree.get_node("c1")["strategy_class"] == "A_model"
+    assert tree.get_node("c5")["verdict"] == "keep"
+    assert tree.get_best_branch_point() == "c5"
+
+
+def test_rebuild_from_results_minimize_direction(tmp_path: Path):
+    """Running-best updates correctly when direction=minimize."""
+    tsv = tmp_path / "results.tsv"
+    header = ["commit", "val_loss", "status", "action_type"]
+    rows = [
+        ["c1", "0.50", "keep", "A_model"],   # parent ROOT, best=0.50
+        ["c2", "0.40", "keep", "A_hp"],      # parent c1, best=0.40
+        ["c3", "0.45", "keep", "A_hp"],      # parent c2 (0.45 > 0.40, no update)
+    ]
+    _write_tsv(tsv, header, rows)
+    tree, _ = ExperimentTree.rebuild_from_results(
+        tsv, primary_metric="val_loss", direction="minimize"
+    )
+    assert tree.get_node("c2")["parent_commit"] == "c1"
+    assert tree.get_node("c3")["parent_commit"] == "c2"
+    # Note: get_best_branch_point() itself does not respect direction (pre-existing
+    # limitation, unrelated to F5). The parent-chain semantics under minimize are
+    # what F5 verifies here.
+
+
+def test_rebuild_degraded_when_action_type_missing(tmp_path: Path):
+    """TSV without action_type → all nodes get strategy_class='unknown', degraded=True."""
+    tsv = tmp_path / "results.tsv"
+    header = ["commit", "val_pr_auc", "status"]
+    rows = [
+        ["c1", "0.80", "keep"],
+        ["c2", "0.75", "discard"],
+    ]
+    _write_tsv(tsv, header, rows)
+    tree, degraded = ExperimentTree.rebuild_from_results(tsv, primary_metric="val_pr_auc")
+    assert degraded is True
+    assert tree.get_node("c1")["strategy_class"] == "unknown"
+    assert tree.get_node("c2")["strategy_class"] == "unknown"
+
+
+def test_rebuild_handles_unparseable_metric(tmp_path: Path):
+    """Rows with non-numeric metric values → metric_value=None, no crash."""
+    tsv = tmp_path / "results.tsv"
+    header = ["commit", "val_pr_auc", "status", "action_type"]
+    rows = [
+        ["c1", "n/a", "discard", "A_model"],
+        ["c2", "0.80", "keep", "A_hp"],
+    ]
+    _write_tsv(tsv, header, rows)
+    tree, _ = ExperimentTree.rebuild_from_results(tsv, primary_metric="val_pr_auc")
+    assert tree.get_node("c1")["metric_value"] is None
+    assert tree.get_node("c2")["metric_value"] == 0.80
+
+
+def test_rebuild_empty_tsv_returns_empty_tree(tmp_path: Path):
+    """Header-only TSV → tree with just ROOT, no degradation flag set."""
+    tsv = tmp_path / "results.tsv"
+    tsv.write_text("commit\tval_pr_auc\tstatus\taction_type\n")
+    tree, degraded = ExperimentTree.rebuild_from_results(tsv, primary_metric="val_pr_auc")
+    assert len(tree.get_all_experiments()) == 0
+    assert degraded is False

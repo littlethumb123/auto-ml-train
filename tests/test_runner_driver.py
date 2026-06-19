@@ -681,6 +681,67 @@ def test_init_creates_experiment_tree(campaign: Path):
     assert "ROOT" in data["nodes"]
 
 
+def test_init_rebuilds_tree_when_results_present_and_tree_missing(campaign: Path):
+    """F5: if results.tsv has rows but EXPERIMENT_TREE.json is missing, init rebuilds."""
+    # Bootstrap once to get the results.tsv header.
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    results_path = campaign / "state" / "results.tsv"
+    tree_path = campaign / "state" / "EXPERIMENT_TREE.json"
+    header = results_path.read_text().rstrip("\n")
+    # Append three rows with the legacy schema columns.
+    extra_rows = "\n".join([
+        "\t".join(["c1", "0.80", "5.0", "0.8", "0.7", "keep", "10", "lightgbm", "A_model", "h1", "d1", "0", "0", "0", "0", "0"]),
+        "\t".join(["c2", "0.78", "5.0", "0.8", "0.7", "discard", "10", "lightgbm", "A_hp", "h2", "d2", "0", "0", "0", "0", "0"]),
+        "\t".join(["c3", "0.85", "5.0", "0.8", "0.7", "keep", "10", "lightgbm", "A_hp", "h3", "d3", "0", "0", "0", "0", "0"]),
+    ])
+    results_path.write_text(header + "\n" + extra_rows + "\n")
+    # Wipe the tree file.
+    tree_path.unlink()
+    # Re-init — expected to rebuild.
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    data = json.loads(tree_path.read_text())
+    assert "c1" in data["nodes"]
+    assert "c2" in data["nodes"]
+    assert "c3" in data["nodes"]
+    # c2 (discard) parents to c1 (running best at the time).
+    assert data["nodes"]["c2"]["parent_commit"] == "c1"
+    # c3 (keep, improves) parents to c1 (running best at row time).
+    assert data["nodes"]["c3"]["parent_commit"] == "c1"
+
+
+def test_init_does_not_rebuild_when_tree_already_populated(campaign: Path):
+    """F5: if EXPERIMENT_TREE.json has nodes, init leaves it alone."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    tree_path = campaign / "state" / "EXPERIMENT_TREE.json"
+    # Pre-populate with a sentinel node.
+    data = json.loads(tree_path.read_text())
+    data["nodes"]["sentinel"] = {
+        "commit": "sentinel", "parent_commit": "ROOT", "strategy_class": "A_model",
+        "metric_value": 0.99, "verdict": "keep", "children": [],
+    }
+    tree_path.write_text(json.dumps(data) + "\n")
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    data_after = json.loads(tree_path.read_text())
+    assert "sentinel" in data_after["nodes"]
+
+
+def test_init_emits_tree_rebuilt_event(campaign: Path):
+    """F5: tree_rebuilt event lands in driver_events.jsonl after a rebuild."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    results_path = campaign / "state" / "results.tsv"
+    tree_path = campaign / "state" / "EXPERIMENT_TREE.json"
+    header = results_path.read_text().rstrip("\n")
+    row = "\t".join(["c1", "0.80", "5.0", "0.8", "0.7", "keep", "10", "lightgbm", "A_model", "h", "d", "0", "0", "0", "0", "0"])
+    results_path.write_text(header + "\n" + row + "\n")
+    tree_path.unlink()
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    events = (campaign / "state" / "driver_events.jsonl").read_text().splitlines()
+    rebuilt = [json.loads(e) for e in events if json.loads(e).get("event") == "tree_rebuilt"]
+    assert len(rebuilt) == 1
+    assert rebuilt[0]["node_count"] >= 2  # ROOT + c1
+    assert rebuilt[0]["degraded"] is False
+
+
 def test_review_finalize_keep_updates_experiment_tree(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
     runner_driver.review_finalize(

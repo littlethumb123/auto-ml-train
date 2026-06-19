@@ -347,13 +347,53 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     if not cj_path.exists():
         cj_path.write_text(_campaign_journal_skeleton(state["campaign_id"]))
 
-    # Create experiment tree for tree-search exploration/exploitation
+    # Create experiment tree for tree-search exploration/exploitation.
+    # F5: rebuild from results.tsv when the tree is missing or empty so UCB1
+    # history is preserved across restarts and wipes.
     tree_path = state_dir / "EXPERIMENT_TREE.json"
-    if not tree_path.exists():
-        tree = ExperimentTree()
+    pm = (eval_fm.get("primary_metric") or {})
+    metric_name = pm.get("name", "val_pr_auc")
+    direction = pm.get("direction", "maximize")
+    if _tree_needs_rebuild(tree_path) and _results_has_data_rows(results):
+        tree, degraded = ExperimentTree.rebuild_from_results(
+            results_tsv_path=results,
+            primary_metric=metric_name,
+            direction=direction,
+        )
         tree.save(tree_path)
+        _emit_event(campaign_dir, "tree_rebuilt", {
+            "node_count": len(tree._index),
+            "degraded": degraded,
+            "primary_metric": metric_name,
+        })
+    elif not tree_path.exists():
+        ExperimentTree().save(tree_path)
 
     return state
+
+
+def _tree_needs_rebuild(tree_path: Path) -> bool:
+    """True if the tree file is missing or contains only ROOT (or is unreadable)."""
+    if not tree_path.exists():
+        return True
+    try:
+        data = json.loads(tree_path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return True
+    nodes = data.get("nodes", {})
+    return len(nodes) <= 1
+
+
+def _results_has_data_rows(results_path: Path) -> bool:
+    """True if results.tsv has at least one data row (more than just the header)."""
+    if not results_path.exists():
+        return False
+    try:
+        with open(results_path, "r") as f:
+            f.readline()  # header
+            return bool(f.readline().strip())
+    except OSError:
+        return False
 
 
 def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
