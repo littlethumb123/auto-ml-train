@@ -641,6 +641,99 @@ def historian_run(campaign_dir: str = "runner/") -> dict[str, Any]:
     }
 
 
+def _file_mtime_iso(path: Path) -> str | None:
+    """Return the file's mtime as ISO-Z string, or None if absent."""
+    if not path.exists():
+        return None
+    return _dt.datetime.fromtimestamp(
+        path.stat().st_mtime, tz=_dt.timezone.utc
+    ).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _verify_reviewer_artifacts(
+    camp: Path,
+    new_round: int,
+    verdict: str,
+    reviewer_tokens: int,
+    round_started_at: str | None,
+) -> tuple[bool, str]:
+    """F2 assertion: verify the Reviewer's mandatory writes happened this round.
+
+    Skipped when ``round_started_at`` is None (un-anchored round — legacy mode).
+    Otherwise checks that CAMPAIGN_JOURNAL, REVIEW.md, and (on keep) the
+    ASSUMPTION_REGISTER were appended after round_started_at and contain a
+    Round-N heading. Soft heuristic: reviewer_tokens == 0 with all writes
+    missing is the round2 stub-mode signature.
+
+    Returns (ok, reason). Empty reason when ok.
+    """
+    if not round_started_at:
+        return True, ""
+    if verdict not in ("keep", "discard"):
+        return True, ""
+
+    journal_path = camp / "state" / "CAMPAIGN_JOURNAL.md"
+    review_path = camp / "state" / "REVIEW.md"
+    register_path = camp / "state" / "ASSUMPTION_REGISTER.md"
+
+    failed: list[str] = []
+
+    journal_mtime = _file_mtime_iso(journal_path)
+    journal_text = journal_path.read_text() if journal_path.exists() else ""
+    journal_has_round = (
+        f"## Round {new_round}" in journal_text
+        or journal_text.find(f"## Round {new_round}\n") != -1
+        or journal_text.find(f"## Round {new_round} ") != -1
+    )
+    journal_ok = (
+        journal_mtime is not None
+        and journal_mtime >= round_started_at
+        and journal_has_round
+    )
+    if not journal_ok:
+        failed.append(f"CAMPAIGN_JOURNAL.md missing 'Round {new_round}' entry since {round_started_at}")
+
+    review_mtime = _file_mtime_iso(review_path)
+    review_text = review_path.read_text() if review_path.exists() else ""
+    # REVIEW.md frontmatter is updated by the driver itself (regex), so a fresh
+    # mtime alone is not sufficient. Require a Round-N heading in the body.
+    review_has_round = f"## Round {new_round}" in review_text
+    review_ok = (
+        review_mtime is not None
+        and review_mtime >= round_started_at
+        and review_has_round
+    )
+    if not review_ok:
+        failed.append(f"REVIEW.md missing 'Round {new_round}' body block since {round_started_at}")
+
+    if verdict == "keep":
+        register_mtime = _file_mtime_iso(register_path)
+        register_text = register_path.read_text() if register_path.exists() else ""
+        register_has_entry = f"### A-{new_round}-" in register_text
+        register_ok = (
+            register_mtime is not None
+            and register_mtime >= round_started_at
+            and register_has_entry
+        )
+        if not register_ok:
+            failed.append(
+                f"ASSUMPTION_REGISTER.md missing 'A-{new_round}-' entry since {round_started_at}"
+            )
+
+    if not failed:
+        return True, ""
+
+    # The "all writes missing" signature is the round2 stub-mode pathology.
+    # Tag it explicitly when every required write was absent so post-mortem
+    # analysis can distinguish a partial Reviewer (e.g. wrote journal but
+    # forgot the assumption entry) from a wholly-skipped Reviewer.
+    expected = 3 if verdict == "keep" else 2
+    if len(failed) >= expected:
+        return False, "reviewer_artifacts_all_missing: " + "; ".join(failed)
+
+    return False, "reviewer_artifacts_missing: " + "; ".join(failed)
+
+
 _HISTORIAN_REQUIRED_SECTIONS = (
     "## 1. Trajectory Narrative",
     "## 2. Pattern Extraction",
@@ -942,6 +1035,34 @@ def review_finalize(
         executor_tokens=executor_tokens,
         reviewer_tokens=reviewer_tokens,
     )
+
+    # F2: assert the Reviewer's mandatory writes happened this round. Only
+    # runs when the round is anchored (round_started_at set by plan_check).
+    # New round number = state.round + 1 since the increment happens inside
+    # log.append_result() below.
+    reviewer_check_reason = ""
+    if verdict in ("keep", "discard"):
+        new_round = int(state.get("round", 0)) + 1
+        reviewer_ok, reviewer_check_reason = _verify_reviewer_artifacts(
+            camp=camp,
+            new_round=new_round,
+            verdict=verdict,
+            reviewer_tokens=reviewer_tokens,
+            round_started_at=state.get("round_started_at"),
+        )
+        if not reviewer_ok:
+            verdict = "malformed"
+            mandatory_gate_reason = (
+                mandatory_gate_reason + " | " + reviewer_check_reason
+                if mandatory_gate_reason
+                else reviewer_check_reason
+            )
+            _emit_event(campaign_dir, "reviewer_artifacts_missing", {
+                "round_about_to_be": new_round,
+                "reason": reviewer_check_reason,
+                "reviewer_tokens": reviewer_tokens,
+                "round_started_at": state.get("round_started_at"),
+            })
 
     log.append_result(
         commit=commit if commit else "none",

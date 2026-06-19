@@ -74,11 +74,12 @@ def test_happy_three_rounds(campaign: Path):
         )
         assert exec_status["channel"] == "RUN_COMPLETE"
 
-        # F3: emit a tool_run receipt after plan_check stamped round_started_at
-        # so keep verdicts pass the receipt cross-check.
+        # F3: emit a tool_run receipt for keep verdicts. F2: simulate the
+        # Reviewer's mandatory writes (journal/review/assumption_register).
+        state_now = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+        anchor_now = state_now["round_started_at"]
+        new_round = int(state_now.get("round", 0)) + 1
         if verdict == "keep":
-            state_now = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
-            anchor_now = state_now["round_started_at"]
             rec = {
                 "ts": anchor_now, "event": "tool_run", "name": "runner.tools.anomaly",
                 "start_ts": anchor_now, "end_ts": anchor_now, "exit_code": 0,
@@ -87,6 +88,8 @@ def test_happy_three_rounds(campaign: Path):
             }
             with open(campaign / "state" / "driver_events.jsonl", "a") as f:
                 f.write(json.dumps(rec, sort_keys=True) + "\n")
+        from tests.conftest import simulate_reviewer_writes
+        simulate_reviewer_writes(campaign, new_round=new_round, verdict=verdict)
 
         res = runner_driver.review_finalize(
             verdict=verdict,

@@ -605,6 +605,170 @@ def test_review_finalize_adversarial_replay_fails(campaign: Path):
     assert any(json.loads(e).get("event") == "tools_ran_unverified" for e in events)
 
 
+# --- F2: review_finalize reviewer-artifacts assertion ---
+
+
+def test_review_finalize_rejects_keep_when_journal_unchanged(campaign: Path):
+    """F2: anchored round but no CAMPAIGN_JOURNAL Round-N entry → malformed."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # Anchor with receipts but skip the reviewer-writes simulation.
+    _anchor_round_with_receipts(
+        campaign, ["tools/anomaly.py"], include_reviewer_writes=False
+    )
+    res = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert res["verdict"] == "malformed"
+    events = (campaign / "state" / "driver_events.jsonl").read_text().splitlines()
+    assert any(
+        json.loads(e).get("event") == "reviewer_artifacts_missing" for e in events
+    )
+
+
+def test_review_finalize_rejects_keep_when_review_md_body_unchanged(campaign: Path):
+    """F2: REVIEW.md only frontmatter updated (no Round-N body) → malformed."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(
+        campaign, ["tools/anomaly.py"], include_reviewer_writes=False
+    )
+    # Simulate the journal entry only — leave REVIEW.md without a body block.
+    new_round = (
+        json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())["round"] + 1
+    )
+    (campaign / "state" / "CAMPAIGN_JOURNAL.md").write_text(
+        f"---\nschema_version: 1\n---\n\n## Round {new_round}\nx\n"
+    )
+    res = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert res["verdict"] == "malformed"
+
+
+def test_review_finalize_rejects_keep_when_assumption_register_count_unchanged(campaign: Path):
+    """F2: keep requires a new A-N- entry in ASSUMPTION_REGISTER → malformed if absent."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(
+        campaign, ["tools/anomaly.py"], include_reviewer_writes=False
+    )
+    new_round = (
+        json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())["round"] + 1
+    )
+    # Provide journal + review but no assumption entry.
+    (campaign / "state" / "CAMPAIGN_JOURNAL.md").write_text(
+        f"---\nschema_version: 1\n---\n\n## Round {new_round}\nx\n"
+    )
+    (campaign / "state" / "REVIEW.md").write_text(
+        f"---\nschema_version: 1\n---\n\n## Round {new_round}\nbody\n"
+    )
+    res = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert res["verdict"] == "malformed"
+
+
+def test_review_finalize_accepts_keep_when_all_artifacts_appended(campaign: Path):
+    """F2: full happy path — anchor + receipts + journal + review + assumption → keep stays."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])  # bundles writes
+    res = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert res["verdict"] == "keep"
+
+
+def test_review_finalize_rejects_discard_when_journal_unchanged(campaign: Path):
+    """F2: discard verdicts also require a CAMPAIGN_JOURNAL Round-N entry."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # Anchor with receipts but no writes — discard verdicts skip the F3
+    # receipt check, but F2 still requires journal + review.
+    _anchor_round_with_receipts(
+        campaign, ["tools/anomaly.py"], include_reviewer_writes=False
+    )
+    res = runner_driver.review_finalize(
+        verdict="discard", commit="bad",
+        metrics={"val_pr_auc": 0.40, "lift_at_10": 0, "macro_f1": 0, "val_f1": 0},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+    )
+    assert res["verdict"] == "malformed"
+
+
+def test_review_finalize_all_writes_missing_is_stub_mode(campaign: Path):
+    """F2: when every required write is missing → tag with reviewer_artifacts_all_missing."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(
+        campaign, ["tools/anomaly.py"], include_reviewer_writes=False
+    )
+    res = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert res["verdict"] == "malformed"
+    events = (campaign / "state" / "driver_events.jsonl").read_text().splitlines()
+    rs_event = [
+        json.loads(e) for e in events
+        if json.loads(e).get("event") == "reviewer_artifacts_missing"
+    ]
+    assert len(rs_event) >= 1
+    assert "reviewer_artifacts_all_missing" in rs_event[0]["reason"]
+
+
+def test_review_finalize_anomaly_skips_artifact_check(campaign: Path):
+    """F2: anomaly verdicts bypass the artifact check (handled by C1 escalation)."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(
+        campaign, ["tools/anomaly.py"], include_reviewer_writes=False
+    )
+    res = runner_driver.review_finalize(
+        verdict="anomaly", commit="a1",
+        metrics={"val_pr_auc": 0.99, "lift_at_10": 0, "macro_f1": 0, "val_f1": 0},
+        action_type="A_diagnose", hypothesis="anom", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+    )
+    assert res["verdict"] == "anomaly"
+    assert res["pause_loop"] is True
+
+
+def test_review_finalize_skips_artifact_check_when_round_unanchored(campaign: Path):
+    """F2: legacy mode — round_started_at unset → no artifact requirement."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # No anchor, no writes — keep with mandatory tools still works in legacy mode.
+    res = runner_driver.review_finalize(
+        verdict="discard", commit="d1",
+        metrics={"val_pr_auc": 0.40, "lift_at_10": 0, "macro_f1": 0, "val_f1": 0},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+    )
+    assert res["verdict"] == "discard"
+
+
 def test_tool_run_wrapper_emits_receipt(campaign: Path, monkeypatch):
     """F3: runner.tools.run.execute emits a tool_run event with the expected fields."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
@@ -976,7 +1140,7 @@ def test_review_finalize_keep_updates_experiment_tree(campaign: Path):
 
 def test_review_finalize_discard_updates_experiment_tree(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
-    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])  # round 1
     # First: a keep to establish baseline
     runner_driver.review_finalize(
         verdict="keep", commit="base",
@@ -985,7 +1149,10 @@ def test_review_finalize_discard_updates_experiment_tree(campaign: Path):
         model_family="lightgbm", n_features=10,
         campaign_dir=str(campaign), tools_ran=["tools/anomaly.py"],
     )
-    # Second: a discard
+    # Second: a discard — re-anchor for round 2 with discard-mode writes
+    _anchor_round_with_receipts(
+        campaign, ["tools/anomaly.py"], verdict_for_writes="discard"
+    )
     runner_driver.review_finalize(
         verdict="discard", commit="bad",
         metrics={"val_pr_auc": 0.75, "lift_at_10": 3.0, "macro_f1": 0.7, "val_f1": 0.6},
@@ -1001,7 +1168,7 @@ def test_review_finalize_discard_updates_experiment_tree(campaign: Path):
 
 def test_review_finalize_tree_parent_is_best_so_far(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
-    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])  # round 1
     # Keep 'a' as baseline
     runner_driver.review_finalize(
         verdict="keep", commit="a",
@@ -1010,7 +1177,8 @@ def test_review_finalize_tree_parent_is_best_so_far(campaign: Path):
         model_family="lightgbm", n_features=10,
         campaign_dir=str(campaign), tools_ran=["tools/anomaly.py"],
     )
-    # Keep 'b' as improvement
+    # Keep 'b' as improvement — re-anchor for round 2
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep", commit="b",
         metrics={"val_pr_auc": 0.85, "lift_at_10": 6.0, "macro_f1": 0.85, "val_f1": 0.8},

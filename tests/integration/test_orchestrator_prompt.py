@@ -91,14 +91,13 @@ def test_full_round_driver_chain(campaign: Path):
     check = runner_driver.plan_check(campaign_dir=cd)
     assert check["status"] == "ok", check["errors"]
 
-    # 5b. Emit receipts for the mandatory tools (F3 contract).
-    from tests.conftest import anchor_round_with_receipts as _anchor
-    # plan_check already stamped round_started_at — only emit receipts here so
-    # they fall after the anchor.
+    # 5b. Emit receipts for the mandatory tools (F3 contract) and simulate
+    # the Reviewer's required writes (F2 contract).
     import json as _json
     state_path = campaign / "state" / "CAMPAIGN_STATE.json"
     state_now = _json.loads(state_path.read_text())
     anchor_now = state_now["round_started_at"]
+    new_round = int(state_now.get("round", 0)) + 1
     events = campaign / "state" / "driver_events.jsonl"
     rec = {
         "ts": anchor_now, "event": "tool_run", "name": "runner.tools.anomaly",
@@ -108,6 +107,8 @@ def test_full_round_driver_chain(campaign: Path):
     }
     with open(events, "a") as f:
         f.write(_json.dumps(rec, sort_keys=True) + "\n")
+    from tests.conftest import simulate_reviewer_writes
+    simulate_reviewer_writes(campaign, new_round=new_round, verdict="keep")
 
     # 6. Execute finalize
     exec_result = runner_driver.execute_finalize(

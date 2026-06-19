@@ -36,12 +36,12 @@ def test_run_round_review_finalize_bootstrap_se_via_shell(tmp_path: Path):
         text=True,
         check=True,
     )
-    # F3: stamp round_started_at and emit a tool_run receipt directly so the
-    # keep verdict below passes the receipt cross-check (no plan_check called
-    # in this shell-flow test).
+    # F3+F2: stamp round_started_at, emit a tool_run receipt, and simulate
+    # the Reviewer's mandatory writes for round 1 (no plan_check called in
+    # this shell-flow test).
     import datetime as _dt
     from tests.conftest import anchor_round_with_receipts as _anchor
-    _anchor(runner, ["tools/anomaly.py"])
+    _anchor(runner, ["tools/anomaly.py"])  # round 1 (keep)
 
     subprocess.run(
         [
@@ -75,6 +75,8 @@ def test_run_round_review_finalize_bootstrap_se_via_shell(tmp_path: Path):
         text=True,
         check=True,
     )
+    # F3+F2: re-anchor for round 2 (the upcoming discard).
+    _anchor(runner, ["tools/anomaly.py"], verdict_for_writes="discard")
     out2 = subprocess.run(
         [
             str(sh),

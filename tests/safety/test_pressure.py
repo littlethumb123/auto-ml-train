@@ -35,9 +35,10 @@ class TestBudgetExhaustion:
     def test_halt_when_budget_exhausted_on_keep(self, campaign: Path):
         """Driver halts even on a keep verdict when budget is used up."""
         runner_driver.init_campaign(campaign_dir=str(campaign))
-        _anchor(campaign, ["tools/anomaly.py"])
         # Budget is max_experiments=3 in the test EVAL_PROTOCOL
         for i in range(3):
+            # Re-anchor each round so F2/F3 see fresh artifacts/receipts.
+            _anchor(campaign, ["tools/anomaly.py"])
             res = runner_driver.review_finalize(
                 verdict="keep",
                 commit=f"c{i}",

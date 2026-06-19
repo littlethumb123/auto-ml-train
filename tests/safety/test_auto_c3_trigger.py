@@ -30,7 +30,7 @@ def campaign(tmp_path: Path) -> Path:
 
 def test_c3_advisory_emitted_when_gap_within_noise(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
-    _anchor(campaign, ["tools/anomaly.py"])
+    _anchor(campaign, ["tools/anomaly.py"])  # round 1 keep
     runner_driver.review_finalize(
         verdict="keep",
         commit="c1",
@@ -43,6 +43,7 @@ def test_c3_advisory_emitted_when_gap_within_noise(campaign: Path):
         campaign_dir=str(campaign),
         tools_ran=["tools/anomaly.py"],
     )
+    _anchor(campaign, ["tools/anomaly.py"], verdict_for_writes="discard")  # round 2 discard
     res = runner_driver.review_finalize(
         verdict="discard",
         commit="c2",

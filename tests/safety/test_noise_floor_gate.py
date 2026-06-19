@@ -26,7 +26,7 @@ def campaign(tmp_path: Path) -> Path:
 def test_keep_overridden_when_delta_below_noise_floor(campaign: Path):
     """GAP 7: If delta < noise_floor, reviewer 'keep' is mechanically overridden to 'discard'."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
-    _anchor(campaign, ["tools/anomaly.py"])
+    _anchor(campaign, ["tools/anomaly.py"])  # round 1 anchor + writes
 
     # First experiment establishes a baseline
     res1 = runner_driver.review_finalize(
@@ -44,6 +44,9 @@ def test_keep_overridden_when_delta_below_noise_floor(campaign: Path):
     assert res1["verdict"] == "keep"
 
     # Second experiment: improvement = 0.002, below noise_floor=0.005
+    # Note: the driver flips this to discard; F2 still requires journal entry
+    # for the discard. Re-anchor for round 2 — discard variant.
+    _anchor(campaign, ["tools/anomaly.py"], verdict_for_writes="discard")
     res2 = runner_driver.review_finalize(
         verdict="keep",
         commit="c2",
@@ -63,7 +66,7 @@ def test_keep_overridden_when_delta_below_noise_floor(campaign: Path):
 def test_keep_allowed_when_delta_above_noise_floor(campaign: Path):
     """Keep should not be overridden when delta >= noise_floor."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
-    _anchor(campaign, ["tools/anomaly.py"])
+    _anchor(campaign, ["tools/anomaly.py"])  # round 1
 
     res1 = runner_driver.review_finalize(
         verdict="keep",
@@ -80,6 +83,7 @@ def test_keep_allowed_when_delta_above_noise_floor(campaign: Path):
     assert res1["verdict"] == "keep"
 
     # Second experiment: improvement = 0.01, above noise_floor=0.005
+    _anchor(campaign, ["tools/anomaly.py"])  # round 2 anchor + writes
     res2 = runner_driver.review_finalize(
         verdict="keep",
         commit="c2",

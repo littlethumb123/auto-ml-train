@@ -48,14 +48,64 @@ def write_valid_strategy_memo(
     return memo_path
 
 
-def anchor_round_with_receipts(campaign: Path, tools: list[str]) -> str:
+def simulate_reviewer_writes(
+    campaign: Path,
+    new_round: int,
+    verdict: str = "keep",
+) -> None:
+    """Append the artifacts F2 expects: CAMPAIGN_JOURNAL Round N entry,
+    REVIEW.md Round N body, and (on keep) an A-N-1 assumption entry.
+
+    Used by tests that exercise a successful keep/discard verdict under
+    review_finalize after an anchor has been stamped.
+    """
+    state_dir = campaign / "state"
+
+    journal = state_dir / "CAMPAIGN_JOURNAL.md"
+    journal_text = journal.read_text() if journal.exists() else "---\nschema_version: 1\n---\n"
+    journal.write_text(
+        journal_text
+        + f"\n## Round {new_round} — 2026-06-19\n\n**Verdict:** {verdict}\n"
+    )
+
+    review = state_dir / "REVIEW.md"
+    review_text = review.read_text() if review.exists() else (
+        "---\nschema_version: 1\nlast_verdict: null\nlast_round: 0\n---\n"
+    )
+    review.write_text(
+        review_text + f"\n## Round {new_round} — review block\n"
+        "Independent assessment, plan comparison, verdict rationale.\n"
+    )
+
+    if verdict == "keep":
+        register = state_dir / "ASSUMPTION_REGISTER.md"
+        register_text = register.read_text() if register.exists() else (
+            "---\nschema_version: 1\ncount: 0\n---\n"
+        )
+        register.write_text(
+            register_text + f"\n### A-{new_round}-1 — generated assumption\n"
+            "- **Claim:** the simulated assumption holds.\n"
+            "- **Confidence:** medium\n"
+        )
+
+
+def anchor_round_with_receipts(
+    campaign: Path,
+    tools: list[str],
+    include_reviewer_writes: bool = True,
+    verdict_for_writes: str = "keep",
+) -> str:
     """Stamp round_started_at and emit tool_run receipts (F3 test helper).
 
-    Tests that exercise review_finalize with verdict=keep need to satisfy the
-    F3 receipt cross-check. This helper:
+    Tests that exercise review_finalize with verdict=keep need to satisfy
+    both F3 (receipts since round_started_at) and F2 (reviewer artifacts
+    appended since round_started_at). By default, this helper sets up both:
       1. Stamps state.round_started_at to "now".
-      2. Appends one tool_run event per named tool to driver_events.jsonl with
-         exit_code=0 and start_ts/end_ts at "now".
+      2. Appends one tool_run event per named tool to driver_events.jsonl
+         with exit_code=0 and start_ts/end_ts at "now".
+      3. Simulates the Reviewer's CAMPAIGN_JOURNAL/REVIEW.md/ASSUMPTION_REGISTER
+         writes for the next round (override with include_reviewer_writes=False
+         when the test wants F2 rejection).
 
     Returns the anchor timestamp.
     """
@@ -81,6 +131,9 @@ def anchor_round_with_receipts(campaign: Path, tools: list[str]) -> str:
                 "campaign_dir": str(campaign),
             }
             f.write(json.dumps(rec, sort_keys=True) + "\n")
+    if include_reviewer_writes:
+        new_round = int(state.get("round", 0)) + 1
+        simulate_reviewer_writes(campaign, new_round=new_round, verdict=verdict_for_writes)
     return anchor
 
 
