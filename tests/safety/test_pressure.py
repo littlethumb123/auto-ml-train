@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from runner import runner_driver
+from tests.conftest import anchor_round_with_receipts as _anchor
 from tests.test_runner_driver import PROBLEM_CONTRACT, DATA_CONTRACT, EVAL_PROTOCOL
 
 pytestmark = pytest.mark.safety
@@ -34,6 +35,7 @@ class TestBudgetExhaustion:
     def test_halt_when_budget_exhausted_on_keep(self, campaign: Path):
         """Driver halts even on a keep verdict when budget is used up."""
         runner_driver.init_campaign(campaign_dir=str(campaign))
+        _anchor(campaign, ["tools/anomaly.py"])
         # Budget is max_experiments=3 in the test EVAL_PROTOCOL
         for i in range(3):
             res = runner_driver.review_finalize(
@@ -81,6 +83,7 @@ class TestSimultaneousGates:
         )
         (campaign / "contracts" / "EVAL_PROTOCOL.md").write_text(eval_with_both)
         runner_driver.init_campaign(campaign_dir=str(campaign))
+        _anchor(campaign, ["runner.tools.anomaly", "runner.tools.bootstrap_ci"])
 
         # First experiment sets baseline
         runner_driver.review_finalize(
@@ -127,6 +130,7 @@ class TestStructuredEvents:
     def test_review_finalize_emits_event(self, campaign: Path):
         """GAP 11: review_finalize writes to driver_events.jsonl."""
         runner_driver.init_campaign(campaign_dir=str(campaign))
+        _anchor(campaign, ["tools/anomaly.py"])
         runner_driver.review_finalize(
             verdict="keep", commit="c1",
             metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},

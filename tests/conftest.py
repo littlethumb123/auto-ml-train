@@ -1,10 +1,48 @@
 """Shared pytest fixtures for the runner test suite."""
 from __future__ import annotations
 
+import datetime as _dt
+import json
 import subprocess
 from pathlib import Path
 
 import pytest
+
+
+def anchor_round_with_receipts(campaign: Path, tools: list[str]) -> str:
+    """Stamp round_started_at and emit tool_run receipts (F3 test helper).
+
+    Tests that exercise review_finalize with verdict=keep need to satisfy the
+    F3 receipt cross-check. This helper:
+      1. Stamps state.round_started_at to "now".
+      2. Appends one tool_run event per named tool to driver_events.jsonl with
+         exit_code=0 and start_ts/end_ts at "now".
+
+    Returns the anchor timestamp.
+    """
+    from runner import runner_driver  # local import to avoid pytest collection cycles
+
+    state_path = campaign / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    anchor = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    state["round_started_at"] = anchor
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+    events = campaign / "state" / "driver_events.jsonl"
+    with open(events, "a") as f:
+        for t in tools:
+            rec = {
+                "ts": anchor,
+                "event": "tool_run",
+                "name": runner_driver._normalize_mandatory_tool_name(t),
+                "start_ts": anchor,
+                "end_ts": anchor,
+                "exit_code": 0,
+                "args_hash": "deadbeefdeadbeef",
+                "round": int(state.get("round", 0)),
+                "campaign_dir": str(campaign),
+            }
+            f.write(json.dumps(rec, sort_keys=True) + "\n")
+    return anchor
 
 
 @pytest.fixture

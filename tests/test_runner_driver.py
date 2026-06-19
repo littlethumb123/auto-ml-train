@@ -1,12 +1,14 @@
 """Unit tests for runner.runner_driver (the state machine)."""
 from __future__ import annotations
 
+import datetime as _dt
 import json
 from pathlib import Path
 
 import pytest
 
 from runner import runner_driver
+from tests.conftest import anchor_round_with_receipts as _anchor_round_with_receipts
 
 PROBLEM_CONTRACT = """---
 schema_version: 1
@@ -256,6 +258,7 @@ def test_plan_check_no_warnings_on_good_plan(campaign: Path):
 
 def test_review_finalize_keep_updates_state(campaign: Path, tmp_path: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     status = runner_driver.review_finalize(
         verdict="keep",
         commit="abc123",
@@ -435,6 +438,204 @@ def test_dead_ends_query_handles_skeleton_only(campaign: Path):
     assert bullets == []
 
 
+# --- F3: tool-execution receipts + cross-check ---
+
+
+def _make_valid_plan_for_anchor() -> str:
+    return _make_valid_plan()
+
+
+def test_plan_check_stamps_round_started_at(campaign: Path):
+    """F3: plan_check sets round_started_at on the campaign state."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    plan = _make_valid_plan(hypothesis="add county-level features for geographic signal")
+    (campaign / "state" / "NEXT_EXPERIMENT.md").write_text(plan)
+    state_before = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert "round_started_at" not in state_before
+    runner_driver.plan_check(campaign_dir=str(campaign))
+    state_after = json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert "round_started_at" in state_after
+    assert state_after["round_started_at"].endswith("Z")
+
+
+def test_review_finalize_rejects_keep_when_no_receipts(campaign: Path):
+    """F3: tools_ran claims both mandatory tools but no receipts → malformed."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # Stamp anchor but emit zero receipts.
+    state_path = campaign / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    state["round_started_at"] = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+    status = runner_driver.review_finalize(
+        verdict="keep",
+        commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp",
+        hypothesis="h",
+        description="d",
+        model_family="lightgbm",
+        n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],  # claim, but no receipt
+    )
+    assert status["verdict"] == "malformed"
+    state_after = json.loads(state_path.read_text())
+    assert state_after["last_verdict"] == "malformed"
+
+    # Adversarial signal should be in driver_events.jsonl.
+    events = (campaign / "state" / "driver_events.jsonl").read_text().splitlines()
+    assert any(json.loads(e).get("event") == "tools_ran_unverified" for e in events)
+
+
+def test_review_finalize_accepts_keep_when_receipts_recent(campaign: Path):
+    """F3: keep with anchor + recent receipts → keep stays."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
+    status = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert status["verdict"] == "keep"
+
+
+def test_review_finalize_rejects_keep_when_receipts_stale(campaign: Path):
+    """F3: receipts emitted before round_started_at don't count."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # Emit a stale receipt (start_ts well in the past).
+    events = campaign / "state" / "driver_events.jsonl"
+    stale = {
+        "ts": "2020-01-01T00:00:00Z", "event": "tool_run",
+        "name": "runner.tools.anomaly",
+        "start_ts": "2020-01-01T00:00:00Z", "end_ts": "2020-01-01T00:00:01Z",
+        "exit_code": 0, "args_hash": "0" * 16, "round": 0,
+        "campaign_dir": str(campaign),
+    }
+    events.write_text(json.dumps(stale, sort_keys=True) + "\n")
+    # Anchor in the present (after the stale receipt).
+    state_path = campaign / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    state["round_started_at"] = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+    status = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert status["verdict"] == "malformed"
+
+
+def test_review_finalize_rejects_keep_when_receipt_exit_nonzero(campaign: Path):
+    """F3: receipt with exit_code != 0 is treated as no receipt."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    state_path = campaign / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    anchor = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    state["round_started_at"] = anchor
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+    events = campaign / "state" / "driver_events.jsonl"
+    failing = {
+        "ts": anchor, "event": "tool_run",
+        "name": "runner.tools.anomaly",
+        "start_ts": anchor, "end_ts": anchor,
+        "exit_code": 1, "args_hash": "0" * 16, "round": int(state.get("round", 0)),
+        "campaign_dir": str(campaign),
+    }
+    with open(events, "a") as f:
+        f.write(json.dumps(failing, sort_keys=True) + "\n")
+
+    status = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert status["verdict"] == "malformed"
+
+
+def test_review_finalize_discard_skips_receipt_check(campaign: Path):
+    """F3: discard verdicts don't run the mandatory-tools gate, so receipts irrelevant."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    # No anchor, no receipts — discard still works.
+    status = runner_driver.review_finalize(
+        verdict="discard", commit="bad",
+        metrics={"val_pr_auc": 0.40, "lift_at_10": 0, "macro_f1": 0, "val_f1": 0},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+    )
+    assert status["verdict"] == "discard"
+
+
+def test_review_finalize_adversarial_replay_fails(campaign: Path):
+    """F3 adversarial: claim mandatory tools without staging any receipts; round
+    has been anchored by plan_check. Verdict must be rejected and the
+    tools_ran_unverified event emitted with the unverified set."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    plan = _make_valid_plan(hypothesis="adversarial test")
+    (campaign / "state" / "NEXT_EXPERIMENT.md").write_text(plan)
+    runner_driver.plan_check(campaign_dir=str(campaign))  # stamps round_started_at
+
+    status = runner_driver.review_finalize(
+        verdict="keep", commit="adv",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert status["verdict"] == "malformed"
+    assert "claimed-but-no-receipt" in (
+        json.loads((campaign / "state" / "CAMPAIGN_STATE.json").read_text())
+        .get("last_verdict", "")
+        or status.get("halt_reason", "")
+    ) or status.get("halt_reason", "").startswith("mandatory_tools")
+    # The event log must contain tools_ran_unverified.
+    events = (campaign / "state" / "driver_events.jsonl").read_text().splitlines()
+    assert any(json.loads(e).get("event") == "tools_ran_unverified" for e in events)
+
+
+def test_tool_run_wrapper_emits_receipt(campaign: Path, monkeypatch):
+    """F3: runner.tools.run.execute emits a tool_run event with the expected fields."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    from runner.tools import run as tool_run
+
+    # Replace subprocess.run with a stub that returns success without actually invoking python -m.
+    class _FakeProc:
+        returncode = 0
+
+    def _fake_run(cmd, cwd=None):
+        return _FakeProc()
+
+    monkeypatch.setattr(tool_run.subprocess, "run", _fake_run)
+
+    rc = tool_run.execute(
+        name="runner.tools.anomaly",
+        args=["--input", "x"],
+        campaign_dir=str(campaign),
+    )
+    assert rc == 0
+    events = (campaign / "state" / "driver_events.jsonl").read_text().splitlines()
+    tool_runs = [json.loads(e) for e in events if json.loads(e).get("event") == "tool_run"]
+    assert len(tool_runs) == 1
+    rec = tool_runs[0]
+    assert rec["name"] == "runner.tools.anomaly"
+    assert rec["exit_code"] == 0
+    assert len(rec["args_hash"]) == 16
+    assert rec["start_ts"].endswith("Z")
+    assert rec["end_ts"].endswith("Z")
+
+
 def test_init_historian_interval_from_eval_protocol(tmp_path: Path):
     """When historian_interval is explicit in EVAL_PROTOCOL, use it."""
     ep_with_interval = EVAL_PROTOCOL.replace(
@@ -466,6 +667,7 @@ def test_review_finalize_sets_historian_trigger_at_interval(campaign: Path):
     # historian_interval = 5 (budget_total=3 < 50); set rounds to interval - 1
     state["rounds_since_last_historian"] = state["historian_interval"] - 1
     state_path.write_text(json.dumps(state, indent=2) + "\n")
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
 
     runner_driver.review_finalize(
         verdict="keep",
@@ -504,6 +706,7 @@ def test_review_finalize_sets_historian_trigger_on_c2_plateau(campaign: Path):
 
 def test_review_finalize_accumulates_tokens_in_state(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep",
         commit="abc",
@@ -534,6 +737,7 @@ def test_review_finalize_historian_tokens_from_pending_state(campaign: Path):
     state = json.loads(state_path.read_text())
     state["pending_historian_tokens"] = 99_000
     state_path.write_text(json.dumps(state, indent=2) + "\n")
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
 
     runner_driver.review_finalize(
         verdict="keep",
@@ -565,6 +769,7 @@ def test_review_finalize_auto_estimates_tokens_when_none_provided(campaign: Path
     (campaign / "state" / "NEXT_EXPERIMENT.md").write_text(
         "---\nhypothesis: test\n---\n" + "x" * 2000
     )
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep",
         commit="abc",
@@ -591,6 +796,7 @@ def test_review_finalize_auto_estimates_tokens_when_none_provided(campaign: Path
 def test_review_finalize_explicit_tokens_not_overridden(campaign: Path):
     """Explicit token counts suppress auto-estimation."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep",
         commit="abc",
@@ -633,6 +839,7 @@ def test_review_finalize_updates_review_md_frontmatter(campaign: Path):
     (campaign / "state" / "REVIEW.md").write_text(
         "---\nschema_version: 1\ncampaign_id: tiny\nlast_verdict: null\nlast_round: 0\n---\n\n<!-- content -->\n"
     )
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep",
         commit="abc123",
@@ -744,6 +951,7 @@ def test_init_emits_tree_rebuilt_event(campaign: Path):
 
 def test_review_finalize_keep_updates_experiment_tree(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep",
         commit="abc123",
@@ -767,6 +975,7 @@ def test_review_finalize_keep_updates_experiment_tree(campaign: Path):
 
 def test_review_finalize_discard_updates_experiment_tree(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     # First: a keep to establish baseline
     runner_driver.review_finalize(
         verdict="keep", commit="base",
@@ -791,6 +1000,7 @@ def test_review_finalize_discard_updates_experiment_tree(campaign: Path):
 
 def test_review_finalize_tree_parent_is_best_so_far(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(campaign, ["tools/anomaly.py"])
     # Keep 'a' as baseline
     runner_driver.review_finalize(
         verdict="keep", commit="a",

@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from runner import runner_driver
+from tests.conftest import anchor_round_with_receipts as _anchor
 from tests.test_runner_driver import PROBLEM_CONTRACT, DATA_CONTRACT, EVAL_PROTOCOL
 
 pytestmark = pytest.mark.safety
@@ -25,6 +26,7 @@ def campaign(tmp_path: Path) -> Path:
 def test_keep_overridden_when_delta_below_noise_floor(campaign: Path):
     """GAP 7: If delta < noise_floor, reviewer 'keep' is mechanically overridden to 'discard'."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor(campaign, ["tools/anomaly.py"])
 
     # First experiment establishes a baseline
     res1 = runner_driver.review_finalize(
@@ -61,6 +63,7 @@ def test_keep_overridden_when_delta_below_noise_floor(campaign: Path):
 def test_keep_allowed_when_delta_above_noise_floor(campaign: Path):
     """Keep should not be overridden when delta >= noise_floor."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor(campaign, ["tools/anomaly.py"])
 
     res1 = runner_driver.review_finalize(
         verdict="keep",
@@ -116,6 +119,7 @@ def test_discard_verdict_not_touched_by_noise_floor(campaign: Path):
 def test_first_experiment_keeps_without_noise_floor_gate(campaign: Path):
     """First experiment has no best_so_far, so noise-floor gate should not fire."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor(campaign, ["tools/anomaly.py"])
 
     res = runner_driver.review_finalize(
         verdict="keep",

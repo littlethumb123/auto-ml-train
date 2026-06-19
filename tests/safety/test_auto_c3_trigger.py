@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from runner import runner_driver
+from tests.conftest import anchor_round_with_receipts as _anchor
 from tests.test_runner_driver import PROBLEM_CONTRACT, DATA_CONTRACT, EVAL_PROTOCOL
 
 pytestmark = pytest.mark.safety
@@ -29,6 +30,7 @@ def campaign(tmp_path: Path) -> Path:
 
 def test_c3_advisory_emitted_when_gap_within_noise(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep",
         commit="c1",
@@ -60,6 +62,7 @@ def test_c3_advisory_emitted_when_gap_within_noise(campaign: Path):
 
 def test_no_c3_advisory_when_gap_large(campaign: Path):
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep",
         commit="c1",
@@ -90,6 +93,7 @@ def test_no_c3_advisory_when_gap_large(campaign: Path):
 def test_no_c3_advisory_when_se_not_provided(campaign: Path):
     """Backward compat: when bootstrap_se is omitted, no advisory."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor(campaign, ["tools/anomaly.py"])
     runner_driver.review_finalize(
         verdict="keep",
         commit="c1",

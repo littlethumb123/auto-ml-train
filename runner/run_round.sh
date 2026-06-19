@@ -2,7 +2,7 @@
 # runner/run_round.sh — thin CLI wrapper over runner_driver.py.
 set -euo pipefail
 
-STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize|resolve-c2|historian|historian-finalize|campaign-status|stuck-check|resume-phase"}
+STAGE=${1:?"stage required: init|plan-check|execute-finalize|review-finalize|resolve-c2|historian|historian-finalize|campaign-status|stuck-check|resume-phase|substantive-check|reproduce-check|tool-run"}
 shift || true
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -116,6 +116,15 @@ elif stage == "reproduce-check":
         tolerance=float(args.get("tolerance", "0.001")),
     )
     print(json.dumps(res))
+elif stage == "tool-run":
+    from runner.tools.run import execute as _tool_execute
+    rc = _tool_execute(
+        name=args["name"],
+        args=json.loads(args.get("args_json", "[]")),
+        campaign_dir=args.get("campaign_dir", "runner/"),
+    )
+    print(json.dumps({"exit_code": rc}))
+    sys.exit(rc)
 else:
     print(f"unknown stage: {stage}", file=sys.stderr)
     sys.exit(2)

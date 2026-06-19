@@ -174,6 +174,45 @@ def _auto_estimate_round_tokens(
     return planner_tokens, executor_tokens, reviewer_tokens
 
 
+def _read_recent_tool_receipts(
+    campaign_dir: Path,
+    since: str | None,
+) -> list[dict]:
+    """Return tool_run receipts emitted at or after ``since`` (F3).
+
+    ``since`` is an ISO-Z timestamp (typically ``state.round_started_at``).
+    When ``since`` is None or empty, returns []  — fail-closed: an
+    un-anchored round cannot validate any receipt.
+    """
+    if not since:
+        return []
+    events_path = Path(campaign_dir) / "state" / "driver_events.jsonl"
+    if not events_path.exists():
+        return []
+    receipts: list[dict] = []
+    try:
+        with open(events_path, "r") as f:
+            for raw in f:
+                raw = raw.strip()
+                if not raw:
+                    continue
+                try:
+                    rec = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                if rec.get("event") != "tool_run":
+                    continue
+                start_ts = rec.get("start_ts") or rec.get("ts")
+                if not start_ts:
+                    continue
+                # ISO-Z lex-comparable when both timestamps share format.
+                if start_ts >= since:
+                    receipts.append(rec)
+    except OSError:
+        return []
+    return receipts
+
+
 def _auto_estimate_historian_tokens(campaign_dir: str, tokens_used: int) -> int:
     """Estimate historian token count from STRATEGY_MEMO.md when not provided."""
     if tokens_used:
@@ -445,6 +484,19 @@ def plan_check(campaign_dir: str = "runner/") -> dict[str, Any]:
                         break
 
     result = {"status": "ok", "errors": [], "warnings": warnings}
+    # F3: stamp round_started_at on the state so review_finalize can cross-check
+    # tool receipts against this anchor. Plan-check fires once per round before
+    # tools run, so it is the natural anchor.
+    state_path = camp / "state" / "CAMPAIGN_STATE.json"
+    if state_path.exists():
+        try:
+            state = json.loads(state_path.read_text())
+            state["round_started_at"] = _dt.datetime.now(_dt.timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+            state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+        except (json.JSONDecodeError, OSError):
+            pass
     _emit_event(campaign_dir, "plan_check", {
         "status": result["status"],
         "warnings": warnings,
@@ -732,6 +784,31 @@ def review_finalize(
             mandatory_gate_reason = (
                 f"mandatory_tools: missing normalized tool(s) {sorted(missing)} (spec §8.3 item 8)"
             )
+        else:
+            # F3: cross-check the claimed tools against tool_run receipts in
+            # driver_events.jsonl since round_started_at. A claim without a
+            # successful (exit_code == 0) receipt → malformed, even if the
+            # list itself satisfies the spec.
+            round_started_at = state.get("round_started_at")
+            receipts = _read_recent_tool_receipts(camp, since=round_started_at)
+            receipt_names = {
+                _normalize_mandatory_tool_name(r.get("name", ""))
+                for r in receipts
+                if int(r.get("exit_code", -1)) == 0
+            }
+            unverified = mandatory_norm - receipt_names
+            if unverified:
+                verdict = "malformed"
+                mandatory_gate_reason = (
+                    f"mandatory_tools: claimed-but-no-receipt {sorted(unverified)} "
+                    f"since round_started_at={round_started_at}"
+                )
+                _emit_event(campaign_dir, "tools_ran_unverified", {
+                    "claimed": sorted(ran_norm),
+                    "with_receipts": sorted(receipt_names),
+                    "unverified": sorted(unverified),
+                    "round_started_at": round_started_at,
+                })
 
     # ── Noise-floor hard gate (GAP 7 — anti-sycophancy) ─────────────────
     noise_floor_override = ""
