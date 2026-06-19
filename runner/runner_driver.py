@@ -210,6 +210,57 @@ def _pattern_book_skeleton(campaign_id: str) -> str:
     )
 
 
+def _unexplored_techniques_skeleton(campaign_id: str) -> str:
+    return (
+        "---\n"
+        "schema_version: 1\n"
+        f'campaign_id: "{campaign_id}"\n'
+        'last_updated: ""\n'
+        "---\n\n"
+        "## Unexplored Technique Classes\n\n"
+        "<!-- Planner reads this every round (mandatory when consecutive_discards >= 2). -->\n"
+        "<!-- Format: -->\n"
+        "<!-- - **<class name>:** <description>. Status: Unexplored. Expected Δ: <range>. -->\n"
+    )
+
+
+def _dead_ends_skeleton(campaign_id: str) -> str:
+    return (
+        "---\n"
+        "schema_version: 1\n"
+        f'campaign_id: "{campaign_id}"\n'
+        "count: 0\n"
+        'last_updated: ""\n'
+        "---\n\n"
+        "<!-- Reviewer appends entries on discard when pattern is structurally new. -->\n"
+        "<!-- Format: - **Round N (action_type: short label):** description -->\n"
+    )
+
+
+def _notebook_skeleton(campaign_id: str) -> str:
+    return (
+        "---\n"
+        "schema_version: 1\n"
+        f'campaign_id: "{campaign_id}"\n'
+        "count: 0\n"
+        'last_updated: ""\n'
+        "---\n\n"
+        "<!-- Reviewer appends surprising-but-not-dead-end observations. -->\n"
+        "<!-- Format: - **Round N (YYYY-MM-DD):** description -->\n"
+    )
+
+
+def _campaign_journal_skeleton(campaign_id: str) -> str:
+    return (
+        "---\n"
+        "schema_version: 1\n"
+        f'campaign_id: "{campaign_id}"\n'
+        "---\n\n"
+        "<!-- Reviewer appends one entry per round. -->\n"
+        "<!-- Format: ## Round N — YYYY-MM-DD -->\n"
+    )
+
+
 def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     camp = Path(campaign_dir)
     contracts = {
@@ -281,6 +332,20 @@ def init_campaign(campaign_dir: str = "runner/") -> dict[str, Any]:
     pb_path = state_dir / "PATTERN_BOOK.md"
     if not pb_path.exists():
         pb_path.write_text(_pattern_book_skeleton(state["campaign_id"]))
+
+    # Memory-artifact skeletons (F4 — prevent silent absent-file skips)
+    ut_path = state_dir / "UNEXPLORED_TECHNIQUES.md"
+    if not ut_path.exists():
+        ut_path.write_text(_unexplored_techniques_skeleton(state["campaign_id"]))
+    de_path = state_dir / "DEAD_ENDS.md"
+    if not de_path.exists():
+        de_path.write_text(_dead_ends_skeleton(state["campaign_id"]))
+    nb_path = state_dir / "NOTEBOOK.md"
+    if not nb_path.exists():
+        nb_path.write_text(_notebook_skeleton(state["campaign_id"]))
+    cj_path = state_dir / "CAMPAIGN_JOURNAL.md"
+    if not cj_path.exists():
+        cj_path.write_text(_campaign_journal_skeleton(state["campaign_id"]))
 
     # Create experiment tree for tree-search exploration/exploitation
     tree_path = state_dir / "EXPERIMENT_TREE.json"

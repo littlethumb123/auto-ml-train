@@ -378,6 +378,63 @@ def test_init_creates_pattern_book_skeleton(campaign: Path):
     assert "tiny" in text
 
 
+def test_init_creates_unexplored_techniques_skeleton(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    ut = (campaign / "state" / "UNEXPLORED_TECHNIQUES.md")
+    assert ut.exists()
+    text = ut.read_text()
+    assert "schema_version: 1" in text
+    assert "tiny" in text
+    assert "## Unexplored Technique Classes" in text
+
+
+def test_init_creates_dead_ends_skeleton(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    de = (campaign / "state" / "DEAD_ENDS.md")
+    assert de.exists()
+    text = de.read_text()
+    assert "schema_version: 1" in text
+    assert "count: 0" in text
+    assert "tiny" in text
+
+
+def test_init_creates_notebook_skeleton(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    nb = (campaign / "state" / "NOTEBOOK.md")
+    assert nb.exists()
+    text = nb.read_text()
+    assert "schema_version: 1" in text
+    assert "count: 0" in text
+    assert "tiny" in text
+
+
+def test_init_creates_campaign_journal_skeleton(campaign: Path):
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    cj = (campaign / "state" / "CAMPAIGN_JOURNAL.md")
+    assert cj.exists()
+    text = cj.read_text()
+    assert "schema_version: 1" in text
+    assert "tiny" in text
+    assert "## Round" in text  # comment hint references Round format
+
+
+def test_init_skeletons_are_idempotent(campaign: Path):
+    """Re-running init must not overwrite hand-edited skeleton content."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    de = (campaign / "state" / "DEAD_ENDS.md")
+    de.write_text(de.read_text() + "\n- **Round 1 (A_hp):** my custom note\n")
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    assert "my custom note" in de.read_text()
+
+
+def test_dead_ends_query_handles_skeleton_only(campaign: Path):
+    """The freshly-seeded DEAD_ENDS.md skeleton must produce no spurious matches."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    from runner.tools.dead_ends_query import dead_ends_query
+    bullets = dead_ends_query(pattern=None, campaign_dir=str(campaign))
+    assert bullets == []
+
+
 def test_init_historian_interval_from_eval_protocol(tmp_path: Path):
     """When historian_interval is explicit in EVAL_PROTOCOL, use it."""
     ep_with_interval = EVAL_PROTOCOL.replace(
