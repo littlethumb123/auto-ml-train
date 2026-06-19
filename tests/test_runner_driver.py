@@ -821,8 +821,9 @@ def test_review_finalize_explicit_tokens_not_overridden(campaign: Path):
 def test_historian_finalize_auto_estimates_tokens_when_none_provided(campaign: Path):
     """historian_finalize estimates tokens from STRATEGY_MEMO.md when tokens_used=0."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
-    # Write a STRATEGY_MEMO.md so estimation has content
-    (campaign / "state" / "STRATEGY_MEMO.md").write_text("# Memo\n" + "x" * 4000)
+    # Write a STRATEGY_MEMO.md so estimation has content (and passes F1 verify).
+    from tests.conftest import write_valid_strategy_memo
+    write_valid_strategy_memo(campaign, round_num=0, trigger="periodic")
     runner_driver.historian_finalize(
         campaign_dir=str(campaign),
         trigger="periodic",

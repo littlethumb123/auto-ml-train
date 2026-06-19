@@ -9,6 +9,45 @@ from pathlib import Path
 import pytest
 
 
+def write_valid_strategy_memo(
+    campaign: Path,
+    round_num: int,
+    trigger: str = "periodic",
+    rounds_covered: tuple[int, int] | None = None,
+) -> Path:
+    """Write a STRATEGY_MEMO.md that passes F1 verification.
+
+    All four mandatory sections have >80 chars of non-placeholder content.
+    Frontmatter has historian_round matching ``round_num`` and trigger matching.
+    """
+    if rounds_covered is None:
+        rounds_covered = (1, round_num)
+    body = (
+        f"---\n"
+        f"schema_version: 1\n"
+        f'campaign_id: "tiny"\n'
+        f"historian_round: {round_num}\n"
+        f'trigger: "{trigger}"\n'
+        f"rounds_covered: [{rounds_covered[0]}, {rounds_covered[1]}]\n"
+        f"---\n\n"
+        "## 1. Trajectory Narrative\n"
+        "Campaign currently in the exploitation phase. Mean Δ-per-round is +0.004 over "
+        "the covered window. Last family switch occurred at round 3.\n\n"
+        "## 2. Pattern Extraction\n"
+        "Pattern P-1 — adding raw features hurts PR-AUC. Supporting rounds: 4, 9. "
+        "Confidence: medium. Implication: prefer hp/ensemble over feature additions.\n\n"
+        "## 3. Assumption Audit\n"
+        "A-1-1 (load-bearing) remains unverified after this audit. No new evidence "
+        "for or against. Recommend a validation experiment next round.\n\n"
+        "## 4. Bottleneck Diagnosis\n"
+        "Category: model_quality. Justification: model family is near its ceiling "
+        "given current feature representation. Highest-ROI: A_ensemble.\n"
+    )
+    memo_path = campaign / "state" / "STRATEGY_MEMO.md"
+    memo_path.write_text(body)
+    return memo_path
+
+
 def anchor_round_with_receipts(campaign: Path, tools: list[str]) -> str:
     """Stamp round_started_at and emit tool_run receipts (F3 test helper).
 

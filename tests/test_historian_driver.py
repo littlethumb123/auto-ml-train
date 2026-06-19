@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from runner import runner_driver
+from tests.conftest import write_valid_strategy_memo as _memo
 from tests.test_runner_driver import PROBLEM_CONTRACT, DATA_CONTRACT, EVAL_PROTOCOL
 
 EVAL_WITH_HISTORIAN_INTERVAL = EVAL_PROTOCOL.replace(
@@ -111,6 +112,7 @@ def test_historian_finalize_resets_rounds_and_clears_trigger(campaign_v2: Path):
     state["rounds_since_last_historian"] = 5
     state["historian_trigger_pending"] = True
     state_path.write_text(json.dumps(state, indent=2) + "\n")
+    _memo(campaign_v2, round_num=int(state.get("round", 0)), trigger="periodic")
 
     result = runner_driver.historian_finalize(
         campaign_dir=str(campaign_v2),
@@ -128,6 +130,8 @@ def test_historian_finalize_resets_rounds_and_clears_trigger(campaign_v2: Path):
 
 
 def test_historian_finalize_stores_pending_tokens(campaign_v2: Path):
+    state = json.loads((campaign_v2 / "state" / "CAMPAIGN_STATE.json").read_text())
+    _memo(campaign_v2, round_num=int(state.get("round", 0)), trigger="periodic")
     runner_driver.historian_finalize(
         campaign_dir=str(campaign_v2),
         trigger="periodic",
@@ -143,6 +147,7 @@ def test_historian_finalize_c2_resets_consecutive_discards(campaign_v2: Path):
     state = json.loads(state_path.read_text())
     state["consecutive_discards"] = 5
     state_path.write_text(json.dumps(state, indent=2) + "\n")
+    _memo(campaign_v2, round_num=int(state.get("round", 0)), trigger="c2")
 
     runner_driver.historian_finalize(
         campaign_dir=str(campaign_v2),
@@ -158,6 +163,7 @@ def test_historian_finalize_periodic_only_does_not_reset_discards(campaign_v2: P
     state = json.loads(state_path.read_text())
     state["consecutive_discards"] = 2
     state_path.write_text(json.dumps(state, indent=2) + "\n")
+    _memo(campaign_v2, round_num=int(state.get("round", 0)), trigger="periodic")
 
     runner_driver.historian_finalize(
         campaign_dir=str(campaign_v2),
@@ -166,6 +172,145 @@ def test_historian_finalize_periodic_only_does_not_reset_discards(campaign_v2: P
     )
     state_after = json.loads(state_path.read_text())
     assert state_after["consecutive_discards"] == 2  # unchanged for periodic-only
+
+
+# --- F1: historian_finalize STRATEGY_MEMO.md assertion tests ---
+
+
+def test_historian_finalize_rejects_missing_memo(campaign_v2: Path):
+    """F1: no STRATEGY_MEMO.md on disk → rejected, trigger stays pending."""
+    state_path = campaign_v2 / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    state["historian_trigger_pending"] = True
+    state_path.write_text(json.dumps(state, indent=2) + "\n")
+
+    res = runner_driver.historian_finalize(
+        campaign_dir=str(campaign_v2),
+        trigger="periodic",
+        tokens_used=0,
+    )
+    assert res["status"] == "rejected"
+    assert "missing" in res["reason"].lower()
+    state_after = json.loads(state_path.read_text())
+    assert state_after["historian_trigger_pending"] is True
+
+
+def test_historian_finalize_rejects_stale_memo(campaign_v2: Path):
+    """F1: STRATEGY_MEMO.md mtime older than round_started_at → rejected."""
+    state_path = campaign_v2 / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    # Stamp a future-anchored round_started_at so the freshly-written memo
+    # appears stale relative to the anchor.
+    import datetime as _dt
+    future = (
+        _dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(hours=1)
+    ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    state["round_started_at"] = future
+    state_path.write_text(json.dumps(state, indent=2) + "\n")
+    _memo(campaign_v2, round_num=int(state.get("round", 0)), trigger="periodic")
+
+    res = runner_driver.historian_finalize(
+        campaign_dir=str(campaign_v2),
+        trigger="periodic",
+        tokens_used=0,
+    )
+    assert res["status"] == "rejected"
+    assert "mtime" in res["reason"].lower()
+
+
+def test_historian_finalize_rejects_wrong_round_in_frontmatter(campaign_v2: Path):
+    """F1: memo's historian_round != state.round → rejected."""
+    state_path = campaign_v2 / "state" / "CAMPAIGN_STATE.json"
+    state = json.loads(state_path.read_text())
+    state["round"] = 5
+    state_path.write_text(json.dumps(state, indent=2) + "\n")
+    _memo(campaign_v2, round_num=4, trigger="periodic")  # wrong round
+
+    res = runner_driver.historian_finalize(
+        campaign_dir=str(campaign_v2),
+        trigger="periodic",
+        tokens_used=0,
+    )
+    assert res["status"] == "rejected"
+    assert "historian_round" in res["reason"].lower() or "round" in res["reason"].lower()
+
+
+def test_historian_finalize_rejects_missing_section(campaign_v2: Path):
+    """F1: memo body missing one of the four required sections → rejected."""
+    state = json.loads((campaign_v2 / "state" / "CAMPAIGN_STATE.json").read_text())
+    memo_path = campaign_v2 / "state" / "STRATEGY_MEMO.md"
+    memo_path.write_text(
+        f"---\nschema_version: 1\nhistorian_round: {int(state.get('round', 0))}\n"
+        f'trigger: "periodic"\n---\n\n'
+        "## 1. Trajectory Narrative\nA bunch of words that exceeds eighty chars "
+        "easily so this section is not too short to count for the F1 check.\n\n"
+        "## 2. Pattern Extraction\nMore than eighty characters of pattern text "
+        "to clear the minimum length floor that F1 verification enforces.\n\n"
+        "## 3. Assumption Audit\nLong audit text well past the eighty character "
+        "lower bound that F1 enforces for non-placeholder content.\n\n"
+        # Section 4 missing.
+    )
+    res = runner_driver.historian_finalize(
+        campaign_dir=str(campaign_v2),
+        trigger="periodic",
+        tokens_used=0,
+    )
+    assert res["status"] == "rejected"
+    assert "Bottleneck Diagnosis" in res["reason"]
+
+
+def test_historian_finalize_rejects_placeholder_section(campaign_v2: Path):
+    """F1: memo section that is just 'TBD' → rejected via length floor."""
+    state = json.loads((campaign_v2 / "state" / "CAMPAIGN_STATE.json").read_text())
+    memo_path = campaign_v2 / "state" / "STRATEGY_MEMO.md"
+    memo_path.write_text(
+        f"---\nschema_version: 1\nhistorian_round: {int(state.get('round', 0))}\n"
+        f'trigger: "periodic"\n---\n\n'
+        "## 1. Trajectory Narrative\nTBD\n\n"
+        "## 2. Pattern Extraction\nLong enough pattern text to clear the eighty "
+        "character minimum for non-placeholder content checks.\n\n"
+        "## 3. Assumption Audit\nLong enough assumption text to clear the eighty "
+        "character minimum for non-placeholder content checks.\n\n"
+        "## 4. Bottleneck Diagnosis\nLong enough bottleneck text to clear the "
+        "eighty character minimum for non-placeholder content checks.\n"
+    )
+    res = runner_driver.historian_finalize(
+        campaign_dir=str(campaign_v2),
+        trigger="periodic",
+        tokens_used=0,
+    )
+    assert res["status"] == "rejected"
+    # Either length-floor or placeholder-regex catches this.
+    assert "Trajectory Narrative" in res["reason"]
+
+
+def test_historian_finalize_accepts_complete_memo(campaign_v2: Path):
+    """F1: all four sections with non-placeholder content + matching round → accepted."""
+    state = json.loads((campaign_v2 / "state" / "CAMPAIGN_STATE.json").read_text())
+    state["historian_trigger_pending"] = True
+    (campaign_v2 / "state" / "CAMPAIGN_STATE.json").write_text(
+        json.dumps(state, indent=2) + "\n"
+    )
+    _memo(campaign_v2, round_num=int(state.get("round", 0)), trigger="periodic")
+
+    res = runner_driver.historian_finalize(
+        campaign_dir=str(campaign_v2),
+        trigger="periodic",
+        patterns_added=2,
+        assumptions_flagged=1,
+        tokens_used=10_000,
+    )
+    assert res["status"] == "ok"
+    state_after = json.loads((campaign_v2 / "state" / "CAMPAIGN_STATE.json").read_text())
+    assert state_after["historian_trigger_pending"] is False
+
+    # historian_finalize event with verified=True must be present.
+    events = (campaign_v2 / "state" / "driver_events.jsonl").read_text().splitlines()
+    finalize_events = [
+        json.loads(e) for e in events if json.loads(e).get("event") == "historian_finalize"
+    ]
+    assert len(finalize_events) == 1
+    assert finalize_events[0]["verified"] is True
 
 
 def test_historian_run_migrates_v1_state(campaign_v1: Path):

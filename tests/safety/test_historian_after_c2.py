@@ -83,6 +83,9 @@ def test_three_discards_set_historian_trigger(campaign_at_plateau: Path):
 
 
 def test_historian_finalize_c2_resets_consecutive_discards(campaign_at_plateau: Path):
+    from tests.conftest import write_valid_strategy_memo
+    state = json.loads((campaign_at_plateau / "state" / "CAMPAIGN_STATE.json").read_text())
+    write_valid_strategy_memo(campaign_at_plateau, round_num=int(state.get("round", 0)), trigger="c2")
     runner_driver.historian_finalize(
         campaign_dir=str(campaign_at_plateau),
         trigger="c2",
@@ -95,6 +98,9 @@ def test_historian_finalize_c2_resets_consecutive_discards(campaign_at_plateau: 
 
 def test_plan_check_does_not_require_diagnose_after_c2(campaign_at_plateau: Path):
     """Old protocol forced A_diagnose after C2 resolve. New protocol allows any valid action."""
+    from tests.conftest import write_valid_strategy_memo
+    state = json.loads((campaign_at_plateau / "state" / "CAMPAIGN_STATE.json").read_text())
+    write_valid_strategy_memo(campaign_at_plateau, round_num=int(state.get("round", 0)), trigger="c2")
     runner_driver.historian_finalize(
         campaign_dir=str(campaign_at_plateau),
         trigger="c2",

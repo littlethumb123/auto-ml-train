@@ -641,6 +641,76 @@ def historian_run(campaign_dir: str = "runner/") -> dict[str, Any]:
     }
 
 
+_HISTORIAN_REQUIRED_SECTIONS = (
+    "## 1. Trajectory Narrative",
+    "## 2. Pattern Extraction",
+    "## 3. Assumption Audit",
+    "## 4. Bottleneck Diagnosis",
+)
+_HISTORIAN_PLACEHOLDER_RE = re.compile(r"^\s*(TBD|TODO|N/A|x|xxx|...)\s*$", re.IGNORECASE)
+
+
+def _verify_strategy_memo(
+    memo_path: Path,
+    state: dict[str, Any],
+    trigger: str,
+    min_section_chars: int = 80,
+) -> tuple[bool, str]:
+    """F1 assertion: verify STRATEGY_MEMO.md was just written this round.
+
+    Returns (ok, reason). ``reason`` is empty when ok.
+    """
+    if not memo_path.exists():
+        return False, "STRATEGY_MEMO.md missing"
+
+    # Freshness: mtime ≥ round_started_at (when the anchor exists).
+    round_started_at = state.get("round_started_at")
+    if round_started_at:
+        memo_mtime = _dt.datetime.fromtimestamp(
+            memo_path.stat().st_mtime, tz=_dt.timezone.utc
+        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+        if memo_mtime < round_started_at:
+            return False, f"STRATEGY_MEMO.md mtime {memo_mtime} < round_started_at {round_started_at}"
+
+    try:
+        fm, body = parse_frontmatter(memo_path)
+    except FrontmatterError as e:
+        return False, f"STRATEGY_MEMO.md frontmatter unparseable: {e}"
+
+    fm_round = fm.get("historian_round")
+    if fm_round is None or int(fm_round) != int(state.get("round", 0)):
+        return False, (
+            f"STRATEGY_MEMO.md historian_round={fm_round} does not match "
+            f"state.round={state.get('round', 0)}"
+        )
+
+    fm_trigger = str(fm.get("trigger", "")).strip()
+    if fm_trigger and trigger and fm_trigger != trigger:
+        return False, (
+            f"STRATEGY_MEMO.md trigger='{fm_trigger}' does not match argument trigger='{trigger}'"
+        )
+
+    # Section presence + content length + non-placeholder.
+    for heading in _HISTORIAN_REQUIRED_SECTIONS:
+        idx = body.find(heading)
+        if idx < 0:
+            return False, f"STRATEGY_MEMO.md missing required section: {heading}"
+        # Section body = text from heading end up to next "## " or EOF.
+        start = idx + len(heading)
+        next_h = body.find("\n## ", start)
+        section = body[start:next_h] if next_h >= 0 else body[start:]
+        section_stripped = section.strip()
+        if len(section_stripped) < min_section_chars:
+            return False, (
+                f"STRATEGY_MEMO.md section '{heading}' has {len(section_stripped)} chars "
+                f"(< {min_section_chars} required)"
+            )
+        if _HISTORIAN_PLACEHOLDER_RE.match(section_stripped):
+            return False, f"STRATEGY_MEMO.md section '{heading}' is a placeholder ({section_stripped[:30]})"
+
+    return True, ""
+
+
 def historian_finalize(
     campaign_dir: str = "runner/",
     trigger: str = "periodic",
@@ -648,7 +718,14 @@ def historian_finalize(
     assumptions_flagged: int = 0,
     tokens_used: int = 0,
 ) -> dict[str, Any]:
-    """Update CAMPAIGN_STATE.json after the Historian agent completes."""
+    """Update CAMPAIGN_STATE.json after the Historian agent completes.
+
+    F1: Before clearing historian_trigger_pending and resetting
+    consecutive_discards, verify STRATEGY_MEMO.md was actually written this
+    round with all four mandatory sections. If verification fails, the call
+    is rejected — the trigger stays pending so the next round retries — and
+    a historian_skipped event is emitted.
+    """
     camp = Path(campaign_dir)
     state_path = camp / "state" / "CAMPAIGN_STATE.json"
     if not state_path.exists():
@@ -657,6 +734,22 @@ def historian_finalize(
     import datetime as _dt
 
     state = json.loads(state_path.read_text())
+
+    # F1: assert STRATEGY_MEMO.md was just written.
+    memo_path = camp / "state" / "STRATEGY_MEMO.md"
+    ok, reason = _verify_strategy_memo(memo_path, state, trigger)
+    if not ok:
+        _emit_event(campaign_dir, "historian_skipped", {
+            "trigger": trigger,
+            "reason": reason,
+            "round": int(state.get("round", 0)),
+        })
+        return {
+            "status": "rejected",
+            "trigger": trigger,
+            "reason": reason,
+            "historian_trigger_pending": True,
+        }
 
     # Auto-estimate from STRATEGY_MEMO.md when caller provides no count
     tokens_used = _auto_estimate_historian_tokens(str(camp), tokens_used)
@@ -678,6 +771,15 @@ def historian_finalize(
         "%Y-%m-%dT%H:%M:%SZ"
     )
     state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+    _emit_event(campaign_dir, "historian_finalize", {
+        "trigger": trigger,
+        "patterns_added": patterns_added,
+        "assumptions_flagged": assumptions_flagged,
+        "tokens_used": tokens_used,
+        "round": int(state.get("round", 0)),
+        "verified": True,
+    })
 
     return {
         "status": "ok",
