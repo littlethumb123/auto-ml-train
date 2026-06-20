@@ -202,6 +202,136 @@ branch `fix/p1-state-integrity`.
 
 ---
 
+## Pre-Kaggle validation pass — 2026-06-20
+
+After the F1–F5 + code-review fixes landed, a four-test validation pass
+ran against the post-refactor harness to close every gap listed in the
+post-smoke "what the smoke does not validate" section.
+
+### Test 1 — Headless autonomous orchestrator on `p0-fix-validation`
+
+Launched `claude -p "Read runner/roles/orchestrator.md and run the
+campaign at campaigns/p0-fix-validation. Run autonomously..."`. Single
+round before C1 stop:
+
+- Agent autonomously read `orchestrator.md`, `planner.md`, `reviewer.md`,
+  did not require human intervention.
+- Wrote a full `NEXT_EXPERIMENT.md` with frontmatter, F2 rationalization
+  table, UCB1 reasoning citing PRIORS.
+- Edited `train.py` (one controlled change), committed `310ea7c`, ran
+  `python3 train.py > run.log 2>&1`.
+- Used `bash runner/run_round.sh tool-run` for both `runner.tools.anomaly`
+  and `runner.tools.bootstrap_ci` — first call exit=2 (bad args), retried
+  to exit=0. F3 cross-check accepted the second receipt.
+- Round 1 produced `val_pr_auc=0.0593` (LightGBM `lr=0.05` + `n_est=500`
+  + `scale_pos_weight=578` calibration failure — 915 negatives scored
+  ≥0.5). Anomaly tool fired correctly; Reviewer issued `verdict=anomaly`
+  per `reviewer.md §3 step 4`.
+- Wrote `REVIEW.md` with §Independent Assessment, §Plan Comparison,
+  §Verdict Rationalization Table (the F2 contract), and a §Escalation C1
+  block with anomaly tool output, root-cause analysis (ROC-AUC=0.876 vs
+  PR-AUC=0.059 → calibration not ranking failure), and proposed fixes.
+- `review_finalize` returned `pause_loop=true`; orchestrator printed the
+  C1 banner per `§3` and STOPPED autonomously.
+
+**Test 2 closed by Test 1's organic firing** — the C1 escalation path
+exercised end-to-end without needing a planted leakage fixture.
+
+### Test 1b — F1 natural-trigger validation on `p0-fix-validation-h`
+
+Designed campaign with PRIORS pointing to the proven LGBM config and
+`historian_interval: 2` so Historian fires at round 2. Ran 4 rounds:
+
+| Round | Action | val_pr_auc | Verdict |
+|---|---|---|---|
+| 1 | A_model (LGBM n_est=600/lr=0.02) | 0.8155 | keep |
+| 2 | A_model (XGBoost n_est=300) | 0.8144 | discard |
+| → | **Historian fires** (rounds_since=2=interval) | | F1 verified ✓ |
+| 3 | A_hp (Optuna proxy) | 0.8050 | discard |
+| 4 | A_hp (n_est=2000) | 0.8297 | keep, halt budget |
+
+**F1 natural trigger validated end-to-end:** after round 2's
+`review_finalize`, `historian_trigger_pending=true` was set. Per
+`orchestrator.md §2.1`, the agent autonomously read `historian.md`,
+gathered all 11+ inputs, did trajectory/pattern/assumption/bottleneck
+synthesis, wrote `STRATEGY_MEMO.md` with all four mandatory sections (well
+past the 80-char-per-section minimum), and called `historian-finalize`.
+Driver event: `historian_finalize trigger=periodic verified=True`.
+The F1 gate's section-presence + frontmatter-round-match + length-floor
+checks all passed.
+
+The Historian's autonomous output included two new `PATTERN_BOOK` entries
+(P-1 cross-family scale_pos_weight robustness, P-2 n_estimators is the
+dominant LGBM lever), updated three `ASSUMPTION_REGISTER` entries with
+verification status changes (A-1-1 promoted partially_verified→verified),
+and a bottleneck diagnosis of `eval_quality` (SE=0.038 >> noise_floor=0.005
+is the binding constraint; recommended k-fold CV upgrade). This is the
+exact synthesis quality the audit expected the Historian role to provide.
+
+Cross-round learning visibly drove a strategy shift: round 3 switched
+from `A_model` to `A_hp` informed by the Historian's analysis.
+
+### Test 3 — Restart resilience on `p0-fix-smoke`
+
+Three sub-cases exercising F5's tree-rebuild path:
+
+1. EXPERIMENT_TREE.json corrupted (truncated JSON) → re-init detected
+   via `_tree_needs_rebuild` → rebuild from `results.tsv` → all nodes
+   restored, `tree_rebuilt` event emitted with `degraded=false`.
+2. EXPERIMENT_TREE.json deleted → re-init rebuild restored 5 nodes.
+3. EXPERIMENT_TREE.json zero bytes → re-init rebuild restored 5 nodes.
+
+All three sub-cases pass. F5 restart resilience is solid.
+
+### Test 4 — F1 live REPL
+
+Already executed during the smoke campaign closure: 3 sub-cases (missing
+memo, missing required section, complete memo) all rejected/rejected/
+accepted as expected. The F1 gate is unit-tested + REPL-tested + now
+end-to-end-validated through the autonomous orchestrator (Test 1b).
+
+### Findings from the validation pass
+
+Two real findings that should inform a P1 follow-up — neither blocks
+benchmark execution:
+
+1. **Tool-args friction (recurring).** Both autonomous runs hit `exit=2`
+   on the first `runner.tools.anomaly` invocation through the wrapper —
+   the agent has to guess the inner-tool args (`--latest-json` is
+   non-obvious) and self-correct on retry. Fixable by adding a worked
+   example for each mandatory tool inside `runner/roles/reviewer.md` or
+   by giving the tools more permissive default-args paths.
+
+2. **End-of-campaign Historian synthesis without finalize.** When the
+   campaign halts on budget AND `historian_trigger_pending=true`, the
+   agent does the Historian work and writes the memo for human review
+   but does not call `historian-finalize` (correctly, since the
+   orchestrator §3 stop-check fires before §2.1's Historian phase). The
+   memo and the PATTERN_BOOK/ASSUMPTION_REGISTER updates all land on
+   disk but the `historian_finalize` event is not emitted. Acceptable
+   behavior; flag for clarity in `orchestrator.md` if a stronger
+   convention is desired.
+
+### Bottom line
+
+The harness is **mechanically validated under autonomous operation**.
+F1, F2, F3, F4, F5 all enforce correctly when an autonomous Claude
+orchestrator drives the loop. C1 anomaly path exercised. Restart
+resilience exercised. Historian fires naturally on `historian_interval`,
+runs its full procedure, and the F1 gate accepts a properly-written
+memo. Cross-round learning shifts strategy as designed. Token usage is
+bounded and reasonable (~22.6k for a 4-round campaign with one Historian
+firing).
+
+**Ready for Kaggle benchmark execution.** Open question for that next
+phase: bootstrap SE on this dataset's single holdout is ~0.038, much
+larger than `noise_floor=0.005` — the autonomous Historian flagged this
+as the binding constraint. Consider upgrading to k-fold CV via a C3
+contract change before running benchmarks whose Δ would otherwise be
+indistinguishable from noise.
+
+---
+
 ## Recommended fixes before Kaggle validation
 
 | # | Fix | Severity | Effort |
