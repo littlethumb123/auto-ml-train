@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "nodes": {
+    "ROOT": {
+      "commit": "ROOT",
+      "parent_commit": null,
+      "strategy_class": null,
+      "metric_value": null,
+      "verdict": null,
+      "children": [
+        "d20e21769bf720b89f011ba346644ea2d1d47063"
+      ]
+    },
+    "d20e21769bf720b89f011ba346644ea2d1d47063": {
+      "commit": "d20e21769bf720b89f011ba346644ea2d1d47063",
+      "parent_commit": "ROOT",
+      "strategy_class": "A_model",
+      "metric_value": 0.81553,
+      "verdict": "keep",
+      "children": [
+        "032ef35633d2bea93cc1ca2f195932d27425cd6a",
+        "4b0f4aa09839e67b64204c1c38371e3ed35baa52",
+        "2eeebcbe98963d5a36ce614d4c62f3efb456f97c"
+      ]
+    },
+    "032ef35633d2bea93cc1ca2f195932d27425cd6a": {
+      "commit": "032ef35633d2bea93cc1ca2f195932d27425cd6a",
+      "parent_commit": "d20e21769bf720b89f011ba346644ea2d1d47063",
+      "strategy_class": "A_model",
+      "metric_value": 0.814426,
+      "verdict": "discard",
+      "children": []
+    },
+    "4b0f4aa09839e67b64204c1c38371e3ed35baa52": {
+      "commit": "4b0f4aa09839e67b64204c1c38371e3ed35baa52",
+      "parent_commit": "d20e21769bf720b89f011ba346644ea2d1d47063",
+      "strategy_class": "A_hp",
+      "metric_value": 0.804996,
+      "verdict": "discard",
+      "children": []
+    },
+    "2eeebcbe98963d5a36ce614d4c62f3efb456f97c": {
+      "commit": "2eeebcbe98963d5a36ce614d4c62f3efb456f97c",
+      "parent_commit": "d20e21769bf720b89f011ba346644ea2d1d47063",
+      "strategy_class": "A_hp",
+      "metric_value": 0.82968,
+      "verdict": "keep",
+      "children": []
+    }
+  }
+}
