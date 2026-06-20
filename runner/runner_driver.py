@@ -102,7 +102,12 @@ def _path_in_write_scope(path: str, allowed: set[str]) -> bool:
 
 
 def _normalize_mandatory_tool_name(name: str) -> str:
-    """Map contract entries (e.g. tools/anomaly.py) to dotted module form for comparison."""
+    """Map contract entries (e.g. tools/anomaly.py) to dotted module form for comparison.
+
+    Accepts: ``runner.tools.X``, ``runner/tools/X.py``, ``tools/X.py``,
+    bare ``X`` (treated as ``runner.tools.X``), or any slash-form ``a/b/c``
+    (converted to ``a.b.c``). Empty strings return ``""``.
+    """
     n = name.strip()
     if not n:
         return ""
@@ -119,6 +124,12 @@ def _normalize_mandatory_tool_name(name: str) -> str:
         return "runner.tools." + rest
     if "/" in n:
         return n.replace("/", ".")
+    # Bare names (e.g. "anomaly") are interpreted as runner.tools.<name>.
+    # This avoids `python -m anomaly` ModuleNotFoundError when an agent or
+    # contract author writes the short form. If the name already contains a
+    # dot (e.g. "package.module"), pass it through unchanged.
+    if "." not in n:
+        return "runner.tools." + n
     return n
 
 
@@ -424,13 +435,19 @@ def _tree_needs_rebuild(tree_path: Path) -> bool:
 
 
 def _results_has_data_rows(results_path: Path) -> bool:
-    """True if results.tsv has at least one data row (more than just the header)."""
+    """True if results.tsv has at least one non-blank data row past the header.
+
+    Tolerates stray blank lines between the header and the first data row.
+    """
     if not results_path.exists():
         return False
     try:
         with open(results_path, "r") as f:
             f.readline()  # header
-            return bool(f.readline().strip())
+            for line in f:
+                if line.strip():
+                    return True
+            return False
     except OSError:
         return False
 
@@ -676,19 +693,21 @@ def _verify_reviewer_artifacts(
     review_path = camp / "state" / "REVIEW.md"
     register_path = camp / "state" / "ASSUMPTION_REGISTER.md"
 
+    # Round-N heading regex: the heading must be followed by a non-digit so
+    # `## Round 1` doesn't match `## Round 10`. Anchored to start-of-line in
+    # multiline mode, allowing trailing space or em-dash separator.
+    round_re = re.compile(rf"^## Round {new_round}(?!\d)", re.MULTILINE)
+    # ASSUMPTION_REGISTER entries: `### A-N-<seq>` where N must be exact.
+    register_re = re.compile(rf"^### A-{new_round}-\d+", re.MULTILINE)
+
     failed: list[str] = []
 
     journal_mtime = _file_mtime_iso(journal_path)
     journal_text = journal_path.read_text() if journal_path.exists() else ""
-    journal_has_round = (
-        f"## Round {new_round}" in journal_text
-        or journal_text.find(f"## Round {new_round}\n") != -1
-        or journal_text.find(f"## Round {new_round} ") != -1
-    )
     journal_ok = (
         journal_mtime is not None
         and journal_mtime >= round_started_at
-        and journal_has_round
+        and bool(round_re.search(journal_text))
     )
     if not journal_ok:
         failed.append(f"CAMPAIGN_JOURNAL.md missing 'Round {new_round}' entry since {round_started_at}")
@@ -697,11 +716,10 @@ def _verify_reviewer_artifacts(
     review_text = review_path.read_text() if review_path.exists() else ""
     # REVIEW.md frontmatter is updated by the driver itself (regex), so a fresh
     # mtime alone is not sufficient. Require a Round-N heading in the body.
-    review_has_round = f"## Round {new_round}" in review_text
     review_ok = (
         review_mtime is not None
         and review_mtime >= round_started_at
-        and review_has_round
+        and bool(round_re.search(review_text))
     )
     if not review_ok:
         failed.append(f"REVIEW.md missing 'Round {new_round}' body block since {round_started_at}")
@@ -709,11 +727,10 @@ def _verify_reviewer_artifacts(
     if verdict == "keep":
         register_mtime = _file_mtime_iso(register_path)
         register_text = register_path.read_text() if register_path.exists() else ""
-        register_has_entry = f"### A-{new_round}-" in register_text
         register_ok = (
             register_mtime is not None
             and register_mtime >= round_started_at
-            and register_has_entry
+            and bool(register_re.search(register_text))
         )
         if not register_ok:
             failed.append(
@@ -740,7 +757,12 @@ _HISTORIAN_REQUIRED_SECTIONS = (
     "## 3. Assumption Audit",
     "## 4. Bottleneck Diagnosis",
 )
-_HISTORIAN_PLACEHOLDER_RE = re.compile(r"^\s*(TBD|TODO|N/A|x|xxx|...)\s*$", re.IGNORECASE)
+# Match exact placeholder strings only — `...` is escaped to a literal ellipsis,
+# not three regex wildcards. Length floor below catches generic short content;
+# this regex catches the named placeholder tokens.
+_HISTORIAN_PLACEHOLDER_RE = re.compile(
+    r"^\s*(TBD|TODO|N/A|xxx|\.\.\.)\s*$", re.IGNORECASE
+)
 
 
 def _verify_strategy_memo(

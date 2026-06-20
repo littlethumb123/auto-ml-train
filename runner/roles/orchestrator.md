@@ -180,9 +180,14 @@ If `helpers_wired == false`: log the unwired helpers for the Reviewer.
    This order is mandatory per the Reviewer spec.
 3. Perform the Reviewer's work:
    - Phase 1: independent assessment (read code + run.log + tool outputs BEFORE seeing plan)
+     — **mandatory tools must run via the receipt-emitting wrapper** (see §2.4a below).
    - Phase 2: plan comparison (read `state/NEXT_EXPERIMENT.md` only after Phase 1)
    - Phase 3: verdict and state updates (REVIEW.md, CAMPAIGN_JOURNAL.md, DEAD_ENDS.md,
-     ASSUMPTION_REGISTER.md, NOTEBOOK.md)
+     ASSUMPTION_REGISTER.md, NOTEBOOK.md). The driver enforces (F2) that the
+     CAMPAIGN_JOURNAL Round-N entry, the REVIEW.md Round-N body block, and
+     (on `keep`) a new ASSUMPTION_REGISTER `### A-N-1` entry are appended
+     before `review-finalize` is called — silent skip causes the verdict
+     to be downgraded to `malformed`.
 4. Determine verdict: `keep`, `discard`, `anomaly`, `crash`, or `malformed`
 
 5. Parse metrics from run.log:
@@ -195,6 +200,25 @@ metrics = parse_metrics_from_log(Path('<CAMPAIGN_DIR>/run.log'))
 print(json.dumps(metrics))
 "
 ```
+
+### 2.4a — Mandatory tools must run via the receipt wrapper (F3)
+
+Every tool listed in `EVAL_PROTOCOL.mandatory_tools` MUST be invoked through
+the wrapper so a `tool_run` event is recorded in `driver_events.jsonl`.
+`review-finalize` cross-checks `tools_ran` against these receipts since
+`state.round_started_at` (stamped by `plan-check`); a claim with no receipt
+is treated as the tool having NOT run, and the verdict is downgraded to
+`malformed`.
+
+```bash
+bash runner/run_round.sh tool-run \
+    --campaign-dir <CAMPAIGN_DIR> \
+    --name runner.tools.anomaly \
+    --args_json '["--input","<CAMPAIGN_DIR>/run.log","--metric","val_pr_auc"]'
+```
+
+Repeat per mandatory tool. Direct `python -m runner.tools.X` invocations do
+not emit receipts and will trip the F3 cross-check.
 
 5b. **Reproduce-check (GAP 10):** If prediction artifacts exist, verify metrics match:
 ```bash

@@ -31,19 +31,54 @@ You do not edit `train.py`, contracts, or helpers.
 2. Check the full Reviewer rejection list (see spec §8.3 items 1–8). If ANY triggers,
    verdict = `malformed` and STOP here (skip steps 3–10; still do steps 16–18).
 3. Parse metrics from `run.log`. If parse fails: verdict = `crash`.
-4. Run `tools/anomaly` on the latest result. If fires: verdict = `anomaly` → prepare to emit **C1**.
-5. For each tool named mandatory in `EVAL_PROTOCOL.md`: run it and record output.
+4. Run `tools/anomaly` on the latest result via the receipt-emitting wrapper
+   (see Step 5a). If fires: verdict = `anomaly` → prepare to emit **C1**.
+5. For each tool named mandatory in `EVAL_PROTOCOL.md`: run it via the
+   receipt-emitting wrapper described in **Step 5a** and record output.
+
+### Step 5a — Mandatory tools must run via the receipt wrapper (F3)
+
+Every mandatory tool MUST be invoked through `bash runner/run_round.sh tool-run`
+or `runner.tools.run.execute(...)`. The wrapper appends a `tool_run` event
+to `state/driver_events.jsonl` containing start/end timestamps and exit code,
+which `review-finalize` cross-checks against `tools_ran`. **Calling a tool
+directly with `python -m runner.tools.X` does NOT emit a receipt and the
+`keep` verdict will be downgraded to `malformed` even if the tool completed
+successfully.**
+
+Canonical invocation:
+
+```bash
+bash runner/run_round.sh tool-run \
+    --campaign-dir <CAMPAIGN_DIR> \
+    --name runner.tools.anomaly \
+    --args_json '["--input","run.log","--metric","val_pr_auc"]'
+```
+
+Or via Python (when called inside a Python helper):
+
+```python
+from runner.tools.run import execute
+rc = execute(
+    name="runner.tools.anomaly",
+    args=["--input", "run.log", "--metric", "val_pr_auc"],
+    campaign_dir="<CAMPAIGN_DIR>",
+)
+```
+
+Use the wrapper for `runner.tools.anomaly`, `runner.tools.bootstrap_ci`,
+`runner.tools.error_analysis`, and any other tool listed in
+`EVAL_PROTOCOL.mandatory_tools` or `EVAL_PROTOCOL.verification_tools`.
 
 ### Step 5b — Error analysis (optional but recommended)
 
-If `artifacts/y_val_true.npy` and `artifacts/y_val_prob.npy` exist, and the feature DataFrame is available:
+If `artifacts/y_val_true.npy` and `artifacts/y_val_prob.npy` exist, and the feature DataFrame is available, invoke via the wrapper (Step 5a):
 
 ```bash
-python -m runner.tools.error_analysis \
-    --y-true artifacts/y_val_true.npy \
-    --y-prob artifacts/y_val_prob.npy \
-    --features artifacts/X_val.csv \
-    --threshold 0.5
+bash runner/run_round.sh tool-run \
+    --campaign-dir <CAMPAIGN_DIR> \
+    --name runner.tools.error_analysis \
+    --args_json '["--y-true","artifacts/y_val_true.npy","--y-prob","artifacts/y_val_prob.npy","--features","artifacts/X_val.csv","--threshold","0.5"]'
 ```
 
 Record the output in REVIEW.md §Independent Assessment under "Error Analysis":

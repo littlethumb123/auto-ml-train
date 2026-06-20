@@ -681,6 +681,57 @@ def test_review_finalize_rejects_keep_when_assumption_register_count_unchanged(c
     assert res["verdict"] == "malformed"
 
 
+def test_f2_round_heading_does_not_substring_match(campaign: Path):
+    """F2 hardening: '## Round 1' must not be satisfied by '## Round 10' content."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    _anchor_round_with_receipts(
+        campaign, ["tools/anomaly.py"], include_reviewer_writes=False
+    )
+    # Pre-seed CAMPAIGN_JOURNAL with a Round 10 entry (from a wiped / resumed
+    # campaign or a copied template). state.round=0 so new_round=1.
+    (campaign / "state" / "CAMPAIGN_JOURNAL.md").write_text(
+        "---\nschema_version: 1\n---\n\n## Round 10 — 2026-05-01\n\n**Verdict:** keep\n"
+    )
+    res = runner_driver.review_finalize(
+        verdict="keep", commit="abc",
+        metrics={"val_pr_auc": 0.80, "lift_at_10": 5.0, "macro_f1": 0.8, "val_f1": 0.7},
+        action_type="A_hp", hypothesis="h", description="d",
+        model_family="lightgbm", n_features=10,
+        campaign_dir=str(campaign),
+        tools_ran=["tools/anomaly.py"],
+    )
+    assert res["verdict"] == "malformed"  # Round 10 must NOT satisfy "Round 1"
+
+
+def test_normalize_bare_tool_name_prepends_runner_tools(campaign: Path):
+    """F3 hardening: bare names normalize to runner.tools.<name>, not python -m <name>."""
+    assert runner_driver._normalize_mandatory_tool_name("anomaly") == "runner.tools.anomaly"
+    assert runner_driver._normalize_mandatory_tool_name("bootstrap_ci") == "runner.tools.bootstrap_ci"
+    # Already-dotted names pass through (e.g. third-party tools).
+    assert runner_driver._normalize_mandatory_tool_name("pkg.mod") == "pkg.mod"
+
+
+def test_results_has_data_rows_tolerates_blank_lines(campaign: Path):
+    """F5 hardening: stray blank lines between header and data still count as having data."""
+    runner_driver.init_campaign(campaign_dir=str(campaign))
+    results = campaign / "state" / "results.tsv"
+    header = results.read_text().rstrip("\n")
+    results.write_text(header + "\n\n\n" + "abc\t0.5\t0\t0\t0\tkeep\t1\tlgb\tA_hp\th\td\t0\t0\t0\t0\t0\n")
+    assert runner_driver._results_has_data_rows(results) is True
+
+
+def test_historian_placeholder_regex_does_not_match_arbitrary_3char_text(campaign: Path):
+    """F1 hardening: '...' in the placeholder regex is escaped, not a wildcard."""
+    # Three arbitrary chars must NOT match the placeholder regex.
+    assert not runner_driver._HISTORIAN_PLACEHOLDER_RE.match("abc")
+    assert not runner_driver._HISTORIAN_PLACEHOLDER_RE.match("foo")
+    # Literal ellipsis still matches.
+    assert runner_driver._HISTORIAN_PLACEHOLDER_RE.match("...")
+    # Named placeholders still match.
+    assert runner_driver._HISTORIAN_PLACEHOLDER_RE.match("TBD")
+    assert runner_driver._HISTORIAN_PLACEHOLDER_RE.match("n/a")
+
+
 def test_review_finalize_accepts_keep_when_all_artifacts_appended(campaign: Path):
     """F2: full happy path — anchor + receipts + journal + review + assumption → keep stays."""
     runner_driver.init_campaign(campaign_dir=str(campaign))
