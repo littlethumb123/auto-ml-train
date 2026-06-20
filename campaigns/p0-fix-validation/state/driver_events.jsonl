@@ -1,0 +1,5 @@
+{"action_type":"A_model","event":"plan_check","status":"ok","ts":"2026-06-20T13:15:40Z","warnings":[]}
+{"args_hash":"22ef93f8bbe34772","campaign_dir":"campaigns/p0-fix-validation","end_ts":"2026-06-20T13:23:23Z","event":"tool_run","exit_code":2,"name":"runner.tools.anomaly","round":0,"start_ts":"2026-06-20T13:23:23Z","ts":"2026-06-20T13:23:23Z"}
+{"args_hash":"d5de81b0fda1f2df","campaign_dir":"campaigns/p0-fix-validation","end_ts":"2026-06-20T13:23:37Z","event":"tool_run","exit_code":0,"name":"runner.tools.anomaly","round":0,"start_ts":"2026-06-20T13:23:37Z","ts":"2026-06-20T13:23:37Z"}
+{"args_hash":"1fef469331739a2a","campaign_dir":"campaigns/p0-fix-validation","end_ts":"2026-06-20T13:24:39Z","event":"tool_run","exit_code":0,"name":"runner.tools.bootstrap_ci","round":0,"start_ts":"2026-06-20T13:24:38Z","ts":"2026-06-20T13:24:39Z"}
+{"commit":"310ea7ca120c05c703947ae4d5476c41aa542f11","event":"review_finalize","halt_loop":false,"mandatory_gate_reason":null,"noise_floor_override":null,"should_rollback":false,"ts":"2026-06-20T13:27:28Z","verdict":"anomaly"}

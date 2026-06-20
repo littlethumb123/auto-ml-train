@@ -1,0 +1,1 @@
+Campaign tokens — total: 5K | avg/round: 5K | historian avg: 0 | top cost: r1 (A_model, 5K) | trend: stable (last 1 rounds avg=5K)

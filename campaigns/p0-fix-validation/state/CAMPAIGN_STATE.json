@@ -1,0 +1,28 @@
+{
+  "$schema_version": 2,
+  "best_so_far": {
+    "commit": null,
+    "primary_metric": null
+  },
+  "budget_total": 5,
+  "budget_used": 1,
+  "campaign_id": "p0-fix-validation",
+  "consecutive_discards": 0,
+  "created_at": "2026-06-20T13:12:24Z",
+  "exp_id_counter": 1,
+  "historian_interval": 4,
+  "historian_trigger_pending": false,
+  "last_commit": "310ea7ca120c05c703947ae4d5476c41aa542f11",
+  "last_historian_round": null,
+  "last_verdict": "anomaly",
+  "round": 1,
+  "round_started_at": "2026-06-20T13:15:40Z",
+  "rounds_since_last_historian": 1,
+  "total_tokens": {
+    "executor": 547,
+    "historian": 0,
+    "planner": 3153,
+    "reviewer": 906
+  },
+  "updated_at": "2026-06-20T13:27:28Z"
+}

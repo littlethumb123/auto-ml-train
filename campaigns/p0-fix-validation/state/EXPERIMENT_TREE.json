@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "nodes": {
+    "ROOT": {
+      "commit": "ROOT",
+      "parent_commit": null,
+      "strategy_class": null,
+      "metric_value": null,
+      "verdict": null,
+      "children": [
+        "310ea7ca120c05c703947ae4d5476c41aa542f11"
+      ]
+    },
+    "310ea7ca120c05c703947ae4d5476c41aa542f11": {
+      "commit": "310ea7ca120c05c703947ae4d5476c41aa542f11",
+      "parent_commit": "ROOT",
+      "strategy_class": "A_model",
+      "metric_value": 0.059277,
+      "verdict": "anomaly",
+      "children": []
+    }
+  }
+}
