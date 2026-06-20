@@ -37,7 +37,7 @@ if hasattr(signal, "SIGALRM"):
     signal.alarm(HARD_TIMEOUT)
 
 # ─── Experiment config — Executor edits ONLY this section ───────────────────
-DESCRIPTION = "A_imbalance: LightGBM n_est=600, lr=0.02, num_leaves=63, scale_pos_weight=computed (~578)"
+DESCRIPTION = "A_model: LightGBM n_est=600, lr=0.02, num_leaves=63, scale_pos_weight=computed — PRIORS.md baseline"
 # ────────────────────────────────────────────────────────────────────────────
 
 t_start = time.time()
