@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "nodes": {
+    "ROOT": {
+      "commit": "ROOT",
+      "parent_commit": null,
+      "strategy_class": null,
+      "metric_value": null,
+      "verdict": null,
+      "children": []
+    }
+  }
+}
