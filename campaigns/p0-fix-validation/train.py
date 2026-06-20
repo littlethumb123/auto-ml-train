@@ -1,5 +1,5 @@
 """
-Auto-train experiment script for campaign: smoke-test-creditcard
+Auto-train experiment script for campaign: p0-fix-validation
 Single-file ML pipeline — the ONLY file the Executor edits.
 
 Data: data/creditcard.csv (284,807 rows x 31 cols, target: Class)
@@ -37,7 +37,7 @@ if hasattr(signal, "SIGALRM"):
     signal.alarm(HARD_TIMEOUT)
 
 # ─── Experiment config — Executor edits ONLY this section ───────────────────
-DESCRIPTION = "A_imbalance: LightGBM n_est=600, lr=0.02, num_leaves=63, scale_pos_weight=computed (~578)"
+DESCRIPTION = "A_model: LightGBM balanced baseline, n_est=500, lr=0.05, num_leaves=31, scale_pos_weight=computed"
 # ────────────────────────────────────────────────────────────────────────────
 
 t_start = time.time()
@@ -68,23 +68,19 @@ scale_pw = round(n_neg / n_pos, 2)
 
 print(f"Train: {len(X_train):,} | Val: {len(X_val):,} | Test: {len(X_test):,}")
 print(f"Fraud rate — train: {y_train.mean():.4f} | val: {y_val.mean():.4f}")
-print(f"scale_pos_weight (computed, not used): {scale_pw}")
+print(f"scale_pos_weight (computed): {scale_pw}")
 
 t_train_start = time.time()
 
 import lightgbm as lgb
 
 model = lgb.LGBMClassifier(
-    n_estimators=600,
-    learning_rate=0.02,
-    num_leaves=63,
+    n_estimators=500,
+    learning_rate=0.05,
+    num_leaves=31,
     scale_pos_weight=scale_pw,
-    subsample=0.8,
-    subsample_freq=1,
-    colsample_bytree=0.8,
-    min_child_samples=5,
     random_state=RANDOM_SEED,
-    n_jobs=4,
+    n_jobs=-1,
     verbose=-1,
 )
 model.fit(X_train, y_train)
